@@ -602,14 +602,14 @@ Cal_StockAmt <- function(sol_list, stock_list, stock_map, deck_map){
       #perform if not null
       if(length(curList)>0){
         #get required amount
-        cur_reqAmt <- as.numeric(curList$AmtHi[curList$DrugConc==max(curList$DrugConc)])
+        cur_reqAmt <- as.numeric(curList$AmtHi[as.numeric(curList$DrugConc)==max(as.numeric(curList$DrugConc))])
         
         #add to amount list
         amt_list[names(stock_list)==curList$DrugType[1]] <- amt_list[names(stock_list)==curList$DrugType[1]] + cur_reqAmt
       }
     }
   }
-  amt_list <- amt_list
+  
   #make output
   stock_list <- cbind.data.frame(names(stock_list), unlist(stock_list), amt_list)
   colnames(stock_list) <- c('Name', 'Conc', 'RequiredAmount')
