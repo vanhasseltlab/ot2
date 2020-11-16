@@ -88,6 +88,7 @@ GetPlateMap <- function(file_name){
   return(fin_map)
 }
 CreateSolList <- function(plate_map, total_vol_well, inoc_vol, stock_list){
+  plate_map$solID <- sapply(plate_map$solID, function(x) gsub(",", ".", x))
   sol_list <- unique(plate_map$solID)
   sol_list <- sol_list[!grepl("FILL", sol_list)]
   
@@ -138,6 +139,7 @@ CalculateDilVolume <- function(sol_list, total_vol_well, inoc_vol, stock_list){
   #iterate through all drug and solvent types
   solvents <- unique(sol_list$Solvent)
   drugs <- unique(sol_list$DrugType)
+
   for(i in c(1:length(solvents))){
     for(j in c(1:length(drugs))){
       #subset
@@ -901,9 +903,9 @@ shinyServer(function(input, output) {
   outputDir_usrGuide <- "/srv/shiny-server/files/Output_UsrGuide"
   inputTemplate <- "/srv/shiny-server/MIC_Uploader_vx5/MIC_InputTemplate.xlsx"  
   
-  #outputDir_cmdline <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\FinVersion\\StudentInput 20201116"
-  #outputDir_usrGuide <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\FinVersion\\StudentInput 20201116"
-  #inputTemplate <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\FinVersion\\StudentInput 20201116\\MIC_InputTemplate.xlsx"  
+  #outputDir_cmdline <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\#OT2_Main\\SingleplateMIC"
+  #outputDir_usrGuide <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\#OT2_Main\\SingleplateMIC"
+  #inputTemplate <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\FinVersion\\StudentInput 20201116\\SingleplateMIC\\MIC_InputTemplate.xlsx"  
   
   #Obtain names---------
   new_name <- reactive({
