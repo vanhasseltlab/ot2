@@ -222,7 +222,7 @@ CreateDilMap <- function(sol_list, deckMap){
   
   #iterate through all items in solution list
   for(i in c(1:length(sol_list[,1]))){
-    if(sol_list$solAmt[i]<=1200){
+    if(as.numeric(sol_list$solAmt[i])<=1300){
       #check if the main rack is full
       if(small_coords[1]<5){
         #if the main rack is still available
@@ -418,6 +418,11 @@ Cmd_SerialDil <- function(cmd_list, sol_list, dil_map){
 Cmd_DrugSolDist <- function(cmd_list, dil_map, plate_map, deck_map, well_info){
   tipID <- max(as.numeric(cmd_list[,7]), na.rm=T) + 1
   transV <- well_info[1,2] - well_info[2,2]
+  
+  #standardize decimal separator
+  plate_map$solID <- sapply(plate_map$solID, function(x) gsub(",", ".", x))
+  dil_map$Fill <- sapply(dil_map$Fill, function(x) gsub(",", ".", x))
+  
   #iterate through all items in the dilution map
   for(i in c(1:length(dil_map[,1]))){
     target_wells <- plate_map$Well[plate_map$solID==dil_map$Fill[i]]
@@ -899,13 +904,13 @@ main <- function(file_path, file_name){
 #SERVER MAIN------------
 shinyServer(function(input, output) {
   #defining directory-------
-  outputDir_cmdline <- "/srv/shiny-server/files/Output_CmdList"
-  outputDir_usrGuide <- "/srv/shiny-server/files/Output_UsrGuide"
-  inputTemplate <- "/srv/shiny-server/MIC_Uploader_vx5/MIC_InputTemplate.xlsx"  
+  #outputDir_cmdline <- "/srv/shiny-server/files/Output_CmdList"
+  #outputDir_usrGuide <- "/srv/shiny-server/files/Output_UsrGuide"
+  #inputTemplate <- "/srv/shiny-server/MIC_Uploader_vx5/MIC_InputTemplate.xlsx"  
   
-  #outputDir_cmdline <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\#OT2_Main\\SingleplateMIC"
-  #outputDir_usrGuide <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\#OT2_Main\\SingleplateMIC"
-  #inputTemplate <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\FinVersion\\StudentInput 20201116\\SingleplateMIC\\MIC_InputTemplate.xlsx"  
+  outputDir_cmdline <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\#OT2_Main\\SingleplateMIC"
+  outputDir_usrGuide <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\#OT2_Main\\SingleplateMIC"
+  inputTemplate <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\FinVersion\\StudentInput 20201116\\SingleplateMIC\\MIC_InputTemplate.xlsx"  
   
   #Obtain names---------
   new_name <- reactive({
