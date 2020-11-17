@@ -610,7 +610,7 @@ Cal_StockAmt <- function(sol_list, stock_list, stock_map, deck_map){
         cur_reqAmt <- as.numeric(curList$AmtHi[as.numeric(curList$DrugConc)==max(as.numeric(curList$DrugConc))])
         
         #add to amount list
-        amt_list[names(stock_list)==curList$DrugType[1]] <- amt_list[names(stock_list)==curList$DrugType[1]] + cur_reqAmt
+        amt_list[names(stock_list)==curList$DrugType[1]] <- as.numeric(amt_list[names(stock_list)==curList$DrugType[1]]) + cur_reqAmt
       }
     }
   }
@@ -621,11 +621,11 @@ Cal_StockAmt <- function(sol_list, stock_list, stock_map, deck_map){
   rownames(stock_list) <- c()
   
   #add excess
-  stock_list$RequiredAmount <- stock_list$RequiredAmount + 150
+  stock_list$RequiredAmount <- as.numeric(stock_list$RequiredAmount) + 150
   #place minimum
-  stock_list$RequiredAmount[stock_list$RequiredAmount<300] <- 300
+  stock_list$RequiredAmount[as.numeric(stock_list$RequiredAmount)<300] <- 300
   #round up
-  stock_list$RequiredAmount <- ceiling(stock_list$RequiredAmount/100)*100
+  stock_list$RequiredAmount <- ceiling(as.numeric(stock_list$RequiredAmount)/100)*100
   
   #get well locations
   well_loc <- stock_map[stock_map[,2]==stock_list$Name,1]
