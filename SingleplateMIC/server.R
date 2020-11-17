@@ -1,6 +1,6 @@
 library(shiny)
 library(xlsx)
-options(stringsAsFactor=F)
+
 options(stringsAsFactors = F)
 #FUNCTIONS LIBRARY------------
 GetStockList <- function(file_name){
@@ -604,6 +604,7 @@ Cal_StockAmt <- function(sol_list, stock_list, stock_map, deck_map){
     for(j in c(1:length(solvents))){
       #subset
       curList <- subset(sol_list, DrugType==drugs[i] & Solvent==solvents[j])
+       <<- curList
       #perform if not null
       if(length(curList)>0){
         #get required amount
@@ -906,11 +907,11 @@ shinyServer(function(input, output) {
   #defining directory-------
   outputDir_cmdline <- "/srv/shiny-server/files/Output_CmdList"
   outputDir_usrGuide <- "/srv/shiny-server/files/Output_UsrGuide"
-  inputTemplate <- "/srv/shiny-server/ot2/SingleplateMIC/MIC_InputTemplate.xlsx"  
+  nputTemplate <- "/srv/shiny-server/ot2/SingleplateMIC/MIC_InputTemplate.xlsx"  
   
   #outputDir_cmdline <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\#OT2_Main\\SingleplateMIC"
   #outputDir_usrGuide <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\#OT2_Main\\SingleplateMIC"
-  #inputTemplate <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\FinVersion\\StudentInput 20201116\\SingleplateMIC\\MIC_InputTemplate.xlsx"  
+  #inputTemplate <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\#OT2_Main\\SingleplateMIC\\MIC_InputTemplate.xlsx"  
   
   #Obtain names---------
   new_name <- reactive({
