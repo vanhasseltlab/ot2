@@ -1,0 +1,13 @@
+1. Fix the stuffs in the lab
+2. Error messages
+3. Streamline errors
+4. Combine multi + single
+
+
+GitHub Commands 
+A) PUSH
+git push -u origin master
+
+B) PULL
+git pull https://github.com/vanhasseltlab/ot2.git
+
