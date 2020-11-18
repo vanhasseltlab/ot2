@@ -9,4 +9,5 @@ A) PUSH
 git push -u origin master
 
 B) PULL
-git pull https://github.com/vanhasseltlab/ot2.git
+#git pull https://github.com/vanhasseltlab/ot2.git
+git pull origin master
