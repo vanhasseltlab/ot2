@@ -14,7 +14,9 @@ shinyUI(
       textOutput('tex'),
       actionButton("do", "Confirm uploaded file and save"),
       uiOutput('downloadData'),
-      uiOutput('downloadData2')
+      uiOutput('downloadData2'),
+      tags$a(href="http://132.229.100.197:2222/SingleplateMIC/",
+             "Link to Single-plate MIC")
     ),
     mainPanel(
       tableOutput('tab')

@@ -3,6 +3,7 @@ library(shiny)
 shinyUI(
   pageWithSidebar(
     headerPanel("MIC Test - OT2-Commander"),
+    
     sidebarPanel(
       fileInput("file", "Upload Plate Map", accept=".xlsx"),
       downloadButton("downloadTemplate", label = "Template Input"),
@@ -14,7 +15,9 @@ shinyUI(
       textOutput('tex'),
       actionButton("do", "Confirm uploaded file and save"),
       uiOutput('downloadData'),
-      uiOutput('downloadData2')
+      uiOutput('downloadData2'),
+      tags$a(href="http://132.229.100.197:2222/MultiplateMIC/",
+             "Link to Multiplate MIC")
     ),
     mainPanel(
       tableOutput('tab')
