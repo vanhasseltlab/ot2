@@ -16,7 +16,7 @@ shinyUI(
       actionButton("do", "Confirm uploaded file and save"),
       uiOutput('downloadData'),
       uiOutput('downloadData2'),
-      tags$a(href="http://132.229.100.197:2222/MultiplateMIC/",
+      tags$a(href="http://132.229.100.197:2222/ot2/MultiplateMIC/",
              "Link to Multiplate MIC")
     ),
     mainPanel(
