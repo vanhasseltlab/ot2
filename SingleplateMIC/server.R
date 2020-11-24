@@ -144,6 +144,7 @@ CalculateDilVolume <- function(sol_list, total_vol_well, inoc_vol, stock_list){
   
   for(i in c(1:length(solvents))){
     for(j in c(1:length(drugs))){
+      
       #subset the current drug type
       curList <- subset(sol_list, DrugType==drugs[j] & Solvent==solvents[i])
       #perform following actions only if not null
@@ -158,38 +159,56 @@ CalculateDilVolume <- function(sol_list, total_vol_well, inoc_vol, stock_list){
           
           #get the current dilution factor
           if(q == length(curList[,1])){
-            curDilFac <- curList$DrugConc[q]/stock_list[curList$DrugType[q]]
+            conc_hi <- stock_list[curList$DrugType[q]]
+            curDilFac <- conc_hi/curList$DrugConc[q]
           }else{
-            curDilFac <- curList$DrugConc[q]/curList$DrugConc[q+1]
+            conc_hi <- curList$DrugConc[q+1]
+            curDilFac <- conc_hi/curList$DrugConc[q]
           }
-          
+      ####################################################################
           #check if the current dilution factor is more than 10
           if(curList$DrugConc[q] > 0 & curDilFac > 10){
+            
             ## further dilution required
+            iterator <- T
             #iterate while dilution factor higher than 10
             while(curDilFac > 10){
-              #get the item list
-              nex_newCurList <- curList[q,]
-              nex_newCurList$DrugConc <- nex_newCurList$DrugConc/10
+              if(iterator){
+                nex_newCurList <- curList[q,]
+                iterator <- F
+              }
+              
+              #update the item list
+              nex_newCurList$DrugConc <- conc_hi/10
               nex_newCurList$Occurence <- 0
               nex_newCurList$SolID <- paste(nex_newCurList$DrugType, nex_newCurList$DrugConc, nex_newCurList$Solvent,
                                             sep=' ')
+              
               #concatenate dilution to list
               new_curList <- rbind.data.frame(new_curList, nex_newCurList)
               
               #re-calculate current dilution factor
+              conc_hi <- nex_newCurList$DrugConc
               if(q == length(curList[,1])){
-                curDilFac <- nex_newCurList$DrugConc/stock_list[curList$DrugType[q]]
+                curDilFac <- conc_hi/nex_newCurList$DrugConc
               }else{
-                curDilFac <- nex_newCurList$DrugConc/curList$DrugConc[q+1]
+                curDilFac <- conc_hi/nex_newCurList$DrugConc
               }
+              
             }
+            
           }
         }
+        
         curList <- new_curList
+        curList$solAmt <- as.numeric(curList$solAmt)
+        curList$DrugConc <- as.numeric(curList$DrugConc)
+        #print(curList)
+        #####################################################################
         #check amount needed from above
         needed_from_above <- c()
         for(m in c(1:length(curList[,1]))){
+          
           if(m<length(curList[,1])){ 
             #usual dilution from pre-diluted stock
             amt_needed <- curList$solAmt[m]*curList$DrugConc[m]/curList$DrugConc[m+1]
@@ -211,6 +230,7 @@ CalculateDilVolume <- function(sol_list, total_vol_well, inoc_vol, stock_list){
             #calculate amount for initial dilution
             amt_needed <- curList$solAmt[m]*curList$DrugConc[m]/stock_list[curList$DrugType[m]]
             #check if it is lower than the minimum pipette volume
+            
             if(amt_needed < 30 & amt_needed > 0){
               #set amount from above to 30
               amt_needed <- amt_needed
@@ -943,13 +963,13 @@ main <- function(file_path, file_name){
 #SERVER MAIN------------
 shinyServer(function(input, output) {
   #defining directory-------
-  outputDir_cmdline <- "/srv/shiny-server/files/Output_CmdList"
-  outputDir_usrGuide <- "/srv/shiny-server/files/Output_UsrGuide"
-  inputTemplate <- "/srv/shiny-server/ot2/SingleplateMIC/MIC_InputTemplate.xlsx"  
+  #outputDir_cmdline <- "/srv/shiny-server/files/Output_CmdList"
+  #outputDir_usrGuide <- "/srv/shiny-server/files/Output_UsrGuide"
+  #inputTemplate <- "/srv/shiny-server/ot2/SingleplateMIC/MIC_InputTemplate.xlsx"  
   
-  #outputDir_cmdline <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\#OT2_Main\\SingleplateMIC"
-  #outputDir_usrGuide <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\#OT2_Main\\SingleplateMIC"
-  #inputTemplate <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\#OT2_Main\\SingleplateMIC\\MIC_InputTemplate.xlsx"  
+  outputDir_cmdline <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\#OT2_Main\\SingleplateMIC"
+  outputDir_usrGuide <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\#OT2_Main\\SingleplateMIC"
+  inputTemplate <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\#OT2_Main\\SingleplateMIC\\MIC_InputTemplate.xlsx"  
   
   #Obtain names---------
   new_name <- reactive({
