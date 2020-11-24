@@ -152,6 +152,7 @@ CalculateDilVolume <- function(sol_list, total_vol_well, inoc_vol, stock_list){
         #order according to concentration
         curList <- curList[order(as.numeric(curList$DrugConc)),]
         
+        ####################################################################
         #add items if additional pre-dilutions is required
         new_curList <- c()
         for(q in c(1:length(curList[,1]))){
@@ -165,7 +166,7 @@ CalculateDilVolume <- function(sol_list, total_vol_well, inoc_vol, stock_list){
             conc_hi <- curList$DrugConc[q+1]
             curDilFac <- conc_hi/curList$DrugConc[q]
           }
-      ####################################################################
+      
           #check if the current dilution factor is more than 10
           if(curList$DrugConc[q] > 0 & curDilFac > 10){
             
@@ -183,6 +184,7 @@ CalculateDilVolume <- function(sol_list, total_vol_well, inoc_vol, stock_list){
               nex_newCurList$Occurence <- 0
               nex_newCurList$SolID <- paste(nex_newCurList$DrugType, nex_newCurList$DrugConc, nex_newCurList$Solvent,
                                             sep=' ')
+              nex_newCurList$solAmt <- 150 
               
               #concatenate dilution to list
               new_curList <- rbind.data.frame(new_curList, nex_newCurList)
@@ -190,21 +192,22 @@ CalculateDilVolume <- function(sol_list, total_vol_well, inoc_vol, stock_list){
               #re-calculate current dilution factor
               conc_hi <- nex_newCurList$DrugConc
               if(q == length(curList[,1])){
-                curDilFac <- conc_hi/nex_newCurList$DrugConc
+                curDilFac <- conc_hi/curList$DrugConc[q]
               }else{
-                curDilFac <- conc_hi/nex_newCurList$DrugConc
+                curDilFac <- conc_hi/curList$DrugConc[q]
               }
               
             }
-            
           }
         }
         
         curList <- new_curList
         curList$solAmt <- as.numeric(curList$solAmt)
         curList$DrugConc <- as.numeric(curList$DrugConc)
-        #print(curList)
+        curList <- curList[order(curList$DrugConc),]
+        
         #####################################################################
+        
         #check amount needed from above
         needed_from_above <- c()
         for(m in c(1:length(curList[,1]))){
@@ -216,8 +219,6 @@ CalculateDilVolume <- function(sol_list, total_vol_well, inoc_vol, stock_list){
             #check if it is lower than the minimum pipette volume
             if(amt_needed < 30 & amt_needed > 0){
               #set amount from above to 30
-              amt_needed <- amt_needed
-              
               curList$solAmt[m] <- curList$solAmt[m] * 30 / amt_needed
               amt_needed <- 30 
             }
@@ -226,7 +227,9 @@ CalculateDilVolume <- function(sol_list, total_vol_well, inoc_vol, stock_list){
             
             #add amount to higher concentration
             curList$solAmt[m+1] <- curList$solAmt[m+1] + amt_needed
+            
           }else{
+            
             #calculate amount for initial dilution
             amt_needed <- curList$solAmt[m]*curList$DrugConc[m]/stock_list[curList$DrugType[m]]
             #check if it is lower than the minimum pipette volume
@@ -238,7 +241,6 @@ CalculateDilVolume <- function(sol_list, total_vol_well, inoc_vol, stock_list){
               amt_needed <- 30 
             }
             
-            #initial dilution
             needed_from_above <- c(needed_from_above, amt_needed)
           }
         }
