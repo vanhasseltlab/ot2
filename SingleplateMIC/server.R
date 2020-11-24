@@ -101,6 +101,7 @@ CreateSolList <- function(plate_map, total_vol_well, inoc_vol, stock_list){
   fin_list <- c()
   parsed_names <- sapply(sol_list, function(x) strsplit(toString(x), ' ', fixed=T))
   
+  #iterate through all listed drug concentrations
   for(i in c(1:length(parsed_names))){
     nex_info <- c(parsed_names[[i]][1], #drug name
                   parsed_names[[i]][2], #concentration
@@ -140,16 +141,40 @@ CalculateDilVolume <- function(sol_list, total_vol_well, inoc_vol, stock_list){
   #iterate through all drug and solvent types
   solvents <- unique(sol_list$Solvent)
   drugs <- unique(sol_list$DrugType)
-
+  
   for(i in c(1:length(solvents))){
     for(j in c(1:length(drugs))){
-      #subset
+      #subset the current drug type
       curList <- subset(sol_list, DrugType==drugs[j] & Solvent==solvents[i])
       #perform following actions only if not null
       if(length(curList[,1])>0){
         #order according to concentration
         curList <- curList[order(as.numeric(curList$DrugConc)),]
         
+        #add items if additional pre-dilutions is required
+        new_curList <- c()
+        for(q in c(1:length(curList[,1]))){
+          new_curList <- rbind.data.frame(new_curList, curList[q,])
+          #check if the current dilution factor is more than 10
+          print((curList$DrugConc[q+1])
+          if(curList$DrugConc[q] > 0 & (curList$DrugConc[q+1]/curList$DrugConc[q]) > 10){
+            ## further dilution required
+            #iterate while dilution factor higher than 10
+            while(curList[q+1]/new_curList$DrugConc[length(new_curList[,1])] > 10){
+              #get the item list
+              nex_newCurList <- curList[q,]
+              nex_newCurList$DrugConc <- nex_newCurList$DrugConc/10
+              nex_newCurList$Occurence <- 0
+              nex_newCurList$SolID <- paste(nex_newCurList$DrugType, nex_newCurList$DrugConc, nex_newCurList$Solvent,
+                                            sep=' ')
+              #concatenate dilution list
+              new_curList <- rbind.data.frame(new_curList, nex_newCurList)
+            }
+          }
+        }
+        
+        
+        curList <- new_curList
         #check amount needed from above
         needed_from_above <- c()
         for(m in c(1:length(curList[,1]))){
@@ -831,7 +856,7 @@ main <- function(file_path, file_name){
   }
   
   #assign slots for diluted solutions
-  dilMap <- CreateDilMap(solList, deckMap)
+  dilMap <<- CreateDilMap(solList, deckMap)
   
   #inoculum
   #initiate map
