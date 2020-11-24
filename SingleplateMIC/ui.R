@@ -19,7 +19,8 @@ shinyUI(
       uiOutput('downloadData2'),
       tags$a(href="http://132.229.100.197:2222/ot2/MultiplateMIC/",
              "Link to Multiplate MIC"),
-      tags$a(href="http://132.229.100/197:2222/OldPatch/SingleplateMIC",
+      
+      tags$a(href="http://132.229.100.197:2222/OldPatch/SingleplateMIC/",
              "Link to last working uploader")
     ),
     mainPanel(
