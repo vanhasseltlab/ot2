@@ -155,25 +155,37 @@ CalculateDilVolume <- function(sol_list, total_vol_well, inoc_vol, stock_list){
         new_curList <- c()
         for(q in c(1:length(curList[,1]))){
           new_curList <- rbind.data.frame(new_curList, curList[q,])
+          
+          #get the current dilution factor
+          if(q == length(curList[,1])){
+            curDilFac <- curList$DrugConc[q]/stock_list[curList$DrugType[q]]
+          }else{
+            curDilFac <- curList$DrugConc[q]/curList$DrugConc[q+1]
+          }
+          
           #check if the current dilution factor is more than 10
-          print((curList$DrugConc[q+1])
-          if(curList$DrugConc[q] > 0 & (curList$DrugConc[q+1]/curList$DrugConc[q]) > 10){
+          if(curList$DrugConc[q] > 0 & curDilFac > 10){
             ## further dilution required
             #iterate while dilution factor higher than 10
-            while(curList[q+1]/new_curList$DrugConc[length(new_curList[,1])] > 10){
+            while(curDilFac > 10){
               #get the item list
               nex_newCurList <- curList[q,]
               nex_newCurList$DrugConc <- nex_newCurList$DrugConc/10
               nex_newCurList$Occurence <- 0
               nex_newCurList$SolID <- paste(nex_newCurList$DrugType, nex_newCurList$DrugConc, nex_newCurList$Solvent,
                                             sep=' ')
-              #concatenate dilution list
+              #concatenate dilution to list
               new_curList <- rbind.data.frame(new_curList, nex_newCurList)
+              
+              #re-calculate current dilution factor
+              if(q == length(curList[,1])){
+                curDilFac <- nex_newCurList$DrugConc/stock_list[curList$DrugType[q]]
+              }else{
+                curDilFac <- nex_newCurList$DrugConc/curList$DrugConc[q+1]
+              }
             }
           }
         }
-        
-        
         curList <- new_curList
         #check amount needed from above
         needed_from_above <- c()
