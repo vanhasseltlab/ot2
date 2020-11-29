@@ -5,7 +5,8 @@ shinyUI(
     headerPanel("MIC Test - OT2-Commander"),
     
     sidebarPanel(
-      
+      tags$a(href="http://132.229.100.197:2222/ot2/MultiplateMIC/",
+             "Link to Multiplate MIC"),
       fileInput("file", "Upload Plate Map", accept=".xlsx"),
       downloadButton("downloadTemplate", label = "Template Input"),
       textInput("pmid", 'Plate Map ID (PMID)'),
@@ -17,8 +18,6 @@ shinyUI(
       actionButton("do", "Confirm uploaded file and save"),
       uiOutput('downloadData'),
       uiOutput('downloadData2'),
-      tags$a(href="http://132.229.100.197:2222/ot2/MultiplateMIC/",
-             "Link to Multiplate MIC"),
       
       tags$a(href="http://132.229.100.197:2222/OldPatch/SingleplateMIC/",
              "Link to last working uploader")

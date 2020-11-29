@@ -1,10 +1,8 @@
-2. Error messages
-3. Streamline errors
+1. check remaining pre-dilution requirements
 
 GitHub Commands 
 A) PUSH
 git push -u origin master
 
 B) PULL
-#git pull https://github.com/vanhasseltlab/ot2.git
-git pull origin master
+#git pull https:/
