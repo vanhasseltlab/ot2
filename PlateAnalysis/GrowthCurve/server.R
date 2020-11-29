@@ -1,6 +1,6 @@
 library(shiny)
-library(ggplot2)
-library(chron)
+#library(ggplot2)
+#library(chron)
 shinyServer(function(input, output) {
     #set directories, take source analyzer
     mainwd <- "/srv/shiny-server/files/Analysis"
