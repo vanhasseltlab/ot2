@@ -2,6 +2,7 @@ library(shiny)
 .libPaths(c("/home/sebastian/R/x86_64-pc-linux-gnu-library/3.4"))
 library(ggplot2)
 library(chron)
+library(reshape2)
 shinyServer(function(input, output) {
     #set directories, take source analyzer
     mainwd <- "/srv/shiny-server/files/Analysis"

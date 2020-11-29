@@ -20,7 +20,7 @@ main <- function(directory, first_measurement){
   #MAIN----------
   first_measurement <- as.numeric(strsplit(first_measurement, split=':')[[1]])
   #read plate map
-  plateMap <- paste(directory, "\\", plateMap_file, sep='')
+  plateMap <- paste(directory, "/", plateMap_file, sep='')
   plateMap <- as.vector(unlist(read.csv(plateMap, header=T, as.is=T)))
   
   #iterate through measurement reads
@@ -28,10 +28,10 @@ main <- function(directory, first_measurement){
   timeStamps <- c()
   for(i in c(1:length(absData_files))){
     #read current data
-    curData <- paste(directory, "\\", absData_files[i], sep='')
+    curData <- paste(directory, "/", absData_files[i], sep='')
     curData <- read.csv(curData, sep=',', header=F)
     if(dim(curData)[2]==1){
-      curData <- paste(directory, "\\", absData_files[i], sep='')
+      curData <- paste(directory, "/", absData_files[i], sep='')
       curData <- read.csv(curData, sep=';', header=F)
     }
     
