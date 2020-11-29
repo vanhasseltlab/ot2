@@ -5,4 +5,4 @@ A) PUSH
 git push -u origin master
 
 B) PULL
-#git pull https:/
+sudo git pull origin master
