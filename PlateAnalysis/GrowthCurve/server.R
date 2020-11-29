@@ -1,5 +1,5 @@
 library(shiny)
-#library(ggplot2)
+library(ggplot2)
 #library(chron)
 shinyServer(function(input, output) {
     #set directories, take source analyzer
