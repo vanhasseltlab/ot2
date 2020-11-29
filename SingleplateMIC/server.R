@@ -7,15 +7,15 @@ options(stringsAsFactors = F)
 #SERVER MAIN------------
 shinyServer(function(input, output) {
   #defining directory-------
-  outputDir_cmdline <- "/srv/shiny-server/files/Output_CmdList"
-  outputDir_usrGuide <- "/srv/shiny-server/files/Output_UsrGuide"
-  inputTemplate <- "/srv/shiny-server/ot2/SingleplateMIC/MIC_InputTemplate.xlsx"  
-  sourceDir <- "/srv/shiny-server/ot2/SingleplateMIC"
+  #outputDir_cmdline <- "/srv/shiny-server/files/Output_CmdList"
+  #outputDir_usrGuide <- "/srv/shiny-server/files/Output_UsrGuide"
+  #inputTemplate <- "/srv/shiny-server/ot2/SingleplateMIC/MIC_InputTemplate.xlsx"  
+  #sourceDir <- "/srv/shiny-server/ot2/SingleplateMIC"
   
-  #outputDir_cmdline <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\#OT2_Main\\SingleplateMIC"
-  #outputDir_usrGuide <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\#OT2_Main\\SingleplateMIC"
-  #inputTemplate <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\#OT2_Main\\SingleplateMIC\\MIC_InputTemplate.xlsx"  
-  #sourceDir <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\#OT2_Main\\SingleplateMIC"
+  outputDir_cmdline <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\#OT2_Main\\SingleplateMIC"
+  outputDir_usrGuide <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\#OT2_Main\\SingleplateMIC"
+  inputTemplate <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\#OT2_Main\\SingleplateMIC\\MIC_InputTemplate.xlsx"  
+  sourceDir <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\#OT2_Main\\SingleplateMIC"
   
   #loading functions--------
   setwd(sourceDir)
@@ -47,6 +47,7 @@ shinyServer(function(input, output) {
     #perform if file is loaded
     if(input$do==0){
       dis <- read.xlsx(infile$datapath, 1, rowIndex = c(57:64), colIndex=c(2:13), header=F)
+      pmap_output <<- dis
     }else{
       #rename files for safekeeping
       file_name <<- strsplit(infile$name, '.xl')[[1]][1]
@@ -172,6 +173,10 @@ shinyServer(function(input, output) {
     req(input$do, contents())
     downloadButton("guide", "Download Robot Setup Guide")
   })
+  output$downloadData3 <- renderUI({
+    req(input$do, contents())
+    downloadButton("plateMap", "Download Plate Map")
+  })
   
   #Sample File Name--------
   output$tex <- renderText({new_name()})
@@ -187,6 +192,13 @@ shinyServer(function(input, output) {
     filename = function(){paste("RobotHandler_", new_name(), '.xlsx', sep='')},
     content = function(file) {
       write.xlsx(new_userGuideOutput, file, row.names = FALSE, col.names=T)
+    }
+  )
+  
+  output$plateMap <- downloadHandler(
+    filename = function(){paste("PlateMap", new_name(), '.csv', sep='')},
+    content = function(file) {
+      write.csv(pmap_output, file, row.names = FALSE)
     }
   )
   

@@ -18,6 +18,7 @@ shinyUI(
       actionButton("do", "Confirm uploaded file and save"),
       uiOutput('downloadData'),
       uiOutput('downloadData2'),
+      uiOutput('downloadData3'),
       
       tags$a(href="http://132.229.100.197:2222/OldPatch/SingleplateMIC/",
              "Link to last working uploader")
