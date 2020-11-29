@@ -808,18 +808,72 @@ Int_CreateCmdList <- function(deck_map, sol_list, solvent_map, inoc_map,
                               dil_map, stock_map, well_info, plate_map, inoc_bool){
   
   #1. DISTRIBUTE SOLVENT
-  cmdlist <- Cmd_InitDist(deck_map, sol_list, solvent_map, dil_map)
+  cmdlist <- tryCatch({
+    Cmd_InitDist(deck_map, sol_list, solvent_map, dil_map)
+  },
+  error = function(cond){
+    if(errMessage == ""){
+      errMessage <<- "Initial distribuion failed"
+    }
+    return(NA)
+  })
+  
   #2. DISTRIBUTE HIGHEST DRUG CONCENTRATION
-  cmdlist <- Cmd_HiDrug(cmdlist, sol_list, stock_map, deck_map, dil_map)
+  cmdlist <- tryCatch({
+    Cmd_HiDrug(cmdlist, sol_list, stock_map, deck_map, dil_map)
+  },
+  error = function(cond){
+    if(errMessage == ""){
+      errMessage <<- "Preliminary/First stock dilution failed to initiate"
+    }
+    return(NA)
+  })
+  
   #3. SERIAL DILUTION
-  cmdlist <- Cmd_SerialDil(cmdlist, sol_list, dil_map)
+  cmdlist <- tryCatch({
+    Cmd_SerialDil(cmdlist, sol_list, dil_map)
+  },
+  error = function(cond){
+    if(errMessage == ""){
+      errMessage <<- "Serial dilution error"
+    }
+    return(NA)
+  })
+  
   #4. DISTRIBUTING DRUG SOLUTION
-  cmdlist <- Cmd_DrugSolDist(cmdlist, dil_map, plate_map, deck_map, well_info)
+  cmdlist <- tryCatch({
+    Cmd_DrugSolDist(cmdlist, dil_map, plate_map, deck_map, well_info)
+  },
+  error = function(cond){
+    if(errMessage == ""){
+      errMessage <<- "Failed to distribute solutions to 96-well plates"
+    }
+    return(NA)
+  })
+  
   #5. FILLING OUTER WELLS
-  cmdlist <- Cmd_FillOuter(plate_map, deck_map, solvent_map, well_info, cmdlist)
+  cmdlist <- tryCatch({
+    Cmd_FillOuter(plate_map, deck_map, solvent_map, well_info, cmdlist)
+  },
+  error = function(cond){
+    if(errMessage == ""){
+      errMessage <<- "Failed to fill outer/no-drug wells"
+    }
+    return(NA)
+  })
+  
   #6. INOCULATION
   if(inoc_bool=="Yes"){
-    cmdlist <- Cmd_Inoculate(plate_map, inoc_map, well_info, cmdlist, deck_map, solvent_map)
+    cmdlist <- tryCatch({
+      Cmd_Inoculate(plate_map, inoc_map, well_info, 
+                    cmdlist, deck_map, solvent_map)
+    },
+    error = function(cond){
+      if(errMessage == ""){
+        errMessage <<- "Plate inoculation failed"
+      }
+      return(NA)
+    })
   }
   
   #NAMING
@@ -831,128 +885,192 @@ Int_CreateCmdList <- function(deck_map, sol_list, solvent_map, inoc_map,
   cmdlist[] <- lapply(cmdlist, as.character)
   return(cmdlist)
 }
+
+#MAIN---------
 main <- function(file_path, file_name){
   #READ PLATE------
-  stockList <- GetStockList(file_path)
-  wellInfo <- GetWellVols(file_path)
-  plateMap <<- GetPlateMap(file_path)
-  inocBool <- GetInocBool(file_path)
-  #GET SOLUTION LIST AND DILUTION SCHEME-----------
-  solList <<- CreateSolList(plateMap, wellInfo[1,2], wellInfo[2,2], stockList)
-  #-1. LOADING DECK MAP-----------
-  deckMap <- c('tip', '96-well', 'Inno',
-               '15_Falcon_main', '1.5_Eppendorf', 'Solvent',
-               'tip', '15_Falcon_spare', 'Stock',
-               'tip', '(empty)', 'TRASH')
-  names(deckMap) <- sapply(c(1:12), function(x) paste('labware', toString(x), sep='_'))
-  # 0. LOAD LABWARES--------
-  #solvents
-  #initiate map
-  coords <- c(1, 1)
-  solventMap <- c()
-  #iterate through all solvents in platemap
-  solvents <- unique(plateMap$Solvent)
-  for(i in c(1:length(solvents))){
-    nexItem <- c(paste(LETTERS[coords[1]], toString(coords[2]), sep=''), toString(solvents[i]))
-    #place to map
-    solventMap <- rbind(solventMap, nexItem)
-    
-    #update fill coordinates
-    coords[2] <- coords[2]+1
-    if(coords[2]>3){
-      coords[2] <- 1
-      coords[1] <- coords[1] + 1
+  stockList <- tryCatch({
+    GetStockList(file_path)
+  },
+  error = function(cond){
+    if(errMessage == ""){
+      errMessage <<- "Input file error - stockList"
     }
-  }
+    return(NA)
+  })
   
-  #stock
-  #initiate map
-  coords <- c(1, 1)
-  stockMap <- c()
-  #iterate through all items in stockList
-  for(i in c(1:length(stockList))){
-    nexItem <- c(paste(LETTERS[coords[1]], toString(coords[2]), sep=''), names(stockList)[i])
+  wellInfo <- tryCatch({
+    GetWellVols(file_path)
+  },
+  error = function(cond){
+    print("WellInfo")
+    if(errMessage == ""){
+      errMessage <<- "Input file error - wellInfo"
+    }
+    return(NA)
+  })
+  
+  plateMap <- tryCatch({
+    GetPlateMap(file_path)
+  },
+  error = function(cond){
+    if(errMessage == ""){
+      errMessage <<- "Input file error - plateMap"
+    }
+    return(NA)
+  })
     
-    #place to map
-    stockMap <- rbind(stockMap, nexItem)
+  inocBool <- tryCatch({
+    GetInocBool(file_path)
+  },
+  error = function(cond){
+    if(errMessage == ""){
+      errMessage <<- "Input file error - inocBool"
+    }
+    return(NA)
+  })
+  
+  #GET SOLUTION LIST AND DILUTION SCHEME-----------
+  solList <- tryCatch({
+    CreateSolList(plateMap, wellInfo[1,2], wellInfo[2,2], stockList)
+  },
+  error = function(cond){
+    if(errMessage == ""){
+      errMessage <<- "Failed to initiate solution list"
+    }
+    return(NA)
+  })
+  
+  #-1. LOADING DECK MAP-----------
+  ## error not expected
+  if(errMessage==""){
+    deckMap <- c('tip', '96-well', 'Inno',
+                 '15_Falcon_main', '1.5_Eppendorf', 'Solvent',
+                 'tip', '15_Falcon_spare', 'Stock',
+                 'tip', '(empty)', 'TRASH')
+    names(deckMap) <- sapply(c(1:12), function(x) paste('labware', toString(x), sep='_'))
+    # 0. LOAD LABWARES--------
+    #solvents
+    #initiate map
+    coords <- c(1, 1)
+    solventMap <- c()
+    #iterate through all solvents in platemap
+    solvents <- unique(plateMap$Solvent)
+    for(i in c(1:length(solvents))){
+      nexItem <- c(paste(LETTERS[coords[1]], toString(coords[2]), sep=''), toString(solvents[i]))
+      #place to map
+      solventMap <- rbind(solventMap, nexItem)
+      
+      #update fill coordinates
+      coords[2] <- coords[2]+1
+      if(coords[2]>3){
+        coords[2] <- 1
+        coords[1] <- coords[1] + 1
+      }
+    }
     
-    #update fill coordinates
-    coords[2] <- coords[2]+1
-    if(coords[2]>6){
-      coords[2] <- 1
-      coords[1] <- coords[1] + 1
+    #stock
+    #initiate map
+    coords <- c(1, 1)
+    stockMap <- c()
+    #iterate through all items in stockList
+    for(i in c(1:length(stockList))){
+      nexItem <- c(paste(LETTERS[coords[1]], toString(coords[2]), sep=''), names(stockList)[i])
+      
+      #place to map
+      stockMap <- rbind(stockMap, nexItem)
+      
+      #update fill coordinates
+      coords[2] <- coords[2]+1
+      if(coords[2]>6){
+        coords[2] <- 1
+        coords[1] <- coords[1] + 1
+      }
     }
   }
   
   #assign slots for diluted solutions
-  dilMap <<- CreateDilMap(solList, deckMap)
-  
-  #inoculum
-  #initiate map
-  coords <- c(1, 1)
-  inocMap <- c() #assume rack is 15 mL Falcon tube rack
-  #iterate through all inoculum types in plate
-  inocs <- unique(plateMap$Inoc)
-  inocs <- inocs[inocs!='NA']
-  for(i in c(1:length(inocs))){
-    nexItem <- c(paste(LETTERS[coords[1]], toString(coords[2]), sep=''), toString(inocs[i]))
-    inocMap <- rbind(inocMap, nexItem)
-    #update coordinate
-    coords[2] <- coords[2]+1
-    if(coords[2]>5){
-      coords[2] <- 1
-      coords[1] <- coords[1] + 1
+  dilMap <<- tryCatch({
+    CreateDilMap(solList, deckMap)
+  },
+  error = function(cond){
+    if(errMessage == ""){
+      errMessage <<- "Failed to create dilution map"
     }
-  }
+    return(NA)
+  })
   
   # 1. CREATE COMMAND LIST-----------
-  cmdList <<- Int_CreateCmdList(deckMap, solList, solventMap, inocMap,
-                                dilMap, stockMap, wellInfo, plateMap, inocBool)
-  cmdList <- Cmd_SeparateLong(cmdList)
-  cmdList[] <- lapply(cmdList, as.character)
-  # 2. BUNDLING OUTPUT-------
-  if(inocBool=='Yes'){
-    allAmt <- rbind.data.frame(Cal_SolAmt(deckMap, solventMap, cmdList),
-                               Cal_StockAmt(solList, stockList, stockMap, deckMap),
-                               Cal_InocAmt(inocMap, cmdList, deckMap))
-  }else{
-    allAmt <- rbind.data.frame(Cal_SolAmt(deckMap, solventMap, cmdList),
-                               Cal_StockAmt(solList, stockList, stockMap, deckMap))
+  if(errMessage==""){
+    #inoculum
+    #initiate map
+    coords <- c(1, 1)
+    inocMap <- c() #assume rack is 15 mL Falcon tube rack
+    #iterate through all inoculum types in plate
+    inocs <- unique(plateMap$Inoc)
+    inocs <- inocs[inocs!='NA']
+    for(i in c(1:length(inocs))){
+      nexItem <- c(paste(LETTERS[coords[1]], toString(coords[2]), sep=''), toString(inocs[i]))
+      inocMap <- rbind(inocMap, nexItem)
+      #update coordinate
+      coords[2] <- coords[2]+1
+      if(coords[2]>5){
+        coords[2] <- 1
+        coords[1] <- coords[1] + 1
+      }
+    }
+    
+    cmdList <<- Int_CreateCmdList(deckMap, solList, solventMap, inocMap,
+                                  dilMap, stockMap, wellInfo, plateMap, inocBool)
+    cmdList <- Cmd_SeparateLong(cmdList)
+    cmdList[] <- lapply(cmdList, as.character)
   }
-  
-  allAmt[] <- lapply(allAmt, as.character)
-  
-  # 3. CALCULATE REQUIRED NUMBER OF ITEMS--------
-  dilTubes <- Cal_DilTubes(dilMap)
-  
-  # 4. DECK LAYOUT FOR USER---------
-  finDeck <- Cal_DeckAdjustment(cmdList, deckMap, dilTubes)
-  
-  
-  #################
-  #CREATING OUTPUT#
-  #################
-  
-  #Command List-------
-  dis <- replicate(length(allAmt[,1]), "NA")
-  all_amt <- cbind.data.frame(allAmt[,c(2, 4, 5)], dis, allAmt[,6], dis, dis, dis, stringsAsFactors=F)
-  colnames(all_amt) <- colnames(cmdList)
-  
-  ware_num <- unlist(finDeck[c(1, 3, 5, 7),])
-  ware_fil <- unlist(finDeck[c(2, 4, 6, 8),])
-  ware_fil <- ware_fil[order(as.numeric(ware_num))]
-  ware_num <- ware_num[order(as.numeric(ware_num))]
-  ware_num <- sapply(ware_num, function(x) paste('labware_', toString(x), sep=''))
-  fin_deck <- cbind.data.frame(ware_num, ware_fil, 
-                               dis, dis, dis, dis, dis, dis)
-  cmdList_output <<- list(c(">Amount List"), all_amt,
-                          c('>CommandLines'), cmdList,
-                          c(">PlateMap"), fin_deck)
-  
-  #User Commands-----------
-  #adjusting file name
-  allAmt <- rbind.data.frame(allAmt, dilTubes)
-  usercmd_output <<- list(finDeck, allAmt)
+  # 2. BUNDLING OUTPUT-------
+  if(errMessage==""){
+    if(inocBool=='Yes'){
+      allAmt <- rbind.data.frame(Cal_SolAmt(deckMap, solventMap, cmdList),
+                                 Cal_StockAmt(solList, stockList, stockMap, deckMap),
+                                 Cal_InocAmt(inocMap, cmdList, deckMap))
+    }else{
+      allAmt <- rbind.data.frame(Cal_SolAmt(deckMap, solventMap, cmdList),
+                                 Cal_StockAmt(solList, stockList, stockMap, deckMap))
+    }
+    
+    allAmt[] <- lapply(allAmt, as.character)
+    
+    # 3. CALCULATE REQUIRED NUMBER OF ITEMS--------
+    dilTubes <- Cal_DilTubes(dilMap) #error not expected?
+    
+    # 4. DECK LAYOUT FOR USER---------
+    finDeck <- Cal_DeckAdjustment(cmdList, deckMap, dilTubes) #error not expected?
+    
+    #################
+    #CREATING OUTPUT#
+    #################
+    
+    #Command List-------
+    dis <- replicate(length(allAmt[,1]), "NA")
+    all_amt <- cbind.data.frame(allAmt[,c(2, 4, 5)], dis, allAmt[,6], dis, dis, dis, stringsAsFactors=F)
+    colnames(all_amt) <- colnames(cmdList)
+    
+    ware_num <- unlist(finDeck[c(1, 3, 5, 7),])
+    ware_fil <- unlist(finDeck[c(2, 4, 6, 8),])
+    ware_fil <- ware_fil[order(as.numeric(ware_num))]
+    ware_num <- ware_num[order(as.numeric(ware_num))]
+    ware_num <- sapply(ware_num, function(x) paste('labware_', toString(x), sep=''))
+    fin_deck <- cbind.data.frame(ware_num, ware_fil, 
+                                 dis, dis, dis, dis, dis, dis)
+    cmdList_output <<- list(c(">Amount List"), all_amt,
+                            c('>CommandLines'), cmdList,
+                            c(">PlateMap"), fin_deck)
+    
+    #User Commands-----------
+    #adjusting file name
+    allAmt <- rbind.data.frame(allAmt, dilTubes)
+    usercmd_output <<- list(finDeck, allAmt)
+  }else{
+    allAmt <- errMessage
+  }
   
   return(allAmt)
 }
