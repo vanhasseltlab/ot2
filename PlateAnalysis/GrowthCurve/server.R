@@ -10,7 +10,7 @@ shinyServer(function(input, output) {
     #set directories, take source analyzer
     mainwd <- "/srv/shiny-server/files/Analysis"
     sourcewd <- "/srv/shiny-server/ot2/PlateAnalysis/GrowthCurve/analyzer.R"
-    
+    dir.create('/srv/shiny-server/files/Analysis/test', recursive=T)
     source(sourcewd)
     
     #copy all files
@@ -21,7 +21,7 @@ shinyServer(function(input, output) {
         if(input$do==0){
             #perform if file is loaded
             fileNames <- input$files$name
-            dir.create('/srv/shiny-server/files/Analysis/test')
+            
             return(fileNames)
         }else{
             fileNames <- input$files$name
