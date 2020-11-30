@@ -8,7 +8,7 @@ options(stringsAsFactors = F)
 
 shinyServer(function(input, output) {
     #set directories, take source analyzer
-    mainwd <- "/srv/shiny-server/files"
+    mainwd <- "/srv/shiny-server/files/Output_UsrGuide"
     sourcewd <- "/srv/shiny-server/ot2/PlateAnalysis/GrowthCurve/analyzer.R"
     
     source(sourcewd)
