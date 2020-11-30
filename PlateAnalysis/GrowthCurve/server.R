@@ -50,7 +50,8 @@ shinyServer(function(input, output) {
             #perform main operation
             grandRes <<- tryCatch({
                 main(mainwd, input$time)
-            }else{
+            },
+            error=function(cond){
                 return("NULL")
             })
             
@@ -59,7 +60,7 @@ shinyServer(function(input, output) {
             
             #parse checkbox inputs
             plotOptions <<- as.vector(input$plotOptions)
-            return(grandRes)
+            return("PLOT")
         }
     })
     #creating the table
