@@ -70,48 +70,48 @@ shinyServer(function(input, output) {
     output$tab <- renderTable({contents()})
     
     #CREATE PLOT------
-    plotData <- reactiveValues()
-    observeEvent(input$do,{
-        req(input$do, contents())
-        plotData$plot_m <- ggplot(data=grandRes, aes(x=time, y=Absorbance))+
-            geom_point()+geom_line()+theme_bw()+
-            facet_wrap(~variable)
-        
-        if(!("auto" %in% plotOptions)){
-            lower_bound_axis <<- input$lower_bound
-            upper_bound_axis <<- input$upper_bound
-        }
-        
-        if("log" %in% plotOptions){
-            plotData$plot_m <- plotData$plot_m + 
-                scale_y_continuous(trans='log10', limits=c(lower_bound_axis, upper_bound_axis))
-        }
-        if("errorBars" %in% plotOptions){
-            plotData$plot_m <- plotData$plot_m + 
-                geom_errorbar(aes(ymin=minVal, ymax=maxVal), width=0.5)
-        }
-        })
+    #plotData <- reactiveValues()
+    #observeEvent(input$do,{
+    #    req(input$do, contents())
+    #    plotData$plot_m <- ggplot(data=grandRes, aes(x=time, y=Absorbance))+
+    #        geom_point()+geom_line()+theme_bw()+
+    #        facet_wrap(~variable)
+    #    
+    #    if(!("auto" %in% plotOptions)){
+    #        lower_bound_axis <<- input$lower_bound
+    #        upper_bound_axis <<- input$upper_bound
+    #    }
+    #    
+    #    if("log" %in% plotOptions){
+    #        plotData$plot_m <- plotData$plot_m + 
+    #            scale_y_continuous(trans='log10', limits=c(lower_bound_axis, upper_bound_axis))
+    #    }
+    #    if("errorBars" %in% plotOptions){
+    #        plotData$plot_m <- plotData$plot_m + 
+    #            geom_errorbar(aes(ymin=minVal, ymax=maxVal), width=0.5)
+    #    }
+    #    })
     
-    output$plot <- renderPlot({plotData$plot_m})
+    #output$plot <- renderPlot({plotData$plot_m})
     
     #show plot only after action button pushed
-    output$plotting <- renderUI({
-        req(input$do, contents())
-        plotOutput("plot")
-    })
+    #output$plotting <- renderUI({
+    #    req(input$do, contents())
+    #    plotOutput("plot")
+    #})
     
     #download button for the image
-    output$plot_download <- renderUI({
-        req(input$do, contents())
-        downloadButton('downloadPlot', 'Download Plot')
-    })
+    #output$plot_download <- renderUI({
+    #    req(input$do, contents())
+    #    downloadButton('downloadPlot', 'Download Plot')
+    #})
     
-    output$downloadPlot <- downloadHandler(
-        filename = function() { paste(input$folderName, '.png', sep='') },
-        content = function(file) {
-            ggsave(file, plot = plotData$plot_m, device = "png")
-        }
-    )
+    #output$downloadPlot <- downloadHandler(
+    #    filename = function() { paste(input$folderName, '.png', sep='') },
+    #    content = function(file) {
+    #        ggsave(file, plot = plotData$plot_m, device = "png")
+    #   }
+    #)
     
     #download for dataset
     output$dataset_download <- renderUI({
