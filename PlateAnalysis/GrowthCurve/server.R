@@ -51,7 +51,7 @@ shinyServer(function(input, output) {
             grandRes <<- tryCatch({
                 main(mainwd, input$time)
             }else{
-                return(NULL)
+                return("NULL")
             })
             
             lower_bound_axis <<- round(min(grandRes$minVal), 2)
@@ -59,7 +59,7 @@ shinyServer(function(input, output) {
             
             #parse checkbox inputs
             plotOptions <<- as.vector(input$plotOptions)
-            return("PLOT")
+            return(grandRes)
         }
     })
     #creating the table
