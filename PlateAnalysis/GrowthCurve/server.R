@@ -48,7 +48,12 @@ shinyServer(function(input, output) {
             }
             
             #perform main operation
-            grandRes <<- main(mainwd, input$time)
+            grandRes <<- tryCatch({
+                main(mainwd, input$time)
+            }else{
+                return(NULL)
+            })
+            
             lower_bound_axis <<- round(min(grandRes$minVal), 2)
             upper_bound_axis <<- round(max(grandRes$maxVal), 1)
             
