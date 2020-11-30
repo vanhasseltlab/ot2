@@ -21,7 +21,7 @@ shinyServer(function(input, output) {
         if(input$do==0){
             #perform if file is loaded
             fileNames <- input$files$name
-            dir.create(paste(mainwd, "/test", sep=''))
+            dir.create('/srv/shiny-server/files/Analysis/test')
             return(fileNames)
         }else{
             fileNames <- input$files$name
