@@ -8,9 +8,13 @@ options(stringsAsFactors = F)
 
 shinyServer(function(input, output) {
     #set directories, take source analyzer
-    mainwd <- "/srv/shiny-server/files/Analysis"
+    mainwd <- "/srv/shiny-server/files"
     sourcewd <- "/srv/shiny-server/ot2/PlateAnalysis/GrowthCurve/analyzer.R"
-    
+    if(!("Analysis" %in% list.files(mainwd))){
+        setwd(mainwd)
+        dir.create("Analysis", recursive=T)
+    }
+    mainwd <- "/srv/shiny-server/files/Analysis"
     source(sourcewd)
     
     #copy all files
