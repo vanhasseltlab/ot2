@@ -5,11 +5,12 @@ library(chron)
 library(reshape2)
 options(stringsAsFactors = F)
 
+
 shinyServer(function(input, output) {
     #set directories, take source analyzer
     mainwd <- "/srv/shiny-server/files/Analysis"
     sourcewd <- "/srv/shiny-server/ot2/PlateAnalysis/GrowthCurve/analyzer.R"
-    
+    dir.create(paste(mainwd, "/test", sep=''))
     source(sourcewd)
     
     #copy all files
@@ -92,7 +93,7 @@ shinyServer(function(input, output) {
     #    }
     #    })
     
-    #output$plot <- renderPlot({plotData$plot_m})
+    output$plot <- renderPlot({plotData$plot_m})
     
     #show plot only after action button pushed
     #output$plotting <- renderUI({
