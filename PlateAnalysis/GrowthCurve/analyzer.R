@@ -1,3 +1,23 @@
+#FUNCTIONS--------
+#raw data readers
+ExtractRawDat_FluoStarOmegaSolo <- function(csv_dataset){
+  current_data <- as.vector(unlist(csv_dataset[c(10:17),c(2:13)]))
+  if(typeof(current_data[1])=='character'){
+    current_data <- as.numeric(gsub(",", ".", current_data))
+  }
+  return(current_data)
+}
+
+#times stamp readers
+ExtractTimeStamp_FluoStarOmegaSolo <- function(csv_dataset){
+  time_point <- c(csv_dataset[2,2], csv_dataset[2,3])
+  time_point[1] <- substring(time_point[1], 7, nchar(time_point[1]))
+  time_point[2] <- substring(time_point[2], 7, nchar(time_point[2]))
+  
+  return(time_point)
+}
+
+#MAIN FUNCTION-------
 main <- function(directory, first_measurement){
   #### PRE-PROCESSING ######
   #GET FILE NAMES AND PLATE MAP------
@@ -18,11 +38,13 @@ main <- function(directory, first_measurement){
   
   
   #MAIN----------
+  #getting time stamps
   first_measurement <- as.numeric(strsplit(first_measurement, split=':')[[1]])
   #read plate map
   plateMap <- paste(directory, "/", plateMap_file, sep='')
   plateMap <- as.vector(unlist(read.csv(plateMap, header=T, as.is=T)))
   
+  ##
   #iterate through measurement reads
   mainData <- c()
   timeStamps <- c()
@@ -35,19 +57,15 @@ main <- function(directory, first_measurement){
       curData <- read.csv(curData, sep=';', header=F)
     }
     
+    ## Format-specific
     #extract raw read data
-    nex_rawData <- as.vector(unlist(curData[c(10:17),c(2:13)]))
-    if(typeof(nex_rawData[1])=='character'){
-      nex_rawData <- as.numeric(gsub(",", ".", nex_rawData))
-    }
+    nex_rawData <- ExtractRawDat_FluoStarOmegaSolo(curData)
     mainData <- rbind.data.frame(mainData, nex_rawData)
     
     #extract time information
-    timePoint <- c(curData[2,2], curData[2,3])
-    timePoint[1] <- substring(timePoint[1], 7, nchar(timePoint[1]))
-    timePoint[2] <- substring(timePoint[2], 7, nchar(timePoint[2]))
-    
+    timePoint <- ExtractTimeStamp_FluoStarOmegaSolo(curData)
     timeStamps <- rbind(timeStamps, timePoint)
+    ## Format-specific
   }
   
   #STANDARDIZE TIME STAMP------
