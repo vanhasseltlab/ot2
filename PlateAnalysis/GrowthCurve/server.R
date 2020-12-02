@@ -7,17 +7,17 @@ options(stringsAsFactors = F)
 
 shinyServer(function(input, output) {
     #set directories, take source analyzer
-    #mainwd <- "/srv/shiny-server/files"
-    #sourcewd <- "/srv/shiny-server/ot2/PlateAnalysis/GrowthCurve/analyzer.R"
-    mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\#OT2_Main\\PlateAnalysis\\GrowthCurve"
-    sourcewd <- paste(mainwd, "\\analyzer.R", sep='') 
+    mainwd <- "/srv/shiny-server/files"
+    sourcewd <- "/srv/shiny-server/ot2/PlateAnalysis/GrowthCurve/analyzer.R"
+    #mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\#OT2_Main\\PlateAnalysis\\GrowthCurve"
+    #sourcewd <- paste(mainwd, "\\analyzer.R", sep='') 
     
     if(!("Analysis" %in% list.files(mainwd))){
         setwd(mainwd)
         dir.create("Analysis", recursive=T)
     }
-    mainwd <- paste(mainwd, "\\Analysis", sep='')
-    #mainwd <- paste(mainwd, "/Analysis", sep='')
+    #mainwd <- paste(mainwd, "\\Analysis", sep='')
+    mainwd <- paste(mainwd, "/Analysis", sep='')
     
     source(sourcewd)
     
