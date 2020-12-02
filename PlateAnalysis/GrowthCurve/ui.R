@@ -4,6 +4,9 @@ shinyUI(
         headerPanel("Growth Curve Plot for 96-Well Plate"),
         
         sidebarPanel(
+            selectInput("reader_type", "Select plate reader",
+                        list("FluostarOmega without Robot Arm" = 1,
+                             "FluostarOmega with Robot Arm" = 2)),
             fileInput("files", "Upload Plate Map", accept=".csv", multiple=T),
             textInput("folderName", "Experiment Name", value='defaultFolder'),
             textInput("time", "Timepoint of first measurement", value="00:00:00"),

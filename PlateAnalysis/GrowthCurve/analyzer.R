@@ -1,24 +1,45 @@
 #FUNCTIONS--------
 #raw data readers
-ExtractRawDat_FluoStarOmegaSolo <- function(csv_dataset){
-  current_data <- as.vector(unlist(csv_dataset[c(10:17),c(2:13)]))
-  if(typeof(current_data[1])=='character'){
-    current_data <- as.numeric(gsub(",", ".", current_data))
+ExtractRawDat <- function(csv_dataset, readerID){
+  if(readerID==1){
+    #if fluostar omega without robot arm (newton)
+    current_data <- as.vector(unlist(csv_dataset[c(10:17),c(2:13)]))
+    if(typeof(current_data[1])=='character'){
+      current_data <- as.numeric(gsub(",", ".", current_data))
+    }
+    
+  }else if(readerID==2){
+    #if fluostar omega WITH robot arm (newton)
+    current_data <- csv_dataset[c(9:104),1]
+    current_data <- gsub(" ", "", current_data)
+    current_data <- sapply(current_data, function(x) as.numeric(substring(x, 5, nchar(x))))
+    names(current_data) <- c()
   }
+  
+  #return final value
   return(current_data)
 }
 
 #times stamp readers
-ExtractTimeStamp_FluoStarOmegaSolo <- function(csv_dataset){
-  time_point <- c(csv_dataset[2,2], csv_dataset[2,3])
-  time_point[1] <- substring(time_point[1], 7, nchar(time_point[1]))
-  time_point[2] <- substring(time_point[2], 7, nchar(time_point[2]))
+ExtractTimeStamp <- function(csv_dataset, readerID){
+  if(readerID==1){
+    #if fluostar omega without robot arm (newton)
+    time_point <- c(csv_dataset[2,2], csv_dataset[2,3])
+    time_point[1] <- substring(time_point[1], 7, nchar(time_point[1]))
+    time_point[2] <- substring(time_point[2], 7, nchar(time_point[2]))
+  }else if(readerID==2){
+    #if fluostar omega WITH robot arm (newton)
+    time_point <- strsplit(csv_dataset[2,], split=' ')[[1]][c(2, 5)]
+    time_point[1] <- gsub("/", "-", time_point[1])
+  }
   
+  #return final value
   return(time_point)
 }
 
+
 #MAIN FUNCTION-------
-main <- function(directory, first_measurement){
+main <- function(directory, first_measurement, reader_id){
   #### PRE-PROCESSING ######
   #GET FILE NAMES AND PLATE MAP------
   files_in_dir <- list.files(directory)
@@ -27,9 +48,9 @@ main <- function(directory, first_measurement){
   plateMap_file <- files_in_dir[grepl("PlateMap", files_in_dir, fixed=T)]
   if(length(plateMap_file)!=1){
     if(length(plateMap_file)>1){
-      errMessage <- "Multiple plate maps found"
+      errMessage <<- "Multiple plate maps found"
     }else{
-      errMessage <- "Plate map not found!"
+      errMessage <<- "Plate map not found!"
     }
   }
   
@@ -59,11 +80,11 @@ main <- function(directory, first_measurement){
     
     ## Format-specific
     #extract raw read data
-    nex_rawData <- ExtractRawDat_FluoStarOmegaSolo(curData)
+    nex_rawData <- ExtractRawDat(curData, reader_id)
     mainData <- rbind.data.frame(mainData, nex_rawData)
     
     #extract time information
-    timePoint <- ExtractTimeStamp_FluoStarOmegaSolo(curData)
+    timePoint <- ExtractTimeStamp(curData, reader_id)
     timeStamps <- rbind(timeStamps, timePoint)
     ## Format-specific
   }

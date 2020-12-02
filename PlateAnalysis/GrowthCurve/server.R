@@ -5,7 +5,6 @@ library(chron)
 library(reshape2)
 options(stringsAsFactors = F)
 
-
 shinyServer(function(input, output) {
     #set directories, take source analyzer
     #mainwd <- "/srv/shiny-server/files"
@@ -63,7 +62,7 @@ shinyServer(function(input, output) {
             
             #perform main operation
             grandRes <<- tryCatch({
-                main(mainwd, input$time)
+                main(mainwd, input$time, input$reader_type)
             },
             error=function(cond){
                 return("NULL")
