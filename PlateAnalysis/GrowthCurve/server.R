@@ -3,6 +3,7 @@ library(shiny)
 library(ggplot2)
 library(chron)
 library(reshape2)
+library(xlsx)
 options(stringsAsFactors = F)
 
 errMessage <<- "SUCCESS"
@@ -34,6 +35,7 @@ shinyServer(function(input, output) {
             return(fileNames)
         }else{
             fileNames <- input$files$name
+            
             #create new directory
             folderName <- input$folderName
             nex <- F

@@ -46,24 +46,35 @@ main <- function(directory, first_measurement, reader_id){
   
   #get plate map; ensure one file selected
   plateMap_file <- files_in_dir[grepl("PlateMap", files_in_dir, fixed=T)]
+  if(length(plateMap_file)==0){
+    #otherwise use xlsx as plate map
+    plateMap_file <- files_in_dir[grepl("xlsx", files_in_dir, fixed=T)]
+  }
+  
   if(length(plateMap_file)!=1){
     if(length(plateMap_file)>1){
-      errMessage <<- "Multiple plate maps found"
+      errMessage <<- "Multiple plate maps found - make sure measurement data are in .csv format!"
     }else{
       errMessage <<- "Plate map not found!"
     }
   }
-  
   #get read data
   absData_files <- files_in_dir[!grepl("PlateMap", files_in_dir, fixed=T)]
-  
   
   #MAIN----------
   #getting time stamps
   first_measurement <- as.numeric(strsplit(first_measurement, split=':')[[1]])
+  
   #read plate map
   plateMap <- paste(directory, "/", plateMap_file, sep='')
-  plateMap <- as.vector(unlist(read.csv(plateMap, header=T, as.is=T)))
+  plateMap <- if(grepl("xlsx", plateMap, fixed=T)){
+    absData_files <- files_in_dir[!grepl("xlsx", files_in_dir, fixed=T)]
+    #returned:
+    as.vector(unlist(read.xlsx(plateMap, sheetIndex=1, rowIndex=c(57:64), 
+                               colIndex=c(2:13), header=F)))
+  }else{
+    as.vector(unlist(read.csv(plateMap, header=T, as.is=T)))
+  }
   
   ##
   #iterate through measurement reads
