@@ -5,6 +5,7 @@ library(chron)
 library(reshape2)
 options(stringsAsFactors = F)
 
+errMessage <<- "SUCCESS"
 shinyServer(function(input, output) {
     #set directories, take source analyzer
     mainwd <- "/srv/shiny-server/files"
@@ -73,7 +74,7 @@ shinyServer(function(input, output) {
             
             #parse checkbox inputs
             plotOptions <<- as.vector(input$plotOptions)
-            return("PLOT")
+            return(errMessage)
         }
     })
     #creating the table
