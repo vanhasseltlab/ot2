@@ -37,9 +37,129 @@ ExtractTimeStamp <- function(csv_dataset, readerID){
   return(time_point)
 }
 
+#supporting functions
+ControlSelector <- function(grand_res){
+  #main iteration to re-parse name
+  gres <- data.frame()
+  for(i in c(1:length(grand_res[,1]))){
+    nexItem <- strsplit(as.character(grand_res$variable[i]), split=" ", fixed=T)[[1]]
+    if(length(nexItem)<3){
+      nexItem <- c(nexItem, replicate(4-length(nexItem), "absolute_blank"))
+    }else if(length(nexItem)==3){
+      if(nexItem[2]==0){
+        nexItem <- c(nexItem, "drug_blank")
+      }else{
+        nexItem <- c(nexItem, "conc_blank")
+      }
+    }
+    
+    gres <- rbind.data.frame(gres,
+                             nexItem)
+  }
+  
+  #rename column
+  colnames(gres) <- c("DrugName", "Conc", "Medium", "Inoculum")
+  
+  #remove empty wells (no medium wells)
+  grand_res <- grand_res[(gres$Medium != ""),]
+  gres <- gres[(gres$Medium != ""),]
+  
+  #select "negatives" as concentration blanks
+  #gres$Inoculum[grepl("neg", gres$Inoculum, ignore.case=T)] <- "conc_blank"
+  
+  #concatenate to grand result
+  grand_res <- cbind.data.frame(grand_res$time, gres, grand_res$Absorbance)
+  
+  #rename grand result
+  colnames(grand_res)[c(1,6)] <- c("time", "Absorbance")
+  
+  #make string unfortunate drug names (nalidixic acid)
+  grand_res$DrugName <- sapply(grand_res$DrugName, function(x) toString(x))
+  
+  return(grand_res)
+}
+Blank_Substract_timepoint <- function(grand_res_time, blank){
+  if(blank==1){
+    #if choice is absolute blank
+    #calculate mean absolute blank
+    mean_blank <- mean(grand_res_time$Absorbance[grand_res_time$Inoculum=='absolute_blank'])
+    
+    #subtract blank from all absorbance values
+    sub_Val <- grand_res_time$Absorbance - mean_blank
+    
+  }else if(blank==2){
+    #if choice is blank per-drug+medium
+    drugs <- unique(grand_res_time$DrugName)
+    mediums <- unique(grand_res_time$Medium)
+    #initiate subtracted value
+    sub_Val <- grand_res_time$Absorbance
+    #iterate through all drug types
+    for(i in c(1:length(drugs))){
+      for(j in c(1:length(mediums))){
+        #subset current drug
+        cur_data <- subset(grand_res_time, DrugName==drugs[i] & Medium==mediums[j])
+        
+        #calculate current mean absolute blank
+        if(length(cur_data$Absorbance[cur_data$Inoculum=='drug_blank'])>0){
+          cur_mean_blank <- mean(cur_data$Absorbance[cur_data$Inoculum=='drug_blank'])
+        }else{
+          cur_mean_blank <- 0
+        }
+        
+        #subtract from absorbance values
+        sub_Val[(grand_res_time$DrugName==drugs[i] & grand_res_time$Medium==mediums[j])] <- 
+          sub_Val[(grand_res_time$DrugName==drugs[i] & grand_res_time$Medium==mediums[j])] - cur_mean_blank
+      }
+    }
+  }else if(blank==3){
+    #Specific Blanks
+    main_data <- grand_res_time[!grepl("blank", grand_res_time$Inoculum),]
+    main_blank <- grand_res_time[grepl("blank", grand_res_time$Inoculum),]
+    
+    #initiate subtracted value
+    sub_Val <- grand_res_time$Absorbance
+    
+    #get main variable names
+    main_names <- unique(main_blank$DrugName)
+    main_concs <- unique(main_blank$Conc)
+    for(i in c(1:length(main_names))){
+      for(j in c(1:length(main_concs))){
+        #subset blank dataset
+        cur_data <- subset(main_blank, Conc==main_concs[j] & DrugName==main_names[i])
+        if(length(cur_data)>0){
+          #calculate mean blank at the current drug-concentration combination
+          cur_mean_blank <- mean(cur_data$Absorbance)
+          #subtract from subtracted value
+          sub_Val[(grand_res_time$Conc==main_concs[j] & grand_res_time$DrugName==main_names[i])] <- 
+            sub_Val[(grand_res_time$Conc==main_concs[j] & grand_res_time$DrugName==main_names[i])] - cur_mean_blank
+        }
+      }
+    }
+  }else{
+    sub_Val <- grand_res_time$Absorbance
+  }
+  
+  #concatenate result
+  grand_res_time <- cbind.data.frame(grand_res_time, sub_Val)
+  return(grand_res_time)
+}
+Blank_Substract_main <- function(grand_res, blank){
+  #initiate new grand result
+  new_grandRes <- data.frame()
+  #iterate through all time points
+  times <- unique(grand_res$time)
+  for(i in c(1:length(times))){
+    curSet <- grand_res[(grand_res$time==times[i]),]
+    curRes <- Blank_Substract_timepoint(curSet, blank)
+    #concatenate result
+    new_grandRes <- rbind.data.frame(new_grandRes, curRes)
+  }
+  return(new_grandRes)
+}
 
 #MAIN FUNCTION-------
-main <- function(directory, first_measurement, reader_id){
+main <- function(directory, first_measurement, reader_id, blank_selection){
+  blank_selection <<- blank_selection
   #### PRE-PROCESSING ######
   #GET FILE NAMES AND PLATE MAP------
   files_in_dir <- list.files(directory)
@@ -165,20 +285,27 @@ main <- function(directory, first_measurement, reader_id){
   colnames(grandRes) <- c('time', ids)
   colnames(grandErr) <- colnames(grandRes)
   
-  #GRAPH---------
+  #ReFormat---------
   grandRes <- melt(grandRes, id='time', value.name='Absorbance')
   grandErr <- melt(grandErr, id='time', value.name='Err')
-  minVal <- grandRes$Absorbance - grandErr$Err
-  minVal <- sapply(minVal, function(x) max(0, x))
-  maxVal <- grandRes$Absorbance + grandErr$Err
-  upper_bound_axis <- round(max(maxVal), 1)
-  lower_bound_axis <- round((min(grandRes$Absorbance)), 2)
-  minVal <- sapply(minVal, function(x) max(lower_bound_axis, x))
-  grandRes <- cbind.data.frame(grandRes, 
-                               minVal,
-                               maxVal)
-  colnames(grandRes) <- c('time', 'variable', 'Absorbance', 'minVal', 'maxVal')
   
+  #add information about control
+  grandRes <- ControlSelector(grandRes)
+  checkPoint <<- grandRes
+  grandRes <- Blank_Substract_main(checkPoint, blank_selection)
+  checkPoint2 <<- grandRes
   grandRes$time <- grandRes$time / 3600 #convert to hours
   return(grandRes)
 }
+
+#calculating error bars - not required?
+#minVal <- grandRes$Absorbance - grandErr$Err
+#minVal <- sapply(minVal, function(x) max(0, x))
+#maxVal <- grandRes$Absorbance + grandErr$Err
+#upper_bound_axis <- round(max(maxVal), 1)
+#lower_bound_axis <- round((min(grandRes$Absorbance)), 2)
+#minVal <- sapply(minVal, function(x) max(lower_bound_axis, x))
+#grandRes <- cbind.data.frame(grandRes, 
+#                             minVal,
+#                             maxVal)
+#colnames(grandRes) <- c('time', 'variable', 'Absorbance', 'minVal', 'maxVal')

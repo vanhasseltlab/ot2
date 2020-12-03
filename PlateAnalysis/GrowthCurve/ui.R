@@ -10,12 +10,13 @@ shinyUI(
             fileInput("files", "Upload Measurement Data and Plate Map", accept=c(".csv", ".xlsx"), multiple=T),
             textInput("folderName", "Experiment Name", value='defaultFolder'),
             textInput("time", "Timepoint of first measurement", value="00:00:00"),
+            selectInput("controlOpt", 'Control Options',
+                        list("No Blank" = 0,
+                             "Single Blank" = 1,
+                             "One per-drug" = 2,
+                             "One per-drug concentration" = 3)),
             checkboxGroupInput("plotOptions", "Plotting Options",
-                               c("Logarithmic scale" = 'log',
-                                 "Error bars" = 'errorBars',
-                                 "Automatic y-axis" = 'auto')),
-            numericInput("lower_bound", 'y-axis lower bound', value=0.05),
-            numericInput("upper_bound", 'y-axis upper bound', value=2.5),
+                               c("Logarithmic scale" = 'log')),
             actionButton("do", "Confirm uploaded file and save")
         ),
         

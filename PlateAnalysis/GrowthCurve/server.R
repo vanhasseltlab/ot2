@@ -1,5 +1,5 @@
 library(shiny)
-.libPaths(c("/home/sebastian/R/x86_64-pc-linux-gnu-library/3.4"))
+#.libPaths(c("/home/sebastian/R/x86_64-pc-linux-gnu-library/3.4"))
 library(ggplot2)
 library(chron)
 library(reshape2)
@@ -10,10 +10,10 @@ errMessage <<- "SUCCESS"
 shinyServer(function(input, output) {
     #### PREPARATION-------------
     #set directories, take source analyzer
-    mainwd <- "/srv/shiny-server/files"
-    sourcewd <- "/srv/shiny-server/ot2/PlateAnalysis/GrowthCurve/analyzer.R"
-    #mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\#OT2_Main\\PlateAnalysis\\GrowthCurve"
-    #sourcewd <- paste(mainwd, "\\analyzer.R", sep='') 
+    #mainwd <- "/srv/shiny-server/files"
+    #sourcewd <- "/srv/shiny-server/ot2/PlateAnalysis/GrowthCurve/analyzer.R"
+    mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\#OT2_Main\\PlateAnalysis\\GrowthCurve"
+    sourcewd <- paste(mainwd, "\\analyzer.R", sep='') 
     
     if(!("Analysis" %in% list.files(mainwd))){
         setwd(mainwd)
@@ -30,7 +30,7 @@ shinyServer(function(input, output) {
         if(is.null(infile)){return(NULL)}
         
         if(input$do==0){
-            #perform if file is loaded
+            #perform if file is loaded; but action button is not yet pressed
             fileNames <- input$files$name
             
             return(fileNames)
@@ -67,20 +67,37 @@ shinyServer(function(input, output) {
             }
             
             ## MAIN ##
-            grandRes <<- tryCatch({
-                main(mainwd, input$time, input$reader_type)
+            grandRes <- tryCatch({
+                main(mainwd, input$time, input$reader_type, as.numeric(input$controlOpt))
             },
             error=function(cond){
                 return("NULL")
             })
+            checkPoint3 <<- grandRes
+            #data for plotting; switch blanks from grand res
+            if(input$controlOpt == 3){
+                plotRes <- grandRes[!grepl("blank", grandRes$Inoculum),]
+                grandRes$Inoculum <- gsub("conc_blank","USED blank for each drug+medium+concentration", grandRes$Inoculum, ignore.case=T)
+            }else if(input$controlOpt==1){
+                plotRes <- grandRes[!grepl("absolute_blank", grandRes$Inoculum),]
+                grandRes$Inoculum <- gsub("absolute_blank","USED blank for all", grandRes$Inoculum, ignore.case=T)
+            }else if(input$controlOpt==2){
+                plotRes <- grandRes[!(grepl("absolute_blank", grandRes$Inoculum) | grepl("drug_blank", grandRes$Inoculum)),]
+                grandRes$Inoculum <- gsub("conc_blank","USED blank for each drug+medium", grandRes$Inoculum, ignore.case=T)
+            }else{
+                plotRes <- grandRes
+                grandRes$Inoculum[grepl("blank", grandRes$Inoculum)] <- ""
+            }
             
-            ## setup additional boundaries for plotting
-            lower_bound_axis <<- round(min(grandRes$minVal), 2)
-            upper_bound_axis <<- round(max(grandRes$maxVal), 1)
+            variable <- c()
+            for(i in c(1:length(plotRes[,1]))){
+                variable <- c(variable,
+                              paste(plotRes[i,c(2:5)], collapse='_'))
+            }
+            plotRes <<- cbind.data.frame(variable, plotRes)
             
-            #parse checkbox inputs
-            plotOptions <<- as.vector(input$plotOptions)
-            return(errMessage)
+            grandRes <<- grandRes
+            return(grandRes)
         }
     })
     #creating the table
@@ -90,22 +107,14 @@ shinyServer(function(input, output) {
     plotData <- reactiveValues()
     observeEvent(input$do,{
         req(input$do, contents())
-        plotData$plot_m <- ggplot(data=grandRes, aes(x=time, y=Absorbance))+
+        plotData$plot_m <- ggplot(data=plotRes, aes(x=time, y=Absorbance))+
             geom_point()+geom_line()+theme_bw()+
             facet_wrap(~variable)
         
-        if(!("auto" %in% plotOptions)){
-            lower_bound_axis <<- input$lower_bound
-            upper_bound_axis <<- input$upper_bound
-        }
         
-        if("log" %in% plotOptions){
+        if("log" %in% input$plotOptions){
             plotData$plot_m <- plotData$plot_m + 
-                scale_y_continuous(trans='log10', limits=c(lower_bound_axis, upper_bound_axis))
-        }
-        if("errorBars" %in% plotOptions){
-            plotData$plot_m <- plotData$plot_m + 
-                geom_errorbar(aes(ymin=minVal, ymax=maxVal), width=0.5)
+                scale_y_continuous(trans='log10')
         }
         })
     
