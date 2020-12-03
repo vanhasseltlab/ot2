@@ -139,8 +139,6 @@ main <- function(directory, first_measurement, reader_id){
   colnames(mainData) <- c("time.seconds", plateMap[parseID])
   rownames(mainData) <- c()
   
-  
-  
   ###### MAIN PROCESSING #######
   grandRes <- data.frame()
   grandRes <- cbind.data.frame(new_timeStamps)
@@ -184,11 +182,3 @@ main <- function(directory, first_measurement, reader_id){
   grandRes$time <- grandRes$time / 3600 #convert to hours
   return(grandRes)
 }
-
-#plt <- ggplot(data=grandRes, aes(x=time, y=Absorbance))+
-#  geom_point()+geom_line()+theme_bw()+
-#  facet_wrap(~variable)+
-#  scale_y_continuous(trans='log10', limits=c(lower_bound_axis, upper_bound_axis))+
-#  geom_errorbar(aes(ymin=minVal, ymax=maxVal), width=0.5)
-  
-#plt
