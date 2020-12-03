@@ -8,6 +8,7 @@ options(stringsAsFactors = F)
 
 errMessage <<- "SUCCESS"
 shinyServer(function(input, output) {
+    #### PREPARATION-------------
     #set directories, take source analyzer
     mainwd <- "/srv/shiny-server/files"
     sourcewd <- "/srv/shiny-server/ot2/PlateAnalysis/GrowthCurve/analyzer.R"
@@ -23,7 +24,7 @@ shinyServer(function(input, output) {
     
     source(sourcewd)
     
-    #copy all files
+    #### MAIN----------
     contents <- reactive({
         infile = input$files
         if(is.null(infile)){return(NULL)}
@@ -34,8 +35,10 @@ shinyServer(function(input, output) {
             
             return(fileNames)
         }else{
+            #PROCESS
             fileNames <- input$files$name
             
+            ## File Safekeeping
             #create new directory
             folderName <- input$folderName
             nex <- F
@@ -63,7 +66,7 @@ shinyServer(function(input, output) {
                 file.rename(oldName, newName)
             }
             
-            #perform main operation
+            ## MAIN ##
             grandRes <<- tryCatch({
                 main(mainwd, input$time, input$reader_type)
             },
@@ -71,6 +74,7 @@ shinyServer(function(input, output) {
                 return("NULL")
             })
             
+            ## setup additional boundaries for plotting
             lower_bound_axis <<- round(min(grandRes$minVal), 2)
             upper_bound_axis <<- round(max(grandRes$maxVal), 1)
             
