@@ -1,5 +1,5 @@
 library(shiny)
-#.libPaths(c("/home/sebastian/R/x86_64-pc-linux-gnu-library/3.4"))
+.libPaths(c("/home/sebastian/R/x86_64-pc-linux-gnu-library/3.4"))
 library(ggplot2)
 library(chron)
 library(reshape2)
@@ -10,10 +10,10 @@ errMessage <<- "SUCCESS"
 shinyServer(function(input, output) {
     #### PREPARATION-------------
     #set directories, take source analyzer
-    #mainwd <- "/srv/shiny-server/files"
-    #sourcewd <- "/srv/shiny-server/ot2/PlateAnalysis/GrowthCurve/analyzer.R"
-    mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\#OT2_Main\\PlateAnalysis\\GrowthCurve"
-    sourcewd <- paste(mainwd, "\\analyzer.R", sep='') 
+    mainwd <- "/srv/shiny-server/files"
+    sourcewd <- "/srv/shiny-server/ot2/PlateAnalysis/GrowthCurve/analyzer.R"
+    #mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\#OT2_Main\\PlateAnalysis\\GrowthCurve"
+    #sourcewd <- paste(mainwd, "\\analyzer.R", sep='') 
     
     if(!("Analysis" %in% list.files(mainwd))){
         setwd(mainwd)
@@ -51,24 +51,28 @@ shinyServer(function(input, output) {
             mainwd <- paste(mainwd, folderName, sep="/")
             dir.create(mainwd, recursive=T)
             
-            #copy files to main directory
+            ########
+            #COPY FILES TO MAIN DIRECTORY
                 #copying plate map
-                    #getting new names
-            
-            if('csv' %in% oldName){
-                newName <- paste(mainwd, "\\plateMap.csv")
-            }else{
-                newName <- paste(mainwd, "\\plateMap.xlsx")
-            }
-                    #copy and rename
+                    
+            #copy and rename
+            pmaps <<- input$pmap$datapath
             file.copy(input$pMap$datapath, mainwd)
-            oldName <- paste(mainwd, "/", list.files(mainwd))
-            file.rename(oldName, newName)
-                
+            if('csv' %in% input$pMap$name){
+                newName <- paste(mainwd, "/plateMap.csv", sep='')
+                oldName <- paste(mainwd, "/0.csv", sep='')
+            }else{
+                newName <- paste(mainwd, "/plateMap.xlsx", sep='')
+                oldName <- paste(mainwd, "/0.xlsx", sep='')
+                file.rename(oldName, newName)
+            }
+            
+            
+            
                 #copying measurement files
             fileNames <- fileNames[2:length(fileNames)]
             for(i in c(1:length(fileNames))){
-                file.copy(input$files$datapath, mainwd)
+                file.copy(input$files$datapath[i], mainwd)
                 
                 #renaming
                 oldName <- paste(mainwd, "/", toString(i-1), ".csv", sep='')
@@ -82,19 +86,20 @@ shinyServer(function(input, output) {
                 main(mainwd, input$time, input$reader_type, as.numeric(input$controlOpt))
             },
             error=function(cond){
-                return("NULL")
+                return(errMessage)
             })
-            checkPoint3 <<- grandRes
+            
             #data for plotting; switch blanks from grand res
             if(input$controlOpt == 3){
                 plotRes <- grandRes[!grepl("blank", grandRes$Inoculum),]
                 grandRes$Inoculum <- gsub("conc_blank","USED blank for each drug+medium+concentration", grandRes$Inoculum, ignore.case=T)
+                grandRes$Inoculum <- gsub("drug_blank","USED blank for each drug+medium+concentration", grandRes$Inoculum, ignore.case=T)
             }else if(input$controlOpt==1){
                 plotRes <- grandRes[!grepl("absolute_blank", grandRes$Inoculum),]
                 grandRes$Inoculum <- gsub("absolute_blank","USED blank for all", grandRes$Inoculum, ignore.case=T)
             }else if(input$controlOpt==2){
                 plotRes <- grandRes[!(grepl("absolute_blank", grandRes$Inoculum) | grepl("drug_blank", grandRes$Inoculum)),]
-                grandRes$Inoculum <- gsub("conc_blank","USED blank for each drug+medium", grandRes$Inoculum, ignore.case=T)
+                grandRes$Inoculum <- gsub("drug_blank","USED blank for each drug+medium", grandRes$Inoculum, ignore.case=T)
             }else{
                 plotRes <- grandRes
                 grandRes$Inoculum[grepl("blank", grandRes$Inoculum)] <- ""
@@ -106,6 +111,7 @@ shinyServer(function(input, output) {
                               paste(plotRes[i,c(2:5)], collapse='_'))
             }
             plotRes <<- cbind.data.frame(variable, plotRes)
+            
             
             grandRes <<- grandRes
             return(grandRes)

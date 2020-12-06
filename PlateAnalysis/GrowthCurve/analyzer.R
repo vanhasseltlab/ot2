@@ -44,7 +44,10 @@ ControlSelector <- function(grand_res){
   for(i in c(1:length(grand_res[,1]))){
     nexItem <- strsplit(as.character(grand_res$variable[i]), split=" ", fixed=T)[[1]]
     if(length(nexItem)<3){
-      nexItem <- c(nexItem, replicate(4-length(nexItem), "absolute_blank"))
+      #if the current item is an absolute blank
+      testExample <<- nexItem
+      nexItem <- c(nexItem, 
+                   replicate(4-length(nexItem), "absolute_blank"))
     }else if(length(nexItem)==3){
       if(nexItem[2]==0){
         nexItem <- c(nexItem, "drug_blank")
@@ -83,7 +86,6 @@ Blank_Substract_timepoint <- function(grand_res_time, blank){
     #if choice is absolute blank
     #calculate mean absolute blank
     mean_blank <- mean(grand_res_time$Absorbance[grand_res_time$Inoculum=='absolute_blank'])
-    
     #subtract blank from all absorbance values
     sub_Val <- grand_res_time$Absorbance - mean_blank
     
@@ -154,22 +156,19 @@ Blank_Substract_main <- function(grand_res, blank){
     #concatenate result
     new_grandRes <- rbind.data.frame(new_grandRes, curRes)
   }
+  colnames(new_grandRes)[length(new_grandRes[1,])] <- "NormalizedAbsorbance"
   return(new_grandRes)
 }
 
 #MAIN FUNCTION-------
 main <- function(directory, first_measurement, reader_id, blank_selection){
-  blank_selection <<- blank_selection
+  
   #### PRE-PROCESSING ######
   #GET FILE NAMES AND PLATE MAP------
   files_in_dir <- list.files(directory)
   
   #get plate map; ensure one file selected
-  plateMap_file <- files_in_dir[grepl("PlateMap", files_in_dir, fixed=T)]
-  if(length(plateMap_file)==0){
-    #otherwise use xlsx as plate map
-    plateMap_file <- files_in_dir[grepl("xlsx", files_in_dir, fixed=T)]
-  }
+  plateMap_file <- files_in_dir[grepl("plateMap", files_in_dir, fixed=T, ignore.case=T)]
   
   if(length(plateMap_file)!=1){
     if(length(plateMap_file)>1){
@@ -189,12 +188,17 @@ main <- function(directory, first_measurement, reader_id, blank_selection){
   plateMap <- paste(directory, "/", plateMap_file, sep='')
   plateMap <- if(grepl("xlsx", plateMap, fixed=T)){
     absData_files <- files_in_dir[!grepl("xlsx", files_in_dir, fixed=T)]
+    empty_wells <- as.vector(unlist(read.xlsx(plateMap, sheetIndex=1, rowIndex=c(33:40), 
+                                              colIndex=c(2:13), header=F)))
     #returned:
     as.vector(unlist(read.xlsx(plateMap, sheetIndex=1, rowIndex=c(57:64), 
                                colIndex=c(2:13), header=F)))
+    
   }else{
     as.vector(unlist(read.csv(plateMap, header=T, as.is=T)))
   }
+  
+  #get index of empty wells
   
   ##
   #iterate through measurement reads
@@ -255,6 +259,7 @@ main <- function(directory, first_measurement, reader_id, blank_selection){
   #READJUSTING MAIN DATA-------
   #combining time stamps
   mainData <- cbind.data.frame(new_timeStamps, mainData)
+  
   #renaming columns
   colnames(mainData) <- c("time.seconds", plateMap[parseID])
   rownames(mainData) <- c()
@@ -264,6 +269,7 @@ main <- function(directory, first_measurement, reader_id, blank_selection){
   grandRes <- cbind.data.frame(new_timeStamps)
   grandErr <- data.frame()
   grandErr <- cbind.data.frame(new_timeStamps)
+  
   #iterate through all unique replicates
   ids <- unique(colnames(mainData)[2:length(mainData[1,])])
   
@@ -282,18 +288,34 @@ main <- function(directory, first_measurement, reader_id, blank_selection){
                                            qt(0.975, df=(dim(curData)[2]-1))))
     }
   }
+  
+  #renaming
   colnames(grandRes) <- c('time', ids)
   colnames(grandErr) <- colnames(grandRes)
+  
   
   #ReFormat---------
   grandRes <- melt(grandRes, id='time', value.name='Absorbance')
   grandErr <- melt(grandErr, id='time', value.name='Err')
   
+  #removing empty wells
+  grandErr <- grandErr[(grandRes$variable != "0"),]
+  grandRes <- grandRes[(grandRes$variable != "0"),]
+  
   #add information about control
-  grandRes <- ControlSelector(grandRes)
-  checkPoint <<- grandRes
-  grandRes <- Blank_Substract_main(checkPoint, blank_selection)
-  checkPoint2 <<- grandRes
+  grandRes <- tryCatch({
+    grand_res <- ControlSelector(grandRes)
+    grand_res <- Blank_Substract_main(grand_res, blank_selection)
+    return(grand_res)
+  },
+  error=function(cond){
+    if(errMessage=='SUCCESS'){
+      errMessage <<- "Failed to subtract blank - please select the appropriate blank mode"
+    }
+    return(NULL)
+  })
+  
+  
   grandRes$time <- grandRes$time / 3600 #convert to hours
   return(grandRes)
 }
