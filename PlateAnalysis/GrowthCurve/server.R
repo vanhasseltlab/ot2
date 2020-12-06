@@ -28,15 +28,11 @@ shinyServer(function(input, output) {
         infile = input$files
         if(is.null(infile)){return(NULL)}
         
+        fileNames <- c(input$pMap$name, input$files$name)
         if(input$do==0){
-            #perform if file is loaded; but action button is not yet pressed
-            fileNames <- input$files$name
-            
             return(fileNames)
         }else{
             #PROCESS
-            fileNames <- input$files$name
-            
             ## File Safekeeping
             #create new directory
             folderName <- input$folderName
@@ -56,14 +52,30 @@ shinyServer(function(input, output) {
             dir.create(mainwd, recursive=T)
             
             #copy files to main directory
+                #copying plate map
+                    #getting new names
+            
+            if('csv' %in% oldName){
+                newName <- paste(mainwd, "\\plateMap.csv")
+            }else{
+                newName <- paste(mainwd, "\\plateMap.xlsx")
+            }
+                    #copy and rename
+            file.copy(input$pMap$datapath, mainwd)
+            oldName <- paste(mainwd, "/", list.files(mainwd))
+            file.rename(oldName, newName)
+                
+                #copying measurement files
+            fileNames <- fileNames[2:length(fileNames)]
             for(i in c(1:length(fileNames))){
-                file.copy(input$files$datapath[input$files$name==fileNames[i]], mainwd)
+                file.copy(input$files$datapath, mainwd)
                 
                 #renaming
                 oldName <- paste(mainwd, "/", toString(i-1), ".csv", sep='')
                 newName <- paste(mainwd, "/", fileNames[i], sep='')
                 file.rename(oldName, newName)
             }
+            
             
             ## MAIN ##
             grandRes <- tryCatch({
