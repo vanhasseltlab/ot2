@@ -5,9 +5,11 @@ shinyUI(
         
         sidebarPanel(
             selectInput("reader_type", "Select plate reader",
-                        list("FluostarOmega without Robot Arm" = 1,
-                             "FluostarOmega with Robot Arm" = 2)),
-            fileInput("files", "Upload Measurement Data and Plate Map", accept=c(".csv", ".xlsx"), multiple=T),
+                        list("FluostarOmega + Robot Arm" = 2,
+                             "FluostarOmega (no Robot Arm)" = 1)),
+            fileInput("files", "Upload Measurement Data", accept=".csv",
+                      multiple=T),
+            fileInput("pMap", "Upload Plate Map", accept=c(".csv", ".xlsx")),
             textInput("folderName", "Experiment Name", value='defaultFolder'),
             textInput("time", "Timepoint of first measurement", value="00:00:00"),
             selectInput("controlOpt", 'Control Options',
