@@ -207,7 +207,7 @@ shinyServer(function(input, output) {
   
   #download input template
   output$downloadTemplate <- downloadHandler(
-    filename = "MIC_InputTemplate.xlsx",
+    filename = "MV_InputTemplate.xlsx",
     content = function(file) {
       file.copy(inputTemplate, file)
     }
