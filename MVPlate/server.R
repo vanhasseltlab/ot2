@@ -4,7 +4,7 @@
 # > More versatile than "Multiplate MIC" version; but slower
 
 library(shiny)
-library(xlsx)
+#library(xlsx)
 
 options(stringsAsFactors = F)
 
