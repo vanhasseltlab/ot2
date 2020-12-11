@@ -11,10 +11,10 @@ options(stringsAsFactors = F)
 #SERVER MAIN------------
 shinyServer(function(input, output) {
   #defining directory-------
-  outputDir_cmdline <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\New folder\\incubator"
-  outputDir_usrGuide <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\New folder\\incubator"
-  inputTemplate <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\New folder\\incubator\\MV_InputTemplate.xlsx" 
-  sourceDir <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\New folder\\incubator"
+  #outputDir_cmdline <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\New folder\\incubator"
+  #outputDir_usrGuide <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\New folder\\incubator"
+  #inputTemplate <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\New folder\\incubator\\MV_InputTemplate.xlsx" 
+  #sourceDir <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\New folder\\incubator"
   
   outputDir_cmdline <- "/srv/shiny-server/files/Output_CmdList"
   outputDir_usrGuide <- "/srv/shiny-server/files/Output_UsrGuide"
