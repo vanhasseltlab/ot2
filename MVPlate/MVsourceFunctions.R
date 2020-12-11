@@ -117,6 +117,7 @@ CreateSolList <- function(plate_map, total_vol_well, inoc_vol, stock_list, n_pla
   #creating numerics
   fin_list$Occurence <- as.numeric(fin_list$Occurence) * as.numeric(n_plate)
   fin_list$DrugConc <- as.numeric(fin_list$DrugConc)
+ 
   fin_list <- CalculateDilVolume(fin_list, total_vol_well, inoc_vol, stock_list)
   
   #dropping factors
@@ -134,6 +135,9 @@ CalculateDilVolume <- function(sol_list, total_vol_well, inoc_vol, stock_list){
   sol_list$DrugConc <- as.numeric(sol_list$DrugConc) * 
     total_vol_well / (total_vol_well - inoc_vol)
   
+  #remove no-drug solutions from the list
+  sol_list <- sol_list[(sol_list$DrugType != ""),]
+  
   #initiate new list
   new_solList <- c()
   #iterate through all drug and solvent types
@@ -145,6 +149,7 @@ CalculateDilVolume <- function(sol_list, total_vol_well, inoc_vol, stock_list){
       
       #subset the current drug type
       curList <- subset(sol_list, DrugType==drugs[j] & Solvent==solvents[i])
+      
       #perform following actions only if not null
       if(length(curList[,1])>0){
         #order according to concentration
@@ -598,8 +603,8 @@ Cal_SolAmt <- function(deck_map, solvent_map, cmd_list){
     req_amt <- c(req_amt, solvent_amt)
   }
   
-  #put excess of 4 mL
-  req_amt <- req_amt + 4000
+  #put excess of 2 mL
+  req_amt <- req_amt + 2000
   #place minimum of 10 mL
   req_amt[req_amt<10000] <- 10000
   #translate to mL
@@ -707,7 +712,7 @@ Cal_DilTubes <- function(dil_map){
   colnames(outputMap) <- c('Category', 'Labware', 'Type', 'Slot', 'Name', 'RequiredAmount', 'Unit')
   return(outputMap)
 }
-Cal_DeckAdjustment <- function(cmd_list, deck_map, dil_tubes){
+Cal_DeckAdjustment <- function(cmd_list, deck_map, dil_tubes, n_plate){
   dil_tubes <- dil_tubes
   deck <- matrix(as.character(c(12:1)), ncol=3, byrow=T)
   deck <- deck[,c(3, 2, 1)]
@@ -728,14 +733,24 @@ Cal_DeckAdjustment <- function(cmd_list, deck_map, dil_tubes){
   }
   
   #check if tube racks required
-  if(!('labware_4' %in% dil_tubes$Labware)){
-    fin_deck[6,1] <- '(empty)'
-  }
-  if(!('labware_5' %in% dil_tubes$Labware)){
-    fin_deck[6,2] <- '(empty)'
+  if(!('labware_7' %in% dil_tubes$Labware)){
+    fin_deck[4,1] <- '(empty)'
   }
   if(!('labware_8' %in% dil_tubes$Labware)){
     fin_deck[4,2] <- '(empty)'
+  }
+  dash <<- fin_deck
+  if(n_plate < 5){
+    fin_deck[6,2] <- "(empty)"
+    if(n_plate < 4){
+      fin_deck[6,1] <- "(empty)"
+      if(n_plate < 3){
+        fin_deck[8,3] <- "(empty)"
+        if(n_plate < 2){
+          fin_deck[8,2] <- "(empty)"
+        }
+      }
+    }
   }
   return(fin_deck)
 }
@@ -866,9 +881,9 @@ main <- function(file_path, file_name=""){
   ## error not expected
   if(errMessage==""){
     deckMap <- c('96-well_A', '96-well_B', '96-well_C',
-                 '96-well_D', '15_Falcon_main', 'Solvent',
-                 'tip', '15_Falcon_spare', 'Stock',
-                 'tip', '(empty)', 'TRASH')
+                 '96-well_D', '96-well_E', 'Solvent',
+                 '15_Falcon_main', '15_Falcon_spare', 'Stock',
+                 'tip', 'tip', 'TRASH')
     names(deckMap) <- sapply(c(1:12), function(x) paste('labware', toString(x), sep='_'))
     # 0. LOAD LABWARES--------
     #solvents
@@ -972,8 +987,11 @@ main <- function(file_path, file_name=""){
     ware_fil <- ware_fil[order(as.numeric(ware_num))]
     ware_num <- ware_num[order(as.numeric(ware_num))]
     ware_num <- sapply(ware_num, function(x) paste('labware_', toString(x), sep=''))
+    
+    dis <- replicate(length(ware_num), "NA")
     fin_deck <- cbind.data.frame(ware_num, ware_fil, 
                                  dis, dis, dis, dis, dis, dis)
+    
     cmdList_output <<- list(c(">Amount List"), all_amt,
                             c('>CommandLines'), cmdList,
                             c(">PlateMap"), fin_deck)
