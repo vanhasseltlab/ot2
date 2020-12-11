@@ -971,7 +971,7 @@ main <- function(file_path, file_name=""){
     dilTubes <- Cal_DilTubes(dilMap) #error not expected?
     
     # 4. DECK LAYOUT FOR USER---------
-    finDeck <- Cal_DeckAdjustment(cmdList, deckMap, dilTubes) #error not expected?
+    finDeck <- Cal_DeckAdjustment(cmdList, deckMap, dilTubes, plateNum) #error not expected?
     
     #################
     #CREATING OUTPUT#
