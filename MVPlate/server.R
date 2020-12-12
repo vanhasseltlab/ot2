@@ -1,6 +1,6 @@
 #META #####
 #S.T.Tandar_OT2 Controller -- 2020/12/11
-# > Multiplate (up to 5 plates)
+# > Multiplate (up to 4 plates)
 # > More versatile than "Multiplate MIC" version; but slower
 
 library(shiny)
