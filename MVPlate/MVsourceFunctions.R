@@ -117,7 +117,7 @@ CreateSolList <- function(plate_map, total_vol_well, inoc_vol, stock_list, n_pla
   #creating numerics
   fin_list$Occurence <- as.numeric(fin_list$Occurence) * as.numeric(n_plate)
   fin_list$DrugConc <- as.numeric(fin_list$DrugConc)
- 
+  
   fin_list <- CalculateDilVolume(fin_list, total_vol_well, inoc_vol, stock_list)
   
   #dropping factors
@@ -185,9 +185,10 @@ CalculateDilVolume <- function(sol_list, total_vol_well, inoc_vol, stock_list){
               #update the item list
               nex_newCurList$DrugConc <- conc_hi/10
               nex_newCurList$Occurence <- 0
-              nex_newCurList$SolID <- paste(nex_newCurList$DrugType, nex_newCurList$DrugConc, nex_newCurList$Solvent,
+              nex_newCurList$SolID <- paste(nex_newCurList$DrugType, 
+                                            nex_newCurList$DrugConc, 
+                                            nex_newCurList$Solvent,
                                             sep=' ')
-              nex_newCurList$solAmt <- 150 
               
               #concatenate dilution to list
               new_curList <- rbind.data.frame(new_curList, nex_newCurList)
@@ -922,7 +923,7 @@ main <- function(file_path, file_name=""){
     }
     return(NA)
   })
-  stockList <<- stockList
+  
   wellInfo <- tryCatch({
     GetWellVols(file_path)
   },
