@@ -3,8 +3,8 @@ fileName = input("File Name: ")
 #IMPORTS---------
 import os
 import opentrons.execute
-sourceLoc = "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2"
-#sourceLoc = '/var/lib/jupyter/notebooks/User Inputs'
+sourceLoc = "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\DownstreamProcessors"
+#sourceLoc = '/var/lib/jupyter/notebooks'
 os.chdir(sourceLoc)
 from OT2_ControllerLib import *
 from opentrons import simulate
