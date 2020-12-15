@@ -604,6 +604,8 @@ main <- function(file_name){
                               cbind.data.frame(amtList, matrix(, nrow=length(amtList[,1]), ncol=3), stringsAsFactors=F),
                               c('>CommandLines', replicate(7, "")), stringsAsFactors=F)
   colnames(OT2_cmd) <- colnames(cmdList)
+  
+  
   checkpoint <<- cmdList
   OT2_cmd <- rbind.data.frame(OT2_cmd, cmdList, c('>DeckMap', replicate(7, "")), deck_map, stringsAsFactors=F)
   rownames(OT2_cmd) <- c()

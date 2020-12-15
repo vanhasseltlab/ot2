@@ -1,3 +1,4 @@
+options(stringsAsFactors = F)
 #FUNCTIONS LIBRARY------------
 # read input
 GetStockList <- function(file_name){
