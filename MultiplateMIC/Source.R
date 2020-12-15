@@ -101,7 +101,7 @@ defSolutionsMap <- function(deck_map, plate_map, drug_info){
 cmd_PreliminaryDilution <- function(plate_map, deck_map, drug_info, solutions_map){
   solIDs <- unique(subset(plate_map, DrugName!='NA')$solID)
   tipID <- 1
-  vol <- 1000 #ul, in dilution tube
+  vol <- 1450 #ul, in dilution tube
   #initiate command list
   cmdList <- c()
   for(i in c(1:length(solIDs))){
@@ -188,6 +188,8 @@ cmd_FirstDWDilution <- function(plate_map, deck_map, drug_info, solutions_map,
     stockVolume <- reqVolume*cur_dilConc/cur_stockConc
     solventVolume <- reqVolume - stockVolume
     
+    
+    ### creating commands ###
     #distribute solvents
     nexCmd <- c(solvent_labware, solvent_slot, dwell_labware, paste(target_wells, collapse=', '),
                 solventVolume, 0, tipID, 'solvent distribution for first stock dilution in deep wells')
@@ -209,7 +211,6 @@ cmd_FirstDWDilution <- function(plate_map, deck_map, drug_info, solutions_map,
   return(cmd_list)
 }
 cmd_MainSerialDilution <- function(cmd_list, plate_map, deck_map, solutions_map, well_info, n_plates, col_rat){
-  col_rat <<- col_rat
   tipID <- max(as.numeric(cmd_list$tipID)) + 1
   finAmt_per_wells <- well_info[1] - well_info[2]
   
@@ -603,7 +604,7 @@ main <- function(file_name){
                               cbind.data.frame(amtList, matrix(, nrow=length(amtList[,1]), ncol=3), stringsAsFactors=F),
                               c('>CommandLines', replicate(7, "")), stringsAsFactors=F)
   colnames(OT2_cmd) <- colnames(cmdList)
-  
+  checkpoint <<- cmdList
   OT2_cmd <- rbind.data.frame(OT2_cmd, cmdList, c('>DeckMap', replicate(7, "")), deck_map, stringsAsFactors=F)
   rownames(OT2_cmd) <- c()
   OT2_cmd <<- OT2_cmd
