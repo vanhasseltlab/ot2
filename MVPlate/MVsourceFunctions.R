@@ -647,7 +647,7 @@ Cal_StockAmt <- function(sol_list, stock_list, stock_map, deck_map){
     for(j in c(1:length(solvents))){
       #subset
       curList <- subset(sol_list, DrugType==drugs[i] & Solvent==solvents[j])
-      curList <<- curList
+      
       #perform if not null
       if(length(curList)>0){
         #get required amount
@@ -867,7 +867,6 @@ cal_amtList_Excess <- function(amt_list, cmd_list, deck_map){
             new_slot[2] <- 1
           }
           new_slot <- paste(new_slot, collapse='')
-          
           #assign new tube in 'tubes'
           nexDat <- cbind.data.frame(cmd_list$SourceLabware[i], 
                                      new_slot,
@@ -878,6 +877,7 @@ cal_amtList_Excess <- function(amt_list, cmd_list, deck_map){
           tubes <- rbind.data.frame(tubes, nexDat, stringsAsFactors=F)
           #update command lines
           old_slots <- cmd_list[c(i:length(cmd_list[,1])),]
+          
           new_slots <- old_slots
           new_slots$SourceSlot[old_slots$SourceLabware == cmd_list$SourceLabware[i] &
                                  old_slots$SourceSlot == cmd_list$SourceSlot[i]] <- new_slot
@@ -1092,7 +1092,7 @@ main <- function(file_path, file_name=""){
                                  dis, dis, dis, dis, dis, dis)
     
     cmdList_output <<- list(c(">Amount List"), all_amt,
-                            c('>CommandLines'), cmdList,
+                            c('>CommandLines'), adjustment[[1]],
                             c(">PlateMap"), fin_deck)
     
     #User Commands-----------
