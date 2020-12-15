@@ -276,7 +276,10 @@ def run(protocol: protocol_api.ProtocolContext, cmdList, deckMap, amtList):
         target_ware = cmdRow[2]
         target_well = cmdRow[3].split(', ')
         transfer_amt = float(cmdRow[4]) #only one transfer amount is allowed
-        mix_amt = max(float(cmdRow[5]), 300)
+        if(float(cmdRow[5]) > 0):
+            mix_amt = max(float(cmdRow[5]), 300)
+        else:
+            mix_amt = 0
         tipID = int(cmdRow[6]) #each row is performed using a single tip
 
         #choose pipette
@@ -374,7 +377,8 @@ def run(protocol: protocol_api.ProtocolContext, cmdList, deckMap, amtList):
 
             #iterate through all target wells
             for j in range(len(target_well)):
-                mix_amt = min(GetSrcVolume(amtList, cmdRow, cur_source_well), 300)
+                if(mix_amt>0):
+                    mix_amt = min(GetSrcVolume(amtList, cmdRow, cur_source_well), 300)
                 
                 #update solutions map
                 amtList = Update_Source(amtList, cmdRow, cur_source_well)
