@@ -608,7 +608,8 @@ Cal_SolAmt <- function(deck_map, solvent_map, cmd_list){
     relCmdList <- subset(cmd_list, SourceLabware==rack_position & SourceSlot==solvent_map[i,1])
     
     #get number of target wells per-row
-    n_well <- unlist(sapply(relCmdList$TargetSlot, function(x) length(strsplit(x, split=', ', fixed=T)[[1]])))
+    n_well <- unlist(sapply(relCmdList$TargetSlot, 
+                            function(x) length(strsplit(x, split=', ', fixed=T)[[1]])))
     
     #calculate required amount
     solvent_amt <- sum(as.numeric(relCmdList$TransAmt) * n_well)
