@@ -284,7 +284,7 @@ def run(protocol: protocol_api.ProtocolContext, cmdList, deckMap, amtList):
 
         #choose pipette
         if(len(target_well)==8 and len(source_well)==8):
-            #operations for multichannel pipette
+            #MULTICHANNEL
             pipette = "left_pipette"
             
             #pick up tip if needed
@@ -321,14 +321,11 @@ def run(protocol: protocol_api.ProtocolContext, cmdList, deckMap, amtList):
             aspHs_selected = min(aspHs)
             dspHs_selected = min(dspHs)
             
-            #####
-            #not annotated
             if(max(mixVols)==0): 
                 mix_amt = 0
             else:
                 mixVols.append(300)
                 mix_amt = min(mixVols)
-            ####
             
             #Main Transfers
             source_well_h = source_well[0]
@@ -366,7 +363,7 @@ def run(protocol: protocol_api.ProtocolContext, cmdList, deckMap, amtList):
 
 
         else:
-            #IF NOT MULTI PIPETTE
+            #SINGLE CHANNEL
             pipette = 'right_pipette'
             cur_source_well = source_well[0] #select only the first source
             
