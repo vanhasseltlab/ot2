@@ -57,6 +57,7 @@ shinyServer(function(input, output) {
       usrGuide_name <- paste("RobotHandler_", new_name(), '.xlsx', sep='')
       write_dir <- paste(outputDir_usrGuide, usrGuide_name, sep='/')
       write.xlsx(dis, write_dir, row.names = FALSE, col.names=T)
+      usrGuide <<- dis
     }
     return(dis)
   })
@@ -80,13 +81,13 @@ shinyServer(function(input, output) {
   output$d_OT2 <- downloadHandler(
     filename = function(){paste("CommandList_", new_name(), '.csv', sep='')},
     content = function(file) {
-      write.csv(OT2_cmd, file, row.names = FALSE)
+      write.csv(RobotCommands, file, row.names = FALSE)
     }
   )
   output$guide <- downloadHandler(
     filename = function(){paste("RobotHandler_", new_name(), '.xlsx', sep='')},
     content = function(file) {
-      write.xlsx(user_cmd, file, row.names = FALSE, col.names=T)
+      write.xlsx(usrGuide, file, row.names = FALSE, col.names=T)
     }
   )
   
