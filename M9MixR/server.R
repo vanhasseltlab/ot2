@@ -1,14 +1,20 @@
 library(shiny)
 library(xlsx)
-source("Maikv1.R")
-
 
 #SERVER MAIN------------
 shinyServer(function(input, output) {
   #defining directory-------
-  outputDir_cmdline <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\Maik"
-  outputDir_usrGuide <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\Maik"
-  inputTemplate <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\Maik\\M9MixR_InputTemplate.xlsx"
+  #outputDir_cmdline <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\Maik"
+  #outputDir_usrGuide <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\Maik"
+  #inputTemplate <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\Maik\\M9MixR_InputTemplate.xlsx"
+  
+  outputDir_cmdline <- "/srv/shiny-server/files/Output_CmdList"
+  outputDir_usrGuide <- "/srv/shiny-server/files/Output_UsrGuide"
+  inputTemplate <- "/srv/shiny-server/ot2/M9MixR/M9MixR_InputTemplate.xlsx" 
+  sourceDir <- "/srv/shiny-server/ot2/M9MixR/Maikv1.R" 
+  
+  #loading functions--------
+  source(sourceDir)
   
   #Obtain names---------
   new_name <- reactive({
