@@ -2,7 +2,7 @@ library(shiny)
 
 shinyUI(
   pageWithSidebar(
-    headerPanel("Multiplate_VariableConcentration - OT2-Commander -- TrialVersion"),
+    headerPanel("Multiplate_SingleDrugMIC - OT2-Commander"),
     
     sidebarPanel(
       tags$a(href="http://132.229.100.197:2222/ot2/SingleplateMIC/",
