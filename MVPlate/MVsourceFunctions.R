@@ -675,7 +675,7 @@ Cal_StockAmt <- function(sol_list, stock_list, stock_map, deck_map){
   rownames(stock_list) <- c()
   
   #add excess
-  stock_list$RequiredAmount <- as.numeric(stock_list$RequiredAmount) + 250
+  stock_list$RequiredAmount <- as.numeric(stock_list$RequiredAmount) + 300
   #place minimum
   stock_list$RequiredAmount[as.numeric(stock_list$RequiredAmount)<700] <- 700
   #round up
@@ -866,7 +866,7 @@ cal_amtList_Excess <- function(amt_list, cmd_list, deck_map){
         
         deltaV <- as.numeric(cmd_list$TransAmt[i])*length(strsplit(cmd_list$TargetSlot[i], split=', ')[[1]])
         
-        if((volUsed_after <= 42000 &  #switch limit to 42000 so that maximum + excess is 45 mL
+        if((volUsed_after <= 45000 &  #switch limit to 45000 so that maximum + excess is 48 mL
             cmd_list$SourceLabware[i] == 'labware_11') | 
            (volUsed_after <= 14000 & 
             cmd_list$SourceLabware[i] == 'labware_10')){
@@ -915,11 +915,18 @@ cal_amtList_Excess <- function(amt_list, cmd_list, deck_map){
   
   #order items
   amt_list <- tubes[order(tubes$Labware),]
+  
+  for(i in c(1:length(amt_list[,1]))){
+    
+  }
   #round up; add excess
-  amt_list$Vol[amt_list$Labware==toString(deck_map[grepl('olvent',deck_map[,2]),1])] <- ceiling(amt_list$Vol[amt_list$Labware==toString(deck_map[grepl('olvent',deck_map[,2]),1])]/1000) + 3 #4 mL excess
-  amt_list$Vol[amt_list$Labware==toString(deck_map[grepl('olvent',deck_map[,2]),1])] <- sapply(amt_list$Vol[amt_list$Labware==toString(deck_map[grepl('olvent',deck_map[,2]),1])], function(x) min(x, 45))
-  amt_list$Vol[amt_list$Labware==toString(deck_map[grepl('tock',deck_map[,2]),1])] <- ceiling(amt_list$Vol[amt_list$Labware==toString(deck_map[grepl('tock',deck_map[,2]),1])]/100)*100 + 200
-  amt_list$Vol[amt_list$Labware==toString(deck_map[grepl('tock',deck_map[,2]),1])] <- sapply(amt_list$Vol[amt_list$Labware==toString(deck_map[grepl('tock',deck_map[,2]),1])], function(x) min(x, 1200))
+  amt_list$Vol[amt_list$Labware==toString(deck_map[grepl('olvent',deck_map[,2]),1])] <- ceiling(amt_list$Vol[amt_list$Labware==toString(deck_map[grepl('olvent',deck_map[,2]),1])]/1000) + 3 #3 mL excess
+  amt_list$Vol[amt_list$Labware==toString(deck_map[grepl('olvent',deck_map[,2]),1])] <- sapply(amt_list$Vol[amt_list$Labware==toString(deck_map[grepl('olvent',deck_map[,2]),1])], function(x) max(x, 5)) #5 mL minimum
+  amt_list$Vol[amt_list$Labware==toString(deck_map[grepl('olvent',deck_map[,2]),1])] <- sapply(amt_list$Vol[amt_list$Labware==toString(deck_map[grepl('olvent',deck_map[,2]),1])], function(x) min(x, 48))
+  
+  amt_list$Vol[amt_list$Labware==toString(deck_map[grepl('tock',deck_map[,2]),1])] <- ceiling(amt_list$Vol[amt_list$Labware==toString(deck_map[grepl('tock',deck_map[,2]),1])]/100)*100 + 300
+  amt_list$Vol[amt_list$Labware==toString(deck_map[grepl('tock',deck_map[,2]),1])] <- sapply(amt_list$Vol[amt_list$Labware==toString(deck_map[grepl('tock',deck_map[,2]),1])], function(x) max(x, 700)) #placing a minimum of 700 uL
+  amt_list$Vol[amt_list$Labware==toString(deck_map[grepl('tock',deck_map[,2]),1])] <- sapply(amt_list$Vol[amt_list$Labware==toString(deck_map[grepl('tock',deck_map[,2]),1])], function(x) min(x, 14000))
   
   #return result
   res <- list(cmd_list, amt_list)
@@ -927,8 +934,9 @@ cal_amtList_Excess <- function(amt_list, cmd_list, deck_map){
 }
 ConvertAmtList_MCtoMV <- function(new_allAmt){
   Category <- sapply(new_allAmt$Labware, function(x) if(x=='labware_11'){"SOLVENT"}else{"STOCK"})
+  
   Type <- sapply(new_allAmt$Labware, 
-                 function(x) if(x=='labware_6'){"50 mL Falcon Tube"}else{"15 mL Falcon Tube"})
+                 function(x) if(x=='labware_11'){"50 mL Falcon Tube"}else{"15 mL Falcon Tube"})
   Unit <- sapply(new_allAmt$Labware, function(x) if(x=='labware_11'){"mL"}else{"uL"})
   
   fin_allAmt <- cbind.data.frame(Category, new_allAmt$Labware, Type,
@@ -1095,7 +1103,6 @@ main <- function(file_path, file_name=""){
                       as.vector(deckMap))
     
     adjustment <- cal_amtList_Excess(allAmt2, cmdList, deckMap2)
-    
     allAmt <- ConvertAmtList_MCtoMV(adjustment[[2]])
     cmdList <<- adjustment[[1]]
     #################
