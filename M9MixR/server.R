@@ -1,6 +1,8 @@
 library(shiny)
 library(xlsx)
 
+options(stringsAsFactors = F)
+
 #SERVER MAIN------------
 shinyServer(function(input, output) {
   #defining directory-------
