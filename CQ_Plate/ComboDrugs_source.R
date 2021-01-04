@@ -1,4 +1,7 @@
-#FUNCTIONS---------
+#### META ####
+# S. T. Tandar - 2021-1-1
+# Universal CQ processor
+
 # ---------- SECTION A - Read and Preparation -------------
 ReadInput <- function(data_path){
   #initial read
@@ -19,16 +22,16 @@ ReadInput <- function(data_path){
   
   #D. gather info about drug and solution map
   ## create plate map
-  slot_vec <- sapply(c(1:12), function(x) paste(LETTERS[1:8], x, sep="")) %>% c()
+  slot_vec <- c(sapply(c(1:12), function(x) paste(LETTERS[1:8], x, sep="")))
   
   ## read drug name on plate
-  drug_name <- input_file[c(9:16), c(2:13)] %>% unlist()
+  drug_name <- unlist(input_file[c(9:16), c(2:13)])
   
   ## read drug concentration on plate
-  drug_conc <- input_file[c(19:26), c(2:13)] %>% unlist()
+  drug_conc <- unlist(input_file[c(19:26), c(2:13)])
   
   ## read solution map
-  medium_map <- input_file[c(29:36), c(2:13)] %>% unlist()
+  medium_map <- unlist(input_file[c(29:36), c(2:13)])
   
   #combine to drug map
   drug_map <- cbind.data.frame(slot_vec, drug_name, drug_conc, medium_map)
@@ -85,7 +88,7 @@ GetSolutionInfo <- function(drug_map){
 }
 CalculateRequired_ConcVol <- function(drug_map, vol_info, sol_list, n_plate){
   well_totalVol <- vol_info["Total"] - vol_info["Inoculum"]
-  sol_separate <- sapply(drug_map$DrugName, function(x) length(strsplit(x, split="_")[[1]])) %>% max()
+  sol_separate <- max(sapply(drug_map$DrugName, function(x) length(strsplit(x, split="_")[[1]])))
   vol_per_drugSol <- well_totalVol / sol_separate
   
   sol_list$ReqVolume <- sol_list$nWell * vol_per_drugSol * n_plate
@@ -195,8 +198,8 @@ InitiateRacks <- function(deck_map){
       }
       
       #create slots
-      current_slots <- sapply(c(1:rack_size[1]), 
-                              function(x) paste(LETTERS[x], c(1:rack_size[2]), sep="")) %>% as.vector()
+      current_slots <- as.vector(sapply(c(1:rack_size[1]), 
+                                        function(x) paste(LETTERS[x], c(1:rack_size[2]), sep="")))
       current_slots <- cbind.data.frame(replicate(length(current_slots), deck_map$Labware[i]),
                                         replicate(length(current_slots), deck_map$Item[i]),
                                         current_slots,
@@ -238,7 +241,7 @@ DistributeStock <- function(rack_map, stock_info){
   return(rack_map)
 }
 DistributeSolvent <- function(sol_list, rack_map){
-  solvents <- unique(sol_list$Medium) %>% unlist()
+  solvents <- unlist(unique(sol_list$Medium))
   #separate stock rack from rack map
   solvent_rack <- rack_map[grepl("Solvent", rack_map$Item, ignore.case=T),]
   rack_map <- rack_map[!(grepl("Solvent", rack_map$Item, ignore.case=T)),]
@@ -381,7 +384,7 @@ MainDistribution <- function(vol_info, sol_list, rack_map, drug_map, n_plate, de
   
   #preparing drug map
   drug_map2 <- subset(drug_map, DrugName != "mediumfill")
-  solID_info <- apply(drug_map2, 1,recreate_solID) %>% t()
+  solID_info <- t(apply(drug_map2, 1,recreate_solID))
   drug_map3 <- cbind.data.frame(drug_map2$Slot, solID_info)
   colnames(drug_map3)[1] <- "Slot"
   
@@ -535,7 +538,7 @@ Output_PrepSolutions <- function(stock_info, rack_map, deck_map, sol_list){
 }
 Count_DilTubes <- function(stock_info, sol_list, rack_map, prep_sols){
   #select items
-  original_solutions <- c(stock_info$DrugName, unique(sol_list$Medium), "(empty)") %>% unlist()
+  original_solutions <- unlist(c(stock_info$DrugName, unique(sol_list$Medium), "(empty)"))
   select_racks <- rack_map[(!(rack_map$FillSolution %in% original_solutions)),]
   
   #iterate through all selected racks
