@@ -13,7 +13,7 @@ shinyServer(function(input, output) {
   outputDir_cmdline <- "/srv/shiny-server/files/Output_CmdList"
   outputDir_usrGuide <- "/srv/shiny-server/files/Output_UsrGuide"
   inputTemplate <- "/srv/shiny-server/ot2/CQ_Plate/CQ_InputTemplate.xlsx"
-  sourceDir <- "/srv/shiny-server/ot2/CQ_PlateComboDrugs_source.R"
+  sourceDir <- "/srv/shiny-server/ot2/CQ_Plate/ComboDrugs_source.R"
   
   #loading functions--------
   source(sourceDir)
