@@ -558,7 +558,29 @@ Count_DilTubes <- function(stock_info, sol_list, rack_map, prep_sols){
   }
   return(prep_sols)
 }
-
+AdjustDeck <- function(deck_map, rack_map, n_plate){
+  #adjusting number of plates
+  required_plates <- sapply(c(1:n_plate), function(x) paste("96-well", LETTERS[x], sep="_"))
+  deck_map$Item[grepl("96-well", deck_map$Item, ignore.case=T) & 
+                  !(deck_map$Item %in% required_plates)] <- "(empty)"
+  
+  #removing empty tube racks
+  ##iterate through all rack labwares
+  racks <- unique(rack_map$Labware)
+  unused_racks <- c()
+  for(i in c(1:length(racks))){
+    #subset
+    cur_rack <- subset(rack_map, Labware==racks[i])
+    
+    #check fill
+    if(sum(!grepl("empty", cur_rack$FillSolution)) == 0){ #if none is not empty (none is filled)
+      unused_racks <- c(unused_racks, racks[i])
+    }
+  }
+  deck_map$Item[deck_map$Labware %in% unused_racks] <- "(empty)"
+  
+  return(deck_map)
+}
 #MAIN--------
 mainExec <- function(file_name){
   # ---------- SECTION A - Read and Preparation -------------
@@ -624,6 +646,7 @@ mainExec <- function(file_name){
   prepSols <- Count_DilTubes(stockInfo, solList, rackMap, prepSols)
   
   #q3. Deck Map Show
+  deckMap <- AdjustDeck(deckMap, rackMap, nPlate) #remove unecessary labwares
   usrDeck <- rbind(c(10:12),
                    deckMap$Item[10:12],
                    c(7:9),
@@ -681,6 +704,6 @@ mainExec <- function(file_name){
 }
 
 #TROUBLESHOOTING--------------
-#mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\ComboDrugs"
+#mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\CQ_Plate"
 #inputFile <- "CQ_InputTemplate.xlsx"
 #mainExec(paste(mainwd, inputFile, sep="\\"))
