@@ -700,7 +700,7 @@ mainExec <- function(file_name){
   robotHandler <<- robotHandler
   robotCommands <<- robotCommands
   
-  return(prepSols)
+  return(robotHandler)
 }
 
 #TROUBLESHOOTING--------------
