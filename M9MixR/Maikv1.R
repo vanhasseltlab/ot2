@@ -1,12 +1,9 @@
-#INPUT READ-----------
-mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\Maik"
-inputName <- "MediumMix_InputTemp_v2.xlsx"
-
 #FUNCTIONS--------------
 Sum_and_Round <- function(q){
   minAmt <- ceiling((sum(q)/100)) * 100
-  if(minAmt<1200){minAmt <- max(minAmt + 200, 300)
-  }else{minAmt <- max(minAmt + 1000, 3000)}
+  if(minAmt<1200){minAmt <- max(minAmt + 200, 300) #200 uL excess for eppendorfs; minimum of 300 uL
+  }else if(minAmt<13000){minAmt <- max(ceiling((minAmt + 1000)/1000)*1000, 2000) #1 mL excess for 15 mL Falcon tubes; minimum of 2 mL
+  }else{minAmt <- max(ceiling((minAmt + 3000)/1000)*1000, 3000)} #3 mL excess and minimum amount for 15 mL Falcon tubes
   return(minAmt)
 }
 ReadInputsOLD <- function(input_file){
@@ -77,7 +74,7 @@ AssignSlots <- function(amt_list, deck_map){
   #initiate labware location
   falcon15_wares <- sapply(which(grepl("15", deck_map)), 
                            function(x) paste("labware_", x, sep=""))
-  falcon50_wares <- sapply(which(grepl("50", deck_map)), 
+  falcon50_wares <- sapply(which(grepl("50Falcon_A", deck_map, ignore.case = T)), 
                            function(x) paste("labware_", x, sep=""))
   epp_wares <- sapply(which(grepl("1.5", deck_map)), 
                       function(x) paste("labware_", x, sep=""))
@@ -103,15 +100,19 @@ AssignSlots <- function(amt_list, deck_map){
       
       #update rack information
       if(falcon15_rack[3] < 5){
+        #if space still available in current row
         falcon15_rack[3] <- falcon15_rack[3] + 1
       }else{
+        #if space not available in current row
+        falcon15_rack[3] <- 1 #reset column count in row
         if(falcon15_rack[2] < 3){
-          falcon15_rack[2] <- falcon15_rack[2] + 1
+          #if space still available in current rack
+          falcon15_rack[2] <- falcon15_rack[2] + 1 #move row
         }else{
-          falcon15_rack[1] <- falcon15_rack[1] + 1
-          falcon15_rack[2] <- 1
+          #if space no longer available in the current rack
+          falcon15_rack[1] <- falcon15_rack[1] + 1 #move rack
+          falcon15_rack[2] <- 1 #reset row count in plate 
         }
-        falcon15_rack[3] <- 1
       }
     }else if(grepl("50", amt_list$TubeType[i])){
       #if 50 mL Falcon
@@ -142,7 +143,7 @@ AssignSlots <- function(amt_list, deck_map){
       wareArr <- c(wareArr, epp_wares[epp_rack[1]])
       
       #update rack information
-      if(falcon50_rack[3] < 6){
+      if(epp_rack[3] < 6){
         epp_rack[3] <- epp_rack[3] + 1
       }else{
         if(epp_rack[2] < 4){
@@ -156,7 +157,6 @@ AssignSlots <- function(amt_list, deck_map){
     } 
   }
   
-  #get labware location
   #concatenate result
   amt_list <- cbind.data.frame(rownames(amt_list), amt_list,  wareArr, slotArr)
   colnames(amt_list) <- c("Solution", "Amt", "TubeType", "Labware", "Slot")
@@ -172,14 +172,16 @@ Assign_MediumSlot <- function(dqs){
   return(dqs)
 }
 Create_Commands <- function(transfer_amounts, solution_list){
+  transfer_amts <<- transfer_amounts
+  sol_list <<- solution_list
   #initiate command list
   cmd_list <- c()
   
   #iterate through all items in the stock
   for(i in c(1:length(transfer_amounts[1,]))){
     #get source labware and slot location
-    source_ware <- solution_list$Labware[solution_list$Solution==colnames(transfer_amounts[i])]
-    source_slot <- solution_list$Slot[solution_list$Solution==colnames(transfer_amounts[i])]
+    source_ware <- solution_list$Labware[solution_list$Solution==colnames(transfer_amounts)[i]]
+    source_slot <- solution_list$Slot[solution_list$Solution==colnames(transfer_amounts)[i]]
     
     #get target labware and slot location
     target_ware <- sapply(row.names(transfer_amounts), 
@@ -238,6 +240,52 @@ CreateRobotCommands <- function(init_amt_list, command_lines, deck_map){
   
   return(command_lines)
 }
+Adjust_Unit <- function(deck_map, amt_req){
+  sol_rack <- c(paste("labware_", which(grepl("solvent", deck_map, ignore.case=T)), sep=""),
+                paste("labware_", which(grepl("50Falcon_A", deck_map, ignore.case=T)), sep=""))
+  amt_req$Unit[amt_req$Labware %in% sol_rack] <- "mL"
+  amt_req$Amt[amt_req$Labware %in% sol_rack] <- as.numeric(amt_req$Amt[amt_req$Labware %in% sol_rack])/1000
+  return(amt_req)
+}
+Distribute_WaterRack <- function(deck_map, amt_req, cmd_list){
+  solvent_rack <- cbind.data.frame(as.vector(sapply(c(1:2), function(x) paste(LETTERS[x], c("1", "2", "3"), sep=""))),
+                                   replicate(6, 0))
+  colnames(solvent_rack) <- c("Slot", "FillAmt")
+  solvent_loc <- paste("labware", which(grepl("solvent", deck_map, ignore.case=T)), sep="_")
+  
+  #remove already filled slots
+  filled_slots <- subset(amt_req, Labware==solvent_loc)$Slot
+  solvent_rack <- solvent_rack[!(solvent_rack$Slot %in% filled_slots),]
+  
+  #iterate through all command list
+  for(i in c(1:length(cmd_list[,1]))){
+    if(cmd_list$SourceLabware[i]==solvent_loc & 
+       grepl("filling water", cmd_list$Comment[i], ignore.case = T)){
+      cur_transAmt <- as.numeric(cmd_list$TransAmt[i]) * 
+        length(strsplit(cmd_list$TargetSlot[i], split=", ")[[1]])
+      try_slot <- 1
+      while((solvent_rack$FillAmt[try_slot] + cur_transAmt) > 45000){
+        try_slot <- try_slot + 1 #move to next slot
+      }
+      
+      #append value to the current slot
+      solvent_rack$FillAmt[try_slot] <- solvent_rack$FillAmt[try_slot] + cur_transAmt
+      cmd_list$SourceSlot[i] <- solvent_rack$Slot[try_slot]
+    }
+  }
+  
+  #concatenate result to amt req
+  solvent_rack <- solvent_rack[solvent_rack$FillAmt>0,]
+  solvent_rack$FillAmt <- ceiling(solvent_rack$FillAmt/1000)*1000 + 3000 #excess of 3 mL
+  solvent_rack <- cbind.data.frame(replicate(length(solvent_rack[,1]), "Water"),
+                                   solvent_rack$FillAmt,
+                                   replicate(length(solvent_rack[,1]), "50 Falcon"),
+                                   replicate(length(solvent_rack[,1]), solvent_loc),
+                                   solvent_rack$Slot)
+  colnames(solvent_rack) <- colnames(amt_req)
+  amt_req <- rbind.data.frame(amt_req, solvent_rack)
+  return(list(cmd_list, amt_req))
+}
 #MAIN-----------
 M9_complex <- function(file_loc){ #main run function
   #READ INPUT FILE
@@ -287,10 +335,10 @@ M9_complex <- function(file_loc){ #main run function
   #updating solutions list
   for(i in c(1:length(cmdList[,1]))){
     #reduce aspirated amount
-    solList$Amt[solList$Labware==cmdList$SourceLabware[i] & solList$Slot==cmdList$SourceSlot[i]] <- solList$Amt[solList$Labware==cmdList$SourceLabware[i] & solList$Slot==cmdList$SourceSlot[i]] - as.numeric(cmdList$TransAmt[i])
+    solList$Amt[solList$Labware==cmdList$SourceLabware[i] & solList$Slot==cmdList$SourceSlot[i]] <- as.numeric(solList$Amt[solList$Labware==cmdList$SourceLabware[i] & solList$Slot==cmdList$SourceSlot[i]]) - as.numeric(cmdList$TransAmt[i])
     
     #add dispensed amount
-    solList$Amt[solList$Labware==cmdList$TargetLabware[i] & solList$Slot==cmdList$TargetSlot[i]] <- solList$Amt[solList$Labware==cmdList$TargetLabware[i] & solList$Slot==cmdList$TargetSlot[i]] + as.numeric(cmdList$TransAmt[i])
+    solList$Amt[solList$Labware==cmdList$TargetLabware[i] & solList$Slot==cmdList$TargetSlot[i]] <- as.numeric(solList$Amt[solList$Labware==cmdList$TargetLabware[i] & solList$Slot==cmdList$TargetSlot[i]]) + as.numeric(cmdList$TransAmt[i])
   }
   
   #calculate volume of water to include
@@ -310,7 +358,7 @@ M9_complex <- function(file_loc){ #main run function
   #create commands to pre-fill tubes
   fillCommands <- c()
   for(i in c(1:length(extra_amt[,1]))){
-    nexCommand <- c(paste("labware_", which(grepl("ater", deckMap)), sep=""),
+    nexCommand <- c(paste("labware_", which(grepl("olvent", deckMap, ignore.case=T)), sep=""),
                     "A1", extra_amt$Labware[i], extra_amt$Slot[i],
                     extra_amt$ExtraUsed[i], extra_amt$ExtraUsed[i], 
                     1, "Filling Water")
@@ -321,22 +369,25 @@ M9_complex <- function(file_loc){ #main run function
   #concatenate to command list
   cmdList <- rbind(fillCommands, cmdList)
   
-  #FINAL PRE-CALCULATION
+  #FINAL POST-CALCULATION
   #adding water to output amount
-  water <- c("water", toString(ceiling(sum(as.numeric(extra_amt$ExtraUsed))/5000)*5000),
-             "50 Falcon", paste("labware_", which(grepl("ater", deckMap)), sep=""), "A1")
-  output_amtRequired <- rbind.data.frame(amtRequired, water)
+  add_water <- Distribute_WaterRack(deckMap, amtRequired, cmdList)
+  output_amtRequired <- add_water[[2]]
+  cmdList <- add_water[[1]]
   
   #CREATE ROBOT COMMANDS
   RobotCommands <<- CreateRobotCommands(output_amtRequired, cmdList, deckMap)
   
   #CREATE USER COMMANDS
+  output_amtRequired$Unit <- "uL"
+  output_amtRequired <- Adjust_Unit(deckMap, output_amtRequired)
   UsrCommands <- cbind.data.frame(output_amtRequired$Labware, output_amtRequired$Slot,
                                   output_amtRequired$TubeType, output_amtRequired$Solution,
-                                  output_amtRequired$Amt, replicate(length(output_amtRequired[,1]), "uL"))
+                                  output_amtRequired$Amt, output_amtRequired$Unit)
   colnames(UsrCommands) <- c("Labware", "Slot", "Type", "Name", "Amount", "Unit")
+  UsrCommands <- UsrCommands[order(UsrCommands$Labware),]
   
-  extraTubes <- c(paste("labware_", which(grepl("ain", deckMap)), sep=""),
+  extraTubes <- c(paste("labware_", which(grepl("main", deckMap, ignore.case = T)), sep=""),
                   "-", "-", "Clean 50 mL Falcon Tubes", length(fillCommands[,1]), "tubes")
   UsrCommands <- rbind.data.frame(UsrCommands, extraTubes)
   
@@ -347,8 +398,11 @@ M9_complex <- function(file_loc){ #main run function
   UsrCommands <- rbind(UsrCommands, 
                        c(">>> OT2 DECK MAP <<<", replicate(5, "")),
                        deckMap)
+  
   return(UsrCommands)
 }
 
 #TROUBLESHOOTING------------
+#mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\M9MixR"
+#inputName <- "M9MixR_InputTemplate.xlsx"
 #dis <- M9_complex(paste(mainwd, inputName, sep='\\'))
