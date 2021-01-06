@@ -2,7 +2,7 @@ library(shiny)
 
 shinyUI(
   pageWithSidebar(
-    headerPanel("Multiplate_SingleDrugMIC - OT2-Commander"),
+    headerPanel("Multiplate_MIC - OT2-Commander"),
     
     sidebarPanel(
       tags$a(href="http://132.229.100.197:2222/ot2/SingleplateMIC/",
@@ -18,10 +18,7 @@ shinyUI(
       actionButton("do", "Confirm uploaded file and save"),
       uiOutput('downloadData'),
       uiOutput('downloadData2'),
-      uiOutput('downloadData3'),
-      
-      tags$a(href="http://132.229.100.197:2222/OldPatch/SingleplateMIC/",
-             "Link to last working uploader")
+      uiOutput('downloadData3')
     ),
     mainPanel(
       tableOutput('tab')
