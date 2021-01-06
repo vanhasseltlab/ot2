@@ -288,10 +288,6 @@ AssignSolutions <- function(sol_list, rack_map){
 
 # ---------- SECTION C - Main Operations -------------
 InitSolventDist <- function(sol_list, deck_map, rack_map){
-  sol_list <<- sol_list
-  deck_map <<- deck_map
-  rack_map <<- rack_map
-  
   cmd_list <- c()   #initiate result
   medium_amounts <- sol_list$finVolumes - sol_list$volAbove #calculate required medium amounts
   
@@ -411,22 +407,17 @@ MainDistribution <- function(vol_info, sol_list, rack_map, drug_map, n_plate, de
   for(q in c(1:length(sol_list[,1]))){
     #select wells
     choose_well <- drug_map3$Slot[which(apply(drug_map3, 1, function(x) sol_list$solID[q] %in% x))]
-    
-    #separate per-10 wells
-    while(length(choose_well) > 0){
-      if(length(choose_well) > 10){nmax <- 10}else{nmax <- length(choose_well)}
+    if(length(choose_well)>0){
       #create command
       nex_cmd <- c(rack_map$Labware[rack_map$FillSolution == sol_list$solID[q]],
                    rack_map$Slot[rack_map$FillSolution == sol_list$solID[q]],
-                   "", paste(choose_well[1:nmax], collapse=", "), amt_per_well, 0, cur_tip,
+                   "", paste(choose_well, collapse=", "), amt_per_well, 0, cur_tip,
                    paste("Distributing", sol_list$solID[q], "to"))
-      
       #concatenate command line
       plate_distribute <- rbind(plate_distribute, nex_cmd)
       
       #update iteration
       cur_tip <- cur_tip + 1 #iterate tip id
-      choose_well <- choose_well[-c(1:nmax)]
     }
   }
   
@@ -477,10 +468,11 @@ MainDistribution <- function(vol_info, sol_list, rack_map, drug_map, n_plate, de
   for(i in c(1:n_plate)){
     nex_cmd <- plate_distribute
     nex_cmd$TargetLabware <- deck_map$Labware[deck_map$Item==paste("96-well", LETTERS[i], sep="_")] #update target labware
-    nex_cmd$TipID <- as.numeric(nex_cmd$TipID) + length(nex_cmd[,1]) * (i-1) #update tip id
     nex_cmd$Comment <- paste(nex_cmd$Comment,  nex_cmd$TargetLabware, sep=" ") #update comments
     if(i==1){grand_plateDis <- data.frame(nex_cmd)}else{grand_plateDis <- rbind.data.frame(grand_plateDis, nex_cmd)}
   }
+  
+  grand_plateDis <- grand_plateDis[order(grand_plateDis$TipID, decreasing=F),]
   
   #concatenate to command list
   cmd_list <- rbind.data.frame(cmd_list, grand_plateDis)
@@ -625,9 +617,9 @@ mainExec <- function(file_name){
   
   # ---------- SECTION B - Deck Preparation -------------
   #E. Initiate Deck Map
-  deckMap <- c("96-well_C", "96-well_D", "tip",
-               "96-well_A", "96-well_B", "tip",
-               "Rack_15", "Rack_50_Solvent", "tip",  
+  deckMap <- c("96-well_D", "96-well_E", "96-well_F",
+               "96-well_A", "96-well_B", "96-well_C",
+               "tip", "Rack_50_Solvent", "Rack_15",  
                "Rack_15_B", "Rack_1.5_Stock", "TRASH")
   deckMap <- cbind.data.frame(sapply(c(1:12), function(x) paste("labware_", x, sep="")),
                               deckMap)
@@ -725,6 +717,8 @@ mainExec <- function(file_name){
 }
 
 #TROUBLESHOOTING--------------
-#mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\CQ_Plate"
-#inputFile <- "CQ_InputTemplate.xlsx"
-#mainExec(paste(mainwd, inputFile, sep="\\"))
+mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\CQ_Plate"
+inputFile <- "CQ_InputTemplate_new_notuploaded.xlsx"
+mainExec(paste(mainwd, inputFile, sep="\\"))
+
+#clump per-solution type
