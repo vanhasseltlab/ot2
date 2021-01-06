@@ -193,7 +193,7 @@ Create_Commands <- function(transfer_amounts, solution_list){
     nexLines <- cbind(replicate(length(target_ware), source_ware),
                       replicate(length(target_ware), source_slot),
                       target_ware, target_slot, 
-                      transfer_amounts[,i], transfer_amounts[,i],
+                      transfer_amounts[,i], 0, #no mixing
                       c(1:length(target_ware)), "Dilution")
     
     #remove 0 transfer amounts; concatenate result
