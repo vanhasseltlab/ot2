@@ -298,7 +298,7 @@ M9_complex <- function(file_loc){ #main run function
   #INITIATE DECK MAP
   deckMap <- c("1.5Eppendorf_A", "50Falcon_Main", "50Falcon_A",
                "tip", "15Falcon_A", "15Falcon_B", 
-               "empty", "SOLVENT",
+               "tip", "SOLVENT",
                replicate(3, "empty"), "TRASH")
   
   #PREPARATION
