@@ -106,56 +106,58 @@ CalculateSerialDilution <- function(solution_list, stock_info){
     #subset
     cur_data <- subset(solution_list, medDrugID==medIDs[q] & ReqConc>0)
     
-    #preliminary dilution if required
-    upper_conc <- as.numeric(stock_info[1, unlist(cur_data$DrugName[1])])
-    cur_maxConc <- max(cur_data$ReqConc)
-    while(upper_conc/cur_maxConc > 10){
-      #create next data for dilution
-      nexData <- cur_data[1,]
-      
-      #update information
-      nexData$ReqConc <- upper_conc/10
-      nexData$nWell <- 0
-      nexData$ReqVolume <- 0
-      nexData$Conc <- upper_conc/10
-      nexData$Slot <- "(none)"
-      nexData$solID <- paste(nexData$DrugName, nexData$Conc, nexData$Medium, sep="_")
-      nexData$medDrugID <- paste(nexData$DrugName, nexData$Medium, sep="_")
-      
-      #concatenate result
-      cur_data <- rbind.data.frame(cur_data, nexData)
-      
-      #update current dilution rate
+    if(length(cur_data[,1])>0){
+      #preliminary dilution if required
+      upper_conc <- as.numeric(stock_info[1, unlist(cur_data$DrugName[1])])
       cur_maxConc <- max(cur_data$ReqConc)
-      upper_conc <- upper_conc/10
-    }
-    
-    #order
-    cur_data <- cur_data[order(cur_data$ReqConc, decreasing=F), ]
-    
-    #calculate required volume from above
-    finVolumes <- c(max(cur_data$ReqVolume[1] + 150, 300)) #excess 150 uL; place a minimum of 300 uL
-    volAbove <- c()
-    
-    for(j in c(2:length(cur_data[,1]))){
-      #calculate required volume for next dilution
-      pass_vol <- finVolumes[j-1]*cur_data$ReqConc[j-1]/cur_data$ReqConc[j]
+      while(upper_conc/cur_maxConc > 10){
+        #create next data for dilution
+        nexData <- cur_data[1,]
+        
+        #update information
+        nexData$ReqConc <- upper_conc/10
+        nexData$nWell <- 0
+        nexData$ReqVolume <- 0
+        nexData$Conc <- upper_conc/10
+        nexData$Slot <- "(none)"
+        nexData$solID <- paste(nexData$DrugName, nexData$Conc, nexData$Medium, sep="_")
+        nexData$medDrugID <- paste(nexData$DrugName, nexData$Medium, sep="_")
+        
+        #concatenate result
+        cur_data <- rbind.data.frame(cur_data, nexData)
+        
+        #update current dilution rate
+        cur_maxConc <- max(cur_data$ReqConc)
+        upper_conc <- upper_conc/10
+      }
       
-      #calculate actual required volume
-      finVolumes <- c(finVolumes, max((pass_vol + cur_data$ReqVolume[j] + 150), 300))
+      #order
+      cur_data <- cur_data[order(cur_data$ReqConc, decreasing=F), ]
       
-      #calculate amount required from above
-      volAbove <- c(volAbove, finVolumes[j-1]*cur_data$ReqConc[j-1]/cur_data$ReqConc[j])
+      #calculate required volume from above
+      finVolumes <- c(max(cur_data$ReqVolume[1] + 150, 300)) #excess 150 uL; place a minimum of 300 uL
+      volAbove <- c()
+      
+      for(j in c(2:length(cur_data[,1]))){
+        #calculate required volume for next dilution
+        pass_vol <- finVolumes[j-1]*cur_data$ReqConc[j-1]/cur_data$ReqConc[j]
+        
+        #calculate actual required volume
+        finVolumes <- c(finVolumes, max((pass_vol + cur_data$ReqVolume[j] + 150), 300))
+        
+        #calculate amount required from above
+        volAbove <- c(volAbove, finVolumes[j-1]*cur_data$ReqConc[j-1]/cur_data$ReqConc[j])
+      }
+      volAbove <- c(volAbove, 
+                    finVolumes[length(finVolumes)]*cur_data$ReqConc[length(finVolumes)]/as.numeric(stock_info[1, unlist(cur_data$DrugName[1])]))
+      
+      #adjust excess and final volumes for higher amounts
+      finVolumes[finVolumes>1200] <- max(2000, finVolumes[finVolumes>1200] - 150 + 1000) #set a minimum of 2 mL; excess of 1 mL for falcon tubes
+      
+      #concatenate results
+      nex_item <- cbind.data.frame(cur_data, finVolumes, volAbove)
+      if(length(reslist)>0){reslist <- rbind.data.frame(reslist, nex_item)}else{reslist <- data.frame(nex_item)}
     }
-    volAbove <- c(volAbove, 
-                  finVolumes[length(finVolumes)]*cur_data$ReqConc[length(finVolumes)]/as.numeric(stock_info[1, unlist(cur_data$DrugName[1])]))
-    
-    #adjust excess and final volumes for higher amounts
-    finVolumes[finVolumes>1200] <- max(2000, finVolumes[finVolumes>1200] - 150 + 1000) #set a minimum of 2 mL; excess of 1 mL for falcon tubes
-    
-    #concatenate results
-    nex_item <- cbind.data.frame(cur_data, finVolumes, volAbove)
-    if(length(reslist)>0){reslist <- rbind.data.frame(reslist, nex_item)}else{reslist <- data.frame(nex_item)}
   }
   return(reslist)
 }
@@ -286,26 +288,38 @@ AssignSolutions <- function(sol_list, rack_map){
 
 # ---------- SECTION C - Main Operations -------------
 InitSolventDist <- function(sol_list, deck_map, rack_map){
+  sol_list <<- sol_list
+  deck_map <<- deck_map
+  rack_map <<- rack_map
+  
   cmd_list <- c()   #initiate result
   medium_amounts <- sol_list$finVolumes - sol_list$volAbove #calculate required medium amounts
-  #iterate through all items on solution list
-  for(q in c(1:length(sol_list))){
-    #extract current information
-    source_labware <- deck_map$Labware[grepl("solvent", deck_map$Item, ignore.case=T)]
-    source_slot <- rack_map$Slot[which(rack_map$FillSolution == sol_list$Medium[q])]
-    target_labware <- rack_map$Labware[which(rack_map$FillSolution==sol_list$solID[q])]
-    target_slot <- rack_map$Slot[which(rack_map$FillSolution==sol_list$solID[q])]
+  
+  #clump together all mediums with one pipette tip
+  medtypes <- unlist(unique(sol_list$Medium))
+  for(w in c(1:length(medtypes))){
+    #subset
+    cur_solList <- subset(sol_list, Medium==medtypes[w])
     
-    #calculate transfer informations
-    trans_amt <- medium_amounts[q]
-    tip_id <- q
-    comment <- paste("Distributing", sol_list$Medium[q], "to", target_labware, target_slot, sep=" ")
-    
-    #concatenate result
-    nex_command <- c(source_labware, source_slot, target_labware, target_slot, 
-                     trans_amt, 0, tip_id, comment)
-    cmd_list <- rbind(cmd_list, nex_command)
+    #iterate through all items in the current solution list
+    for(q in c(1:length(cur_solList[,1]))){
+      #extract current information
+      source_labware <- deck_map$Labware[grepl("solvent", deck_map$Item, ignore.case=T)]
+      source_slot <- rack_map$Slot[which(rack_map$FillSolution == cur_solList$Medium[q])]
+      target_labware <- rack_map$Labware[which(rack_map$FillSolution==sol_list$solID[q])]
+      target_slot <- rack_map$Slot[which(rack_map$FillSolution==cur_solList$solID[q])]
+      
+      #calculate transfer informations
+      trans_amt <- medium_amounts[q]
+      comment <- paste("Distributing", cur_solList$Medium[q], "to", target_labware, target_slot, sep=" ")
+      
+      #concatenate result
+      nex_command <- c(source_labware, source_slot, target_labware, target_slot, 
+                       trans_amt, 0, w, comment)
+      cmd_list <- rbind(cmd_list, nex_command)
+    }
   }
+  
   colnames(cmd_list) <- c("SourceLabware", "SourceSlot", "TargetLabware", "TargetSlot",
                           "TransAmt", "MixAmt", "TipID", "Comment")
   return(cmd_list)
@@ -611,9 +625,9 @@ mainExec <- function(file_name){
   
   # ---------- SECTION B - Deck Preparation -------------
   #E. Initiate Deck Map
-  deckMap <- c("96-well_F", "96-well_E", "96-well_D",
-               "96-well_C", "96-well_B", "96-well_A",
-               "Tip", "Rack_15", "Rack_50_Solvent", 
+  deckMap <- c("96-well_C", "96-well_D", "tip",
+               "96-well_A", "96-well_B", "tip",
+               "Rack_15", "Rack_50_Solvent", "tip",  
                "Rack_15_B", "Rack_1.5_Stock", "TRASH")
   deckMap <- cbind.data.frame(sapply(c(1:12), function(x) paste("labware_", x, sep="")),
                               deckMap)
