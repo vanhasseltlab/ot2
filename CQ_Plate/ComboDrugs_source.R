@@ -419,13 +419,20 @@ MainDistribution <- function(vol_info, sol_list, rack_map, drug_map, n_plate, de
   #fill 0 ng/uL solutions with respective mediums
   control_code <- paste("0", unique(drug_map$Medium), sep="-")
   med_names <- unique(drug_map$Medium)
+  
   for(j in c(1:length(control_code))){
     choose_well <- drug_map3$Slot[apply(drug_map3, 1, function(x) sum(grepl(control_code[j], x)))>0]
+    times <- apply(drug_map3, 1, function(x) sum(grepl(control_code[j], x)))[which(drug_map3$Slot %in% choose_well)]
+    
     if(length(choose_well)>0){
-      nex_cmd <- c(rack_map$Labware[rack_map$FillSolution == med_names[j]],
-                   rack_map$Slot[rack_map$FillSolution == med_names[j]],
-                   "", paste(choose_well, collapse=", "), amt_per_well, 0, cur_tip,
-                   paste("Distributing", med_names[j], "to"))
+      nex_cmd <- c()
+      for(q in c(1:length(choose_well))){
+        nex_cmd <- rbind(nex_cmd, 
+                         c(rack_map$Labware[rack_map$FillSolution == med_names[j]],
+                           rack_map$Slot[rack_map$FillSolution == med_names[j]],
+                           "", choose_well[q], amt_per_well*times[q], 0, cur_tip,
+                           paste("Distributing", med_names[j], "to")))
+      }
     }else{
       nex_cmd <- NULL
     }
