@@ -1137,7 +1137,7 @@ main <- function(file_path, file_name=""){
     allAmt <- errMessage
   }
   
-  return(allAmt)
+  return(usercmd_output)
 }
 
 #TROUBLESHOOTING---------
