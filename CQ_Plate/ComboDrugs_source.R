@@ -717,8 +717,6 @@ mainExec <- function(file_name){
 }
 
 #TROUBLESHOOTING--------------
-mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\CQ_Plate"
-inputFile <- "CQ_InputTemplate_new_notuploaded.xlsx"
-mainExec(paste(mainwd, inputFile, sep="\\"))
-
-#clump per-solution type
+#mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\CQ_Plate"
+#inputFile <- "CQ_InputTemplate_new_notuploaded.xlsx"
+#mainExec(paste(mainwd, inputFile, sep="\\"))
