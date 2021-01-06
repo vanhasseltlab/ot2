@@ -735,20 +735,8 @@ Cal_DeckAdjustment <- function(cmd_list, deck_map, dil_tubes, n_plate){
     fin_deck <- rbind(fin_deck, deck[i,], deck_map[(length(deck_map[,1])-i+1),])
   }
   
-  ## FUNCTION BLOCK DEPRECATED
-  #calculate required tip boxes
-  needed <- max(as.numeric(cmd_list$TipID), na.rm=T)
-  nbox <- ceiling(needed/96)
-  if(nbox<3){
-    fin_deck[2,2] <- '(empty)'
-    if(nbox<2){
-      fin_deck[2,1] <- '(empty)'
-    }
-  }
-  ####
   
-  
-  #check if spare tube racks required
+  #check if spare tube rack was required
   if(!('labware_8' %in% dil_tubes$Labware)){
     fin_deck[4,2] <- '(empty)'
   }
