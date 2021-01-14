@@ -535,7 +535,7 @@ Calculate_SolventAmt <- function(rack_map, cmd_list){
   #re-combine rack map
   rack_map <- rbind.data.frame(rack_map, solvent_rack)
   
-  return(rack_map)
+  return(list(rack_map, cmd_list))
 }
 Output_PrepSolutions <- function(stock_info, rack_map, deck_map, sol_list){
   #extract original solutions
@@ -656,7 +656,9 @@ mainExec <- function(file_name){
   
   # ---------- SECTION D - Output Preparations -------------
   #q1. Calculate Required Solvent Amount
-  rackMap <- Calculate_SolventAmt(rackMap, cmdList)
+  rackMap <- Calculate_SolventAmt(rackMap, cmdList) #pool
+  cmdList <- rackMap[[2]] #extract command list
+  rackMap <- rackMap[[1]] #extract rack map info
   
   #q2. Solutions and Tubes to Prepare
   prepSols <- Output_PrepSolutions(stockInfo, rackMap, deckMap, solList)
@@ -721,6 +723,6 @@ mainExec <- function(file_name){
 }
 
 #TROUBLESHOOTING--------------
-#mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\CQ_Plate"
-#inputFile <- "CQ_InputTemplate (2).xlsx"
-#mainExec(paste(mainwd, inputFile, sep="\\"))
+mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\CQ_Plate"
+inputFile <- "CQ_InputTemplate (2).xlsx"
+mainExec(paste(mainwd, inputFile, sep="\\"))
