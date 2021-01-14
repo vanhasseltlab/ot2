@@ -284,6 +284,14 @@ Cal_manualFilling <- function(cmd_list){
   
   return(list(cmd_list, preFill_amt))
 }
+check_OverFlow <- function(cmd_list, deck_map, vol_info){
+  mainRack_commands <- subset(cmd_list, 
+                              TargetLabware==paste("labware_", which(grepl("main", deck_map, ignore.case=T)), sep=""))
+  slots <- unique(mainRack_commands$TargetSlot)
+  checks <- sapply(slots, function(x) sum(as.numeric(subset(mainRack_commands, TargetSlot==x)$TransAmt))>vol_info$FinAmt[vol_info$slot==x])
+  
+  return(sum(checks)>0)
+}
 #MAIN-----------
 M9_complex <- function(file_loc){ #main run function
   #READ INPUT FILE
@@ -299,7 +307,6 @@ M9_complex <- function(file_loc){ #main run function
                "tip", "15Falcon_A", "15Falcon_B", 
                "tip", "SOLVENT",
                replicate(3, "empty"), "TRASH")
-  
   #PREPARATION
   #a. Calculate amount required per-stock per-solution
   transAmts <- Calculate_ReqStockAmount(concDetails, volInfo)
@@ -379,6 +386,9 @@ M9_complex <- function(file_loc){ #main run function
   cmdList <- manualFill[[1]]
   manualFill <- manualFill[[2]]
   
+  #check over-volume
+  overFLow <- check_OverFlow(cmdList, deckMap, volInfo)
+    
   #CREATE ROBOT COMMANDS
   RobotCommands <<- CreateRobotCommands(output_amtRequired, cmdList, deckMap)
   
@@ -415,15 +425,15 @@ M9_complex <- function(file_loc){ #main run function
                        deckMap)
   
   rownames(UsrCommands) <- c()
+  
+  if(overFLow){
+    RobotCommands <- c()
+    UsrCommands <- c("Required volume for dilution exceeded targeted amount - please use a more concentrated stock")
+  }
   return(UsrCommands)
 }
 
 #TROUBLESHOOTING------------
-mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\M9MixR"
-inputName <- "M9MixR_InputTemplate(1).xlsx"
-dis <- M9_complex(paste(mainwd, inputName, sep='\\'))
-
-
-
-
-
+#mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\M9MixR"
+#inputName <- "M9MixR_InputTemplate(1).xlsx"
+#dis <- M9_complex(paste(mainwd, inputName, sep='\\'))
