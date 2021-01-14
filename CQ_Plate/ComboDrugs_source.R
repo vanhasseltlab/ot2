@@ -394,7 +394,12 @@ MainDistribution <- function(vol_info, sol_list, rack_map, drug_map, n_plate, de
   
   #preparing drug map
   drug_map2 <- subset(drug_map, DrugName != "mediumfill")
-  solID_info <- t(apply(drug_map2, 1,recreate_solID))
+  solID_info <- c()
+  for(qq in c(1:length(drug_map2[,1]))){
+    nexDat <- recreate_solID(drug_map2[qq,])
+    print(length(nexDat))
+    if(length(solID_info)>0){solID_info <- rbind(solID_info, nexDat)}else{solID_info <- nexDat}
+  }
   drug_map3 <- cbind.data.frame(drug_map2$Slot, solID_info)
   colnames(drug_map3)[1] <- "Slot"
   
@@ -639,7 +644,6 @@ mainExec <- function(file_name){
   #x1. Initial Solvent Distribution for Dilution
   cmdList <- InitSolventDist(solList, deckMap, rackMap)
   
-  
   #x2. Initial Stock Dilution
   cmdList <- InitialStockDilution(cmdList, solList, rackMap)
   
@@ -718,5 +722,5 @@ mainExec <- function(file_name){
 
 #TROUBLESHOOTING--------------
 #mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\CQ_Plate"
-#inputFile <- "CQ_InputTemplate_new_notuploaded.xlsx"
+#inputFile <- "CQ_InputTemplate (2).xlsx"
 #mainExec(paste(mainwd, inputFile, sep="\\"))
