@@ -723,6 +723,6 @@ mainExec <- function(file_name){
 }
 
 #TROUBLESHOOTING--------------
-mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\CQ_Plate"
-inputFile <- "CQ_InputTemplate (2).xlsx"
-mainExec(paste(mainwd, inputFile, sep="\\"))
+#mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\CQ_Plate"
+#inputFile <- "CQ_InputTemplate (2).xlsx"
+#mainExec(paste(mainwd, inputFile, sep="\\"))
