@@ -1,8 +1,0 @@
-1. check remaining pre-dilution requirements
-
-GitHub Commands 
-A) PUSH
-git push -u origin master
-
-B) PULL
-sudo git pull origin master
