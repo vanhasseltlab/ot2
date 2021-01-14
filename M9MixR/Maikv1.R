@@ -167,6 +167,7 @@ Create_Commands <- function(transfer_amounts, solution_list){
     target_slot <- sapply(row.names(transfer_amounts), 
                           function(x) solution_list$Slot[solution_list$Solution==x])
     
+    
     #assign new command lines
     nexLines <- cbind(replicate(length(target_ware), source_ware),
                       replicate(length(target_ware), source_slot),
@@ -270,6 +271,7 @@ M9_complex <- function(file_loc){ #main run function
   inputFiles <- ReadInputs(file_loc)
   stockInfo <- inputFiles[[1]]
   volInfo <- data.frame(inputFiles[[2]])
+  if(length(volInfo[1,])==1){volInfo <- cbind.data.frame(volInfo[1,], volInfo[2,])}
   colnames(volInfo) <- c("Solutions", "FinAmt")
   concDetails <- inputFiles[[3]]
   
@@ -282,6 +284,7 @@ M9_complex <- function(file_loc){ #main run function
   #PREPARATION
   #a. Calculate amount required per-stock per-solution
   transAmts <- Calculate_ReqStockAmount(concDetails, volInfo)
+  rownames(transAmts) <- volInfo$Solutions
   
   #b. Calculate amount required in each stock
   amtRequired <- apply(transAmts, 2, function(x) Sum_and_Round(x))
@@ -294,7 +297,7 @@ M9_complex <- function(file_loc){ #main run function
   
   #d. Assign slots for mediums
   volInfo <- Assign_MediumSlot(volInfo)
- 
+  
   #e. Create solutions list
   solList <- cbind.data.frame(volInfo$Solutions,
                               0, #begin with fresh tubes (empty)
@@ -303,7 +306,6 @@ M9_complex <- function(file_loc){ #main run function
                                         paste("labware_",which(grepl("ain", deckMap)), sep="")),
                               volInfo$slot)
   colnames(solList) <- c("Solution", "Amt", "TubeType", "Labware", "Slot")
-  
   solList <- rbind.data.frame(solList, amtRequired)
   
   #CREATING COMMAND LIST
@@ -382,5 +384,5 @@ M9_complex <- function(file_loc){ #main run function
 
 #TROUBLESHOOTING------------
 #mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\M9MixR"
-#inputName <- "M9MixR_InputTemplate.xlsx"
+#inputName <- "M9MixR_InputTemplate(1).xlsx"
 #dis <- M9_complex(paste(mainwd, inputName, sep='\\'))
