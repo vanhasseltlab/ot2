@@ -265,6 +265,25 @@ Distribute_WaterRack <- function(deck_map, amt_req, cmd_list){
   amt_req <- rbind.data.frame(amt_req, solvent_rack)
   return(list(cmd_list, amt_req))
 }
+Cal_manualFilling <- function(cmd_list){
+  #subset water filling sections
+  filling_commands <- cmd_list[grepl("filling", cmd_list$Comment, ignore.case=T),]
+  other_commands <- cmd_list[!(grepl("filling", cmd_list$Comment, ignore.case=T)),]
+  
+  #separate automatic and manual filling
+  preFill_amt <- floor(as.numeric(filling_commands$TransAmt)/1000)
+  robotFill_amt <- as.numeric(filling_commands$TransAmt) - (preFill_amt*1000)
+  filling_commands$TransAmt <- robotFill_amt
+  
+  #assign tube locations to manual fill
+  preFill_amt <- cbind.data.frame(filling_commands$TargetLabware, filling_commands$TargetSlot, preFill_amt)
+  colnames(preFill_amt) <- c("TargetLabware", "TargetSlot", "AmountPreFill")
+  #concatenate result
+  cmd_list <- rbind.data.frame(filling_commands, other_commands)
+  rownames(cmd_list) <- c()
+  
+  return(list(cmd_list, preFill_amt))
+}
 #MAIN-----------
 M9_complex <- function(file_loc){ #main run function
   #READ INPUT FILE
@@ -355,6 +374,11 @@ M9_complex <- function(file_loc){ #main run function
   output_amtRequired <- add_water[[2]]
   cmdList <- add_water[[1]]
   
+  #determine amount water for manual filling
+  manualFill <- Cal_manualFilling(cmdList)
+  cmdList <- manualFill[[1]]
+  manualFill <- manualFill[[2]]
+  
   #CREATE ROBOT COMMANDS
   RobotCommands <<- CreateRobotCommands(output_amtRequired, cmdList, deckMap)
   
@@ -367,10 +391,21 @@ M9_complex <- function(file_loc){ #main run function
   colnames(UsrCommands) <- c("Labware", "Slot", "Type", "Name", "Amount", "Unit")
   UsrCommands <- UsrCommands[order(UsrCommands$Labware),]
   
-  extraTubes <- c(paste("labware_", which(grepl("main", deckMap, ignore.case = T)), sep=""),
-                  "-", "-", "Clean 50 mL Falcon Tubes", length(fillCommands[,1]), "tubes")
+  #add extra tubes; assign pre-fill amounts
+  extraTubes <- c()
+  for(p in c(1:length(manualFill[,1]))){
+    nexTubes <- c(manualFill$TargetLabware[p], manualFill$TargetSlot[p], "50 mL Falcon Tube",
+                  paste(solList$Solution[solList$Labware==manualFill$TargetLabware[p] & solList$Slot==manualFill$TargetSlot[p]], "Fill with water/solvent", sep="_"),
+                  manualFill$AmountPreFill[p], "mL")
+    #concatenate result
+    extraTubes <- rbind(extraTubes, nexTubes)
+  }
+  colnames(extraTubes) <- colnames(UsrCommands)
+  
+  #create main user command
   UsrCommands <- rbind.data.frame(UsrCommands, extraTubes)
   
+  #attach deck map
   deckMap <- rbind(c(10:12), deckMap[10:12], c(7:9), deckMap[7:9],
                    c(4:6), deckMap[4:6], c(1:3), deckMap[1:3])
   deckMap <- cbind(deckMap, replicate(8, ""), replicate(8, ""), replicate(8, ""))
@@ -379,10 +414,16 @@ M9_complex <- function(file_loc){ #main run function
                        c(">>> OT2 DECK MAP <<<", replicate(5, "")),
                        deckMap)
   
+  rownames(UsrCommands) <- c()
   return(UsrCommands)
 }
 
 #TROUBLESHOOTING------------
-#mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\M9MixR"
-#inputName <- "M9MixR_InputTemplate(1).xlsx"
-#dis <- M9_complex(paste(mainwd, inputName, sep='\\'))
+mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\M9MixR"
+inputName <- "M9MixR_InputTemplate(1).xlsx"
+dis <- M9_complex(paste(mainwd, inputName, sep='\\'))
+
+
+
+
+
