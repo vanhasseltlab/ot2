@@ -6,26 +6,6 @@ Sum_and_Round <- function(q){
   }else{minAmt <- max(ceiling((minAmt + 3000)/1000)*1000, 3000)} #3 mL excess and minimum amount for 15 mL Falcon tubes
   return(minAmt)
 }
-ReadInputsOLD <- function(input_file){
-  #reading stock information
-  stock_info <- read.xlsx(input_file, sheetIndex=1, header=T)
-  d1 <<- stock_info
-  #reading volume information
-  vol_info <- read.xlsx(input_file, sheetIndex=2, header=T)
-  vol_info <- vol_info[(!is.na(vol_info[,1]) & 
-                          !is.null(vol_info[,1])), ]  #removing volInfo empty row name
-  d2 <<- vol_info
-  #reading solution details
-  sol_details <- read.xlsx(input_file, sheetIndex=3, header=T)
-  sol_details <- sol_details[c(1, 5:length(sol_details[,1])),] #grab column names; extract relevant information
-  sol_details <- sol_details[(!is.na(sol_details[,1]) & 
-                                !is.null(sol_details[,1])), ] #remove empty row names
-  rownames(sol_details) <- sol_details[,1] #use first row as name
-  sol_details <- sol_details[,-1] #remove first row
-  d3 <<- sol_details
-  #return
-  return(list(stock_info, vol_info, sol_details))
-}
 ReadInputs <- function(input_file){
   #reading stock information
   stock_info <- read.xlsx(input_file, sheetIndex=1, header=T, startRow=2, colIndex=c(1:4))
@@ -172,8 +152,6 @@ Assign_MediumSlot <- function(dqs){
   return(dqs)
 }
 Create_Commands <- function(transfer_amounts, solution_list){
-  transfer_amts <<- transfer_amounts
-  sol_list <<- solution_list
   #initiate command list
   cmd_list <- c()
   
@@ -360,7 +338,7 @@ M9_complex <- function(file_loc){ #main run function
   for(i in c(1:length(extra_amt[,1]))){
     nexCommand <- c(paste("labware_", which(grepl("olvent", deckMap, ignore.case=T)), sep=""),
                     "A1", extra_amt$Labware[i], extra_amt$Slot[i],
-                    extra_amt$ExtraUsed[i], extra_amt$ExtraUsed[i], 
+                    extra_amt$ExtraUsed[i], 0, #no mixing
                     1, "Filling Water")
     fillCommands <- rbind(fillCommands, nexCommand)
   }
@@ -403,6 +381,6 @@ M9_complex <- function(file_loc){ #main run function
 }
 
 #TROUBLESHOOTING------------
-#mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\M9MixR"
-#inputName <- "M9MixR_InputTemplate.xlsx"
-#dis <- M9_complex(paste(mainwd, inputName, sep='\\'))
+mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\M9MixR"
+inputName <- "M9MixR_InputTemplate.xlsx"
+dis <- M9_complex(paste(mainwd, inputName, sep='\\'))
