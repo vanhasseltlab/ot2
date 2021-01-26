@@ -295,7 +295,6 @@ main <- function(directory, first_measurement, reader_id, blank_selection){
   #removing empty wells
   grandErr <- grandErr[(grandRes$variable != "0"),]
   grandRes <- grandRes[(grandRes$variable != "0"),]
-  cp <<- grandRes
   #add information about control
   grandRes <- tryCatch({
     grand_res <- ControlSelector(grandRes)

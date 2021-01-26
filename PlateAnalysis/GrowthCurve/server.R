@@ -12,7 +12,7 @@ shinyServer(function(input, output) {
     #set directories, take source analyzer
     mainwd <- "/srv/shiny-server/files"
     sourcewd <- "/srv/shiny-server/ot2/PlateAnalysis/GrowthCurve/analyzer.R"
-    #mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\#OT2_Main\\PlateAnalysis\\GrowthCurve"
+    #mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\PlateAnalysis\\GrowthCurve"
     #sourcewd <- paste(mainwd, "\\analyzer.R", sep='') 
     
     if(!("Analysis" %in% list.files(mainwd))){
@@ -56,7 +56,7 @@ shinyServer(function(input, output) {
                 #copying plate map
                     
             #copy and rename
-            pmaps <<- input$pmap$datapath
+            pmaps <- input$pmap$datapath
             file.copy(input$pMap$datapath, mainwd)
             if('csv' %in% input$pMap$name){
                 newName <- paste(mainwd, "/plateMap.csv", sep='')
@@ -73,7 +73,7 @@ shinyServer(function(input, output) {
             fileNames <- fileNames[2:length(fileNames)]
             for(i in c(1:length(fileNames))){
                 file.copy(input$files$datapath[i], mainwd)
-                
+                print(input$files$datapath[i])
                 #renaming
                 oldName <- paste(mainwd, "/", toString(i-1), ".csv", sep='')
                 newName <- paste(mainwd, "/", fileNames[i], sep='')
