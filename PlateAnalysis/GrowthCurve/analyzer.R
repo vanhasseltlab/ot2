@@ -190,8 +190,7 @@ main <- function(directory, first_measurement, reader_id, blank_selection){
     empty_wells <- as.vector(unlist(read.xlsx(plateMap, sheetIndex=1, rowIndex=c(33:40), 
                                               colIndex=c(2:13), header=F)))
     #returned:
-    as.vector(unlist(read.xlsx(plateMap, sheetIndex=1, rowIndex=c(57:64), 
-                               colIndex=c(2:13), header=F)))
+    as.vector(unlist(t(read.xlsx(plateMap, sheetIndex=1, rowIndex=c(57:64), colIndex=c(2:13), header=F))))
     
   }else{
     as.vector(unlist(read.csv(plateMap, header=T, as.is=T)))
@@ -233,6 +232,9 @@ main <- function(directory, first_measurement, reader_id, blank_selection){
   #add delta time for first measurement
   timeStamps <- timeStamps + first_measurement
   
+  #combining time stamps
+  colnames(mainData) <- plateMap
+  
   #FILTERING-------
   #selecting non-empty wells (as columns in mainData)
   parseID <- c()
@@ -250,9 +252,7 @@ main <- function(directory, first_measurement, reader_id, blank_selection){
   #READJUSTING MAIN DATA-------
   #combining time stamps
   mainData <- cbind.data.frame(timeStamps, mainData)
-  
-  #renaming columns
-  colnames(mainData) <- c("time.hours", plateMap[parseID])
+  colnames(mainData)[1] <- "time.hours"
   rownames(mainData) <- c()
   
   #sort for troubleshooting
@@ -312,9 +312,10 @@ main <- function(directory, first_measurement, reader_id, blank_selection){
 }
 
 #TROUBLESHOOTING-----------------
-#dir <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Analysis_studentTrials"
-#first <- "00:00:00"
-#reader_type <- 2 #with robot arm
-#blank <- 4 #else; no blank
+#main(directory, first_measurement, reader_id, blank_selection)
+#directory <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Analysis_studentTrials"
+#first_measurement <- "00:00:00"
+#reader_id <- 2 #with robot arm
+#blank_selection <- 4 #else; no blank
 #errMessage <- ""
 #dis <- main(dir, first, reader_type, blank)
