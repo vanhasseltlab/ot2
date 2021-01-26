@@ -45,7 +45,6 @@ ControlSelector <- function(grand_res){
     nexItem <- strsplit(as.character(grand_res$variable[i]), split=" ", fixed=T)[[1]]
     if(length(nexItem)<3){
       #if the current item is an absolute blank
-      testExample <<- nexItem
       nexItem <- c(nexItem, 
                    replicate(4-length(nexItem), "absolute_blank"))
     }else if(length(nexItem)==3){
@@ -168,7 +167,7 @@ main <- function(directory, first_measurement, reader_id, blank_selection){
   files_in_dir <- list.files(directory)
   
   #get plate map; ensure one file selected
-  plateMap_file <- files_in_dir[grepl("plateMap", files_in_dir, fixed=T, ignore.case=T)]
+  plateMap_file <- files_in_dir[grepl("platemap", files_in_dir, ignore.case=T)]
   
   if(length(plateMap_file)!=1){
     if(length(plateMap_file)>1){
@@ -178,12 +177,12 @@ main <- function(directory, first_measurement, reader_id, blank_selection){
     }
   }
   #get read data
-  absData_files <- files_in_dir[!grepl("PlateMap", files_in_dir, fixed=T)]
+  absData_files <- files_in_dir[!grepl("PlateMap", files_in_dir, ignore.case=T)]
   
   #MAIN----------
   #getting time stamps
   first_measurement <- as.numeric(strsplit(first_measurement, split=':')[[1]])
-  
+  first_measurement <- first_measurement[1] + first_measurement[2]/60 + first_measurement[3]/60^2 #standardize to hours
   #read plate map
   plateMap <- paste(directory, "/", plateMap_file, sep='')
   plateMap <- if(grepl("xlsx", plateMap, fixed=T)){
@@ -226,24 +225,16 @@ main <- function(directory, first_measurement, reader_id, blank_selection){
   
   #STANDARDIZE TIME STAMP------
   #recap time stamps
-  timeStamps <- chron(dates=timeStamps[,1], times=timeStamps[,2],
-                      format = c('d-m-y', 'h:m:s'))
+  timeStamps <- apply(timeStamps, 1, 
+                      function(x) chron(dates=x[1], times=x[2], format = c('d-m-y', 'h:m:s')))
+  timeStamps <- (timeStamps - min(timeStamps)) * 24
   names(timeStamps) <- c()
   
-  #standardize to first measurement
-  timeStamps <- timeStamps - min(timeStamps)
-  
   #add delta time for first measurement
-  timeStamps <- as.character(timeStamps)
-  new_timeStamps <- c()
-  for(i in c(1:length(timeStamps))){
-    nex_timeStamps <- as.numeric(strsplit(timeStamps[i], split=':')[[1]])
-    nex_timeStamps <- nex_timeStamps + first_measurement
-    nex_timeStamps <- nex_timeStamps[3] + 60*(nex_timeStamps[2] + nex_timeStamps[1]*60)
-    new_timeStamps <- rbind(new_timeStamps, nex_timeStamps)
-  }
+  timeStamps <- timeStamps + first_measurement
   
   #FILTERING-------
+  #selecting non-empty wells (as columns in mainData)
   parseID <- c()
   for(i in c(1:length(plateMap))){
     curParsed <- strsplit(plateMap[i], split=' ')[[1]]
@@ -258,17 +249,20 @@ main <- function(directory, first_measurement, reader_id, blank_selection){
   
   #READJUSTING MAIN DATA-------
   #combining time stamps
-  mainData <- cbind.data.frame(new_timeStamps, mainData)
+  mainData <- cbind.data.frame(timeStamps, mainData)
   
   #renaming columns
-  colnames(mainData) <- c("time.seconds", plateMap[parseID])
+  colnames(mainData) <- c("time.hours", plateMap[parseID])
   rownames(mainData) <- c()
+  
+  #sort for troubleshooting
+  mainData <- mainData[order(mainData$time.hours),]
   
   ###### MAIN PROCESSING #######
   grandRes <- data.frame()
-  grandRes <- cbind.data.frame(new_timeStamps)
+  grandRes <- cbind.data.frame(timeStamps)
   grandErr <- data.frame()
-  grandErr <- cbind.data.frame(new_timeStamps)
+  grandErr <- cbind.data.frame(timeStamps)
   
   #iterate through all unique replicates
   ids <- unique(colnames(mainData)[2:length(mainData[1,])])
@@ -301,7 +295,7 @@ main <- function(directory, first_measurement, reader_id, blank_selection){
   #removing empty wells
   grandErr <- grandErr[(grandRes$variable != "0"),]
   grandRes <- grandRes[(grandRes$variable != "0"),]
-  
+  cp <<- grandRes
   #add information about control
   grandRes <- tryCatch({
     grand_res <- ControlSelector(grandRes)
@@ -315,19 +309,13 @@ main <- function(directory, first_measurement, reader_id, blank_selection){
     return(NULL)
   })
   
-  
-  grandRes$time <- grandRes$time / 3600 #convert to hours
   return(grandRes)
 }
 
-#calculating error bars - not required?
-#minVal <- grandRes$Absorbance - grandErr$Err
-#minVal <- sapply(minVal, function(x) max(0, x))
-#maxVal <- grandRes$Absorbance + grandErr$Err
-#upper_bound_axis <- round(max(maxVal), 1)
-#lower_bound_axis <- round((min(grandRes$Absorbance)), 2)
-#minVal <- sapply(minVal, function(x) max(lower_bound_axis, x))
-#grandRes <- cbind.data.frame(grandRes, 
-#                             minVal,
-#                             maxVal)
-#colnames(grandRes) <- c('time', 'variable', 'Absorbance', 'minVal', 'maxVal')
+#TROUBLESHOOTING-----------------
+#dir <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Analysis_studentTrials"
+#first <- "00:00:00"
+#reader_type <- 2 #with robot arm
+#blank <- 4 #else; no blank
+#errMessage <- ""
+#dis <- main(dir, first, reader_type, blank)
