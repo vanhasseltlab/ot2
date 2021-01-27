@@ -265,11 +265,11 @@ main <- function(directory, first_measurement, reader_id, blank_selection){
   grandErr <- cbind.data.frame(timeStamps)
   
   #iterate through all unique replicates
-  ids <- unique(colnames(mainData)[2:length(mainData[1,])])
-  
+  nMap <- plateMap[parseID]
+  ids <- unique(nMap)
+  nMap <- c("time.hours", nMap)
   for(i in c(1:length(ids))){
-    curData <- mainData[,(colnames(mainData)==ids[i])]
-    
+    curData <- mainData[,nMap==ids[i]]
     #calculate mean and confidence interval distance from mean
     if(is.null(dim(curData))){
       grandRes <- cbind.data.frame(grandRes, curData)
