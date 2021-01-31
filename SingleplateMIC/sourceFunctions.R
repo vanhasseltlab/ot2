@@ -774,7 +774,6 @@ Cal_DilTubes <- function(dil_map){
   return(outputMap)
 }
 Cal_DeckAdjustment <- function(cmd_list, deck_map, dil_tubes){
-  dil_tubes <- dil_tubes
   deck <- matrix(as.character(c(12:1)), ncol=3, byrow=T)
   deck <- deck[,c(3, 2, 1)]
   deck_map <- matrix(deck_map, ncol=3, byrow=T)
@@ -802,6 +801,12 @@ Cal_DeckAdjustment <- function(cmd_list, deck_map, dil_tubes){
   }
   if(!('labware_8' %in% dil_tubes$Labware)){
     fin_deck[4,2] <- '(empty)'
+  }
+  
+  #check if inoculum rack required
+  
+  if(!(names(deck_map)[match('Inno', deck_map)] %in% cmd_list[,1])){
+    fin_deck[8,3] <- '(empty)'
   }
   return(fin_deck)
 }
@@ -1003,7 +1008,6 @@ main <- function(file_path, file_name){
   
   # 1. CREATE COMMAND LIST-----------
   if(errMessage==""){
-    #inoculum
     #initiate map
     coords <- c(1, 1)
     inocMap <- c() #assume rack is 15 mL Falcon tube rack
