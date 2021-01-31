@@ -742,10 +742,6 @@ Cal_DeckAdjustment <- function(cmd_list, deck_map, dil_tubes, n_plate){
   }
   
   #check if plates required
-  deckMap <- c('96-well_D', '96-well_E', '96-well_F',
-               '96-well_A', '96-well_B', '96-well_C',
-               'tip', '15_Falcon_spare', '15_Falcon_main',
-               'Stock', 'Solvent', 'TRASH')
   if(n_plate < 6){
     fin_deck[8,3] <- "(empty)"
     if(n_plate < 5){
@@ -753,15 +749,14 @@ Cal_DeckAdjustment <- function(cmd_list, deck_map, dil_tubes, n_plate){
       if(n_plate < 4){
         fin_deck[8,1] <- "(empty)"
         if(n_plate < 3){
-          fin_deck[6,3] < "(empty)"
+          fin_deck[6,3] <- "(empty)"
           if(n_plate < 2){
-            fin_deck[6,2] < "(empty)"
+            fin_deck[6,2] <- "(empty)"
           }
         }
       }
     }
   } 
-  
   return(fin_deck)
 }
 Int_CreateCmdList <- function(deck_map, sol_list, solvent_map, inoc_map,
@@ -933,7 +928,6 @@ ConvertAmtList_MCtoMV <- function(new_allAmt){
   return(fin_allAmt)
 }
 
-
 #MAIN---------
 main <- function(file_path, file_name=""){
   #READ PLATE------
@@ -1049,7 +1043,6 @@ main <- function(file_path, file_name=""){
   })
   # 1. CREATE COMMAND LIST-----------
   if(errMessage==""){
-    #inoculum
     #initiate map
     coords <- c(1, 1)
     inocMap <- c() #assume rack is 15 mL Falcon tube rack
