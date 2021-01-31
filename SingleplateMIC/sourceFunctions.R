@@ -804,8 +804,7 @@ Cal_DeckAdjustment <- function(cmd_list, deck_map, dil_tubes){
   }
   
   #check if inoculum rack required
-  
-  if(!(names(deck_map)[match('Inno', deck_map)] %in% cmd_list[,1])){
+  if(!('labware_3' %in% cmd_list[,1])){
     fin_deck[8,3] <- '(empty)'
   }
   return(fin_deck)
