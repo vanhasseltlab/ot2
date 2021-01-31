@@ -2,7 +2,7 @@ library(shiny)
 
 shinyUI(
   pageWithSidebar(
-    headerPanel("MIC Test - OT2-Commander"),
+    headerPanel("Singleplate MIC - OT2 Commander"),
     
     sidebarPanel(
       tags$a(href="http://132.229.100.197:2222/ot2/MVPlate/",
