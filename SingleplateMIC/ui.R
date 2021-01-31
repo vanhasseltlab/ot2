@@ -5,7 +5,7 @@ shinyUI(
     headerPanel("MIC Test - OT2-Commander"),
     
     sidebarPanel(
-      tags$a(href="http://132.229.100.197:2222/ot2/MultiplateMIC/",
+      tags$a(href="http://132.229.100.197:2222/ot2/MVPlate/",
              "Link to Multiplate MIC"),
       fileInput("file", "Upload Plate Map", accept=".xlsx"),
       downloadButton("downloadTemplate", label = "Template Input"),
@@ -17,13 +17,11 @@ shinyUI(
       textOutput('tex'),
       actionButton("do", "Confirm uploaded file and save"),
       uiOutput('downloadData'),
-      uiOutput('downloadData2'),
-      uiOutput('downloadData3'),
-      
-      tags$a(href="http://132.229.100.197:2222/OldPatch/SingleplateMIC/",
-             "Link to last working uploader")
+      uiOutput('downloadData2')
     ),
     mainPanel(
       tableOutput('tab')
     )
 ))
+
+#Last update: 2021-01-31
