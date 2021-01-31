@@ -1,7 +1,8 @@
 #META #####
-#S.T.Tandar_OT2 Controller -- 2020/12/11
-# > Multiplate (up to 4 plates)
-# > More versatile than "Multiplate MIC" version; but slower
+#S.T.Tandar_OT2 Controller -- 2021/01/31
+# > Multiplate (up to 6 plates)
+# > More versatile than "Multiplate MIC" version
+
 
 library(shiny)
 library(xlsx)
@@ -195,13 +196,6 @@ shinyServer(function(input, output) {
     filename = function(){paste("RobotHandler_", new_name(), '.xlsx', sep='')},
     content = function(file) {
       write.xlsx(new_userGuideOutput, file, row.names = FALSE, col.names=T)
-    }
-  )
-  
-  output$plateMap <- downloadHandler(
-    filename = function(){paste("PlateMap", new_name(), '.csv', sep='')},
-    content = function(file) {
-      write.csv(pmap_output, file, row.names = FALSE)
     }
   )
   

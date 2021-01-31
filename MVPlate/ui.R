@@ -2,7 +2,7 @@ library(shiny)
 
 shinyUI(
   pageWithSidebar(
-    headerPanel("Multiplate_MIC - OT2-Commander"),
+    headerPanel("Multiplate MIC - OT2 Commander"),
     
     sidebarPanel(
       tags$a(href="http://132.229.100.197:2222/ot2/SingleplateMIC/",
@@ -17,8 +17,7 @@ shinyUI(
       textOutput('tex'),
       actionButton("do", "Confirm uploaded file and save"),
       uiOutput('downloadData'),
-      uiOutput('downloadData2'),
-      uiOutput('downloadData3')
+      uiOutput('downloadData2')
     ),
     mainPanel(
       tableOutput('tab')
