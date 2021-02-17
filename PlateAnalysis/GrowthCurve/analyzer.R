@@ -171,6 +171,15 @@ DeleteReplicateID <- function(id_name, rep_ids){
   }
   return(id_name)
 }
+RawPreparation <- function(raw_data){
+  details <- sapply(raw_data$wellID, function(x) strsplit(toString(x), split=" ")[[1]])
+  details <- lapply(details, function(x) if(length(unlist(x))<4){c(unlist(x), replicate((4-length(unlist(x))), ""))}else{unlist(x)}) %>% list.rbind()
+  
+  res <- cbind.data.frame(raw_data$time.hours, details, raw_data$OD600)
+  colnames(res) <- c("time", "DrugName", "Conc", "Medium", "Inoculum", "Absorbance")
+  res$NormalizedAbsorbance <- "RAW.DATA"
+  return(res)
+}
 #MAIN FUNCTION-------
 main <- function(directory, first_measurement, reader_id, blank_selection){
   
@@ -195,7 +204,6 @@ main <- function(directory, first_measurement, reader_id, blank_selection){
   #getting time stamps
   first_measurement <- as.numeric(strsplit(first_measurement, split=':')[[1]])
   first_measurement <- first_measurement[1] + first_measurement[2]/60 + first_measurement[3]/60^2 #standardize to hours
-  
   #read plate map
   plateMap <- paste(directory, "/", plateMap_file, sep='')
   plateMap <- if(grepl("xlsx", plateMap, fixed=T)){
@@ -276,49 +284,51 @@ main <- function(directory, first_measurement, reader_id, blank_selection){
   #remove replicate column identifiers
   replicate_identifiers <- paste(".", c(1:99), sep="")
   rawData$wellID <- sapply(rawData$wellID, DeleteReplicateID, rep_ids=replicate_identifiers)
-  rawData$wellID <- gsub(" ", "", rawData$wellID) #remove spaces
   
   #add timeID
   rawData$timeID <- paste(rawData$wellID, rawData$time.hours, sep="-")
   timeTable <- rawData[,c("timeID", "wellID", "time.hours")] %>% distinct()
+  
   #get mean and CI
   avgs <- sapply(timeTable$wellID, CalMeanCI, all_data=rawData) %>% t() %>% data.frame()
   avgs <- cbind.data.frame(timeTable$wellID, timeTable$time.hours, avgs)
   colnames(avgs) <- c("variable", "time", "Average", "CIrange")
   
   #removing empty wells
-  avgs[avgs$variable != "0",]
+  avgs <- avgs[(avgs$variable != "0"),]
   
   #ReFormat---------
   grandRes <- avgs[,c("time", "variable", "Average")]
   grandErr <- avgs[,c("time", "variable", "CIrange")]
   colnames(grandRes)[3] <- "Absorbance"
-  colnames(grandErr)[3] <- "Absorbance"
+  colnames(grandErr) <- colnames(grandRes)
+  rawData <- RawPreparation(rawData)
+  das <<- rawData
   
   #add information about control
-  if(blank_selection==-1){
-    grandRes <- rawData
-  }else{
-    grandRes <- tryCatch({
-      grand_res <- ControlSelector(grandRes)
-      grand_res <- Blank_Substract_main(grand_res, blank_selection)
-      return(grand_res)
-    },
-    error=function(cond){
-      if(errMessage=='SUCCESS'){
-        errMessage <<- "Failed to subtract blank - please select the appropriate blank mode"
-      }
-      return(NULL)
-    })
-  }
+  grandRes <- tryCatch({
+    grand_res <- ControlSelector(grandRes)
+    grand_res <- Blank_Substract_main(grand_res, blank_selection)
+    return(grand_res)
+  },
+  error=function(cond){
+    if(errMessage=='SUCCESS'){
+      errMessage <<- "Failed to subtract blank - please select the appropriate blank mode"
+    }
+    return(NULL)
+  })
+ 
   
-  return(grandRes)
+  return(123)
 }
 
 #TROUBLESHOOTING-----------------
-#directory <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Analysis_studentTrials"
-#first_measurement <- "00:00:00"
-#reader_id <- 2 #with robot arm
-#blank_selection <- 4 #else; no blank
-#errMessage <- ""
-#dis <- main(directory, first_measurement, reader_id, blank_selection)
+directory <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Analysis_studentTrials"
+first_measurement <- "00:00:00"
+reader_id <- 2 #with robot arm
+blank_selection <- 4 #else; no blank
+errMessage <- ""
+dis <- main(directory, first_measurement, reader_id, blank_selection)
+
+
+

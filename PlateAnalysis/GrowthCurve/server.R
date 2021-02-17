@@ -1,5 +1,5 @@
 library(shiny)
-.libPaths(c("/home/sebastian/R/x86_64-pc-linux-gnu-library/3.4"))
+#.libPaths(c("/home/sebastian/R/x86_64-pc-linux-gnu-library/3.4"))
 library(ggplot2)
 library(chron)
 library(reshape2)
@@ -12,10 +12,10 @@ errMessage <<- "SUCCESS"
 shinyServer(function(input, output) {
     #### PREPARATION-------------
     #set directories, take source analyzer
-    mainwd <- "/srv/shiny-server/files"
-    sourcewd <- "/srv/shiny-server/ot2/PlateAnalysis/GrowthCurve/analyzer.R"
-    #mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\PlateAnalysis\\GrowthCurve"
-    #sourcewd <- paste(mainwd, "\\analyzer.R", sep='') 
+    #mainwd <- "/srv/shiny-server/files"
+    #sourcewd <- "/srv/shiny-server/ot2/PlateAnalysis/GrowthCurve/analyzer.R"
+    mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\PlateAnalysis\\GrowthCurve"
+    sourcewd <- paste(mainwd, "\\analyzer.R", sep='') 
     
     if(!("Analysis" %in% list.files(mainwd))){
         setwd(mainwd)
@@ -69,8 +69,6 @@ shinyServer(function(input, output) {
                 file.rename(oldName, newName)
             }
             
-            
-            
                 #copying measurement files
             fileNames <- fileNames[2:length(fileNames)]
             for(i in c(1:length(fileNames))){
@@ -90,6 +88,11 @@ shinyServer(function(input, output) {
             error=function(cond){
                 return(errMessage)
             })
+            
+            #separating raw data
+            rawData <<- subset(grandRes, NormalizedAbosrbance=="RAW.DATA")
+            grandRes <- subset(grandRes, NormalizedAbsorbance!="RAW.DATA")
+            grandRes$NormalizedAbsorbance <- as.numeric(grandRes$NormalizedAbsorbance)
             
             #data for plotting; switch blanks from grand res
             if(input$controlOpt == 3){
@@ -113,7 +116,6 @@ shinyServer(function(input, output) {
                               paste(plotRes[i,c(2:5)], collapse='_'))
             }
             plotRes <<- cbind.data.frame(variable, plotRes)
-            
             
             grandRes <<- grandRes
             return(grandRes)
@@ -168,6 +170,19 @@ shinyServer(function(input, output) {
         filename = paste('PreprocessedData_', input$folderName, '.csv', sep=''),
         content = function(file) {
             write.csv(grandRes, file, row.names = FALSE)
+        }
+    )
+    
+    #download for the raw dataset
+    output$raw_dataset_download <- renderUI({
+        req(input$do, contents())
+        downloadButton('downloadRawDataset', 'Download Raw Data')
+    })
+    
+    output$downloadRawDataset <- downloadHandler(
+        filename = paste('RawData_', input$folderName, '.csv', sep=''),
+        content = function(file) {
+            write.csv(rawData, file, row.names = FALSE)
         }
     )
 })

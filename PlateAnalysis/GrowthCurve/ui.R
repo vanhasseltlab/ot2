@@ -13,8 +13,7 @@ shinyUI(
             textInput("folderName", "Experiment Name", value='defaultFolder'),
             textInput("time", "Timepoint of first measurement", value="00:00:00"),
             selectInput("controlOpt", 'Control Options',
-                        list("Raw only" = -1,
-                             "No Blank" = 0,
+                        list("No Blank" = 0,
                              "Single Blank" = 1,
                              "One per-drug" = 2,
                              "One per-drug concentration" = 3)),
@@ -24,9 +23,10 @@ shinyUI(
         ),
         
         mainPanel(
-            tableOutput('tab'),
-            uiOutput('plotting'),
             uiOutput("plot_download"),
-            uiOutput("dataset_download")
+            uiOutput("dataset_download"),
+            uiOutput("raw_dataset_download"),
+            tableOutput('tab'),
+            uiOutput('plotting')
         )
 ))
