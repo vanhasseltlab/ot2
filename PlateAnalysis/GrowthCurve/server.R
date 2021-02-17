@@ -4,7 +4,6 @@ library(ggplot2)
 library(chron)
 library(reshape2)
 library(xlsx)
-library(stringr)
 options(stringsAsFactors = F)
 
 errMessage <<- "SUCCESS"
