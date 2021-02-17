@@ -189,16 +189,13 @@ main <- function(directory, first_measurement, reader_id, blank_selection){
     absData_files <- files_in_dir[!grepl("xlsx", files_in_dir, fixed=T)]
     empty_wells <- as.vector(unlist(read.xlsx(plateMap, sheetIndex=1, rowIndex=c(33:40), 
                                               colIndex=c(2:13), header=F)))
-    #returned:
+    #return
     as.vector(unlist(t(read.xlsx(plateMap, sheetIndex=1, rowIndex=c(57:64), colIndex=c(2:13), header=F))))
-    
   }else{
     as.vector(unlist(read.csv(plateMap, header=T, as.is=T)))
   }
   
   #get index of empty wells
-  
-  ##
   #iterate through measurement reads
   mainData <- c()
   timeStamps <- c()
@@ -257,7 +254,7 @@ main <- function(directory, first_measurement, reader_id, blank_selection){
   
   #sort for troubleshooting
   mainData <- mainData[order(mainData$time.hours),]
-  
+  dqs <<- mainData
   ###### MAIN PROCESSING #######
   grandRes <- data.frame()
   grandRes <- cbind.data.frame(timeStamps)
@@ -270,7 +267,7 @@ main <- function(directory, first_measurement, reader_id, blank_selection){
   nMap <- c("time.hours", nMap)
   for(i in c(1:length(ids))){
     curData <- mainData[,nMap==ids[i]]
-    #calculate mean and confidence interval distance from mean
+    #calculate mean and t-statistics confidence interval distance from mean
     if(is.null(dim(curData))){
       grandRes <- cbind.data.frame(grandRes, curData)
       grandErr <- cbind.data.frame(grandErr, replicate(length(curData), 0))
@@ -286,7 +283,6 @@ main <- function(directory, first_measurement, reader_id, blank_selection){
   #renaming
   colnames(grandRes) <- c('time', ids)
   colnames(grandErr) <- colnames(grandRes)
-  
   
   #ReFormat---------
   grandRes <- melt(grandRes, id='time', value.name='Absorbance')
@@ -312,10 +308,9 @@ main <- function(directory, first_measurement, reader_id, blank_selection){
 }
 
 #TROUBLESHOOTING-----------------
-#main(directory, first_measurement, reader_id, blank_selection)
-#directory <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Analysis_studentTrials"
-#first_measurement <- "00:00:00"
-#reader_id <- 2 #with robot arm
-#blank_selection <- 4 #else; no blank
-#errMessage <- ""
-#dis <- main(dir, first, reader_type, blank)
+directory <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Analysis_studentTrials"
+first_measurement <- "00:00:00"
+reader_id <- 2 #with robot arm
+blank_selection <- 4 #else; no blank
+errMessage <- ""
+dis <- main(directory, first_measurement, reader_id, blank_selection)
