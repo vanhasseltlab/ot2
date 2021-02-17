@@ -158,7 +158,19 @@ Blank_Substract_main <- function(grand_res, blank){
   colnames(new_grandRes)[length(new_grandRes[1,])] <- "NormalizedAbsorbance"
   return(new_grandRes)
 }
-
+CalMeanCI <- function(all_data, current_wellID){
+  current_data <- subset(all_data, wellID==current_wellID)$OD600
+  avg <- mean(current_data)
+  ciRange <- sd(current_data)/sqrt(length(current_data))*qt(0.975, df=(length(current_data)-1))
+  return(c(avg, ciRange))
+}
+DeleteReplicateID <- function(id_name, rep_ids){
+  id_name <- toString(id_name)
+  if(substring(id_name, (nchar(id_name)-1), nchar(id_name)) %in% rep_ids){
+    id_name <- substring(id_name, 1, nchar(id_name)-2)
+  }
+  return(id_name)
+}
 #MAIN FUNCTION-------
 main <- function(directory, first_measurement, reader_id, blank_selection){
   
@@ -183,6 +195,7 @@ main <- function(directory, first_measurement, reader_id, blank_selection){
   #getting time stamps
   first_measurement <- as.numeric(strsplit(first_measurement, split=':')[[1]])
   first_measurement <- first_measurement[1] + first_measurement[2]/60 + first_measurement[3]/60^2 #standardize to hours
+  
   #read plate map
   plateMap <- paste(directory, "/", plateMap_file, sep='')
   plateMap <- if(grepl("xlsx", plateMap, fixed=T)){
@@ -254,63 +267,58 @@ main <- function(directory, first_measurement, reader_id, blank_selection){
   
   #sort for troubleshooting
   mainData <- mainData[order(mainData$time.hours),]
-  dqs <<- mainData
+  
   ###### MAIN PROCESSING #######
-  grandRes <- data.frame()
-  grandRes <- cbind.data.frame(timeStamps)
-  grandErr <- data.frame()
-  grandErr <- cbind.data.frame(timeStamps)
+  #create raw data frame table
+  rawData <- melt(mainData, value.name="OD600", id="time.hours") %>% data.frame()
+  colnames(rawData) <- c("time.hours", "wellID", "OD600")
   
-  #iterate through all unique replicates
-  nMap <- plateMap[parseID]
-  ids <- unique(nMap)
-  nMap <- c("time.hours", nMap)
-  for(i in c(1:length(ids))){
-    curData <- mainData[,nMap==ids[i]]
-    #calculate mean and t-statistics confidence interval distance from mean
-    if(is.null(dim(curData))){
-      grandRes <- cbind.data.frame(grandRes, curData)
-      grandErr <- cbind.data.frame(grandErr, replicate(length(curData), 0))
-    }else{
-      grandRes <- cbind.data.frame(grandRes, 
-                                   apply(curData, 1, function(x) mean(x)))
-      grandErr <- cbind.data.frame(grandErr,
-                                   apply(curData, 1, function(x) (sd(x)/sqrt(dim(curData)[2]))*
-                                           qt(0.975, df=(dim(curData)[2]-1))))
-    }
-  }
+  #remove replicate column identifiers
+  replicate_identifiers <- paste(".", c(1:99), sep="")
+  rawData$wellID <- sapply(rawData$wellID, DeleteReplicateID, rep_ids=replicate_identifiers)
+  rawData$wellID <- gsub(" ", "", rawData$wellID) #remove spaces
   
-  #renaming
-  colnames(grandRes) <- c('time', ids)
-  colnames(grandErr) <- colnames(grandRes)
-  
-  #ReFormat---------
-  grandRes <- melt(grandRes, id='time', value.name='Absorbance')
-  grandErr <- melt(grandErr, id='time', value.name='Err')
+  #add timeID
+  rawData$timeID <- paste(rawData$wellID, rawData$time.hours, sep="-")
+  timeTable <- rawData[,c("timeID", "wellID", "time.hours")] %>% distinct()
+  #get mean and CI
+  avgs <- sapply(timeTable$wellID, CalMeanCI, all_data=rawData) %>% t() %>% data.frame()
+  avgs <- cbind.data.frame(timeTable$wellID, timeTable$time.hours, avgs)
+  colnames(avgs) <- c("variable", "time", "Average", "CIrange")
   
   #removing empty wells
-  grandErr <- grandErr[(grandRes$variable != "0"),]
-  grandRes <- grandRes[(grandRes$variable != "0"),]
+  avgs[avgs$variable != "0",]
+  
+  #ReFormat---------
+  grandRes <- avgs[,c("time", "variable", "Average")]
+  grandErr <- avgs[,c("time", "variable", "CIrange")]
+  colnames(grandRes)[3] <- "Absorbance"
+  colnames(grandErr)[3] <- "Absorbance"
+  
   #add information about control
-  grandRes <- tryCatch({
-    grand_res <- ControlSelector(grandRes)
-    grand_res <- Blank_Substract_main(grand_res, blank_selection)
-    return(grand_res)
-  },
-  error=function(cond){
-    if(errMessage=='SUCCESS'){
-      errMessage <<- "Failed to subtract blank - please select the appropriate blank mode"
-    }
-    return(NULL)
-  })
+  if(blank_selection==-1){
+    grandRes <- rawData
+  }else{
+    grandRes <- tryCatch({
+      grand_res <- ControlSelector(grandRes)
+      grand_res <- Blank_Substract_main(grand_res, blank_selection)
+      return(grand_res)
+    },
+    error=function(cond){
+      if(errMessage=='SUCCESS'){
+        errMessage <<- "Failed to subtract blank - please select the appropriate blank mode"
+      }
+      return(NULL)
+    })
+  }
   
   return(grandRes)
 }
 
 #TROUBLESHOOTING-----------------
-directory <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Analysis_studentTrials"
-first_measurement <- "00:00:00"
-reader_id <- 2 #with robot arm
-blank_selection <- 4 #else; no blank
-errMessage <- ""
-dis <- main(directory, first_measurement, reader_id, blank_selection)
+#directory <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Analysis_studentTrials"
+#first_measurement <- "00:00:00"
+#reader_id <- 2 #with robot arm
+#blank_selection <- 4 #else; no blank
+#errMessage <- ""
+#dis <- main(directory, first_measurement, reader_id, blank_selection)
