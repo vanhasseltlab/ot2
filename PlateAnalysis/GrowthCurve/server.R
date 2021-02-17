@@ -5,6 +5,7 @@ library(chron)
 library(reshape2)
 library(xlsx)
 library(dplyr)
+library(stringr)
 options(stringsAsFactors = F)
 
 errMessage <<- "SUCCESS"
