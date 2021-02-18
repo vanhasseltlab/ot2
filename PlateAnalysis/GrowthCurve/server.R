@@ -12,10 +12,10 @@ errMessage <<- "SUCCESS"
 shinyServer(function(input, output) {
     #### PREPARATION-------------
     #set directories, take source analyzer
-    #mainwd <- "/srv/shiny-server/files"
-    #sourcewd <- "/srv/shiny-server/ot2/PlateAnalysis/GrowthCurve/analyzer.R"
-    mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\PlateAnalysis\\GrowthCurve"
-    sourcewd <- paste(mainwd, "\\analyzer.R", sep='') 
+    mainwd <- "/srv/shiny-server/files"
+    sourcewd <- "/srv/shiny-server/ot2/PlateAnalysis/GrowthCurve/analyzer.R"
+    #mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\PlateAnalysis\\GrowthCurve"
+    #sourcewd <- paste(mainwd, "\\analyzer.R", sep='') 
     
     if(!("Analysis" %in% list.files(mainwd))){
         setwd(mainwd)

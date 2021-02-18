@@ -173,7 +173,8 @@ DeleteReplicateID <- function(id_name, rep_ids){
 }
 RawPreparation <- function(raw_data){
   details <- sapply(raw_data$wellID, function(x) strsplit(toString(x), split=" ")[[1]])
-  details <- lapply(details, function(x) if(length(unlist(x))<4){c(unlist(x), replicate((4-length(unlist(x))), ""))}else{unlist(x)}) %>% list.rbind()
+  details <- lapply(details, function(x) if(length(unlist(x))<4){c(unlist(x), replicate((4-length(unlist(x))), ""))}else{unlist(x)})
+  details <- do.call("rbind", details)
   
   res <- cbind.data.frame(raw_data$time.hours, details, raw_data$OD600)
   colnames(res) <- c("time", "DrugName", "Conc", "Medium", "Inoculum", "Absorbance")
