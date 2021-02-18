@@ -89,11 +89,6 @@ shinyServer(function(input, output) {
                 return(errMessage)
             })
             
-            #separating raw data
-            rawData <<- subset(grandRes, NormalizedAbosrbance=="RAW.DATA")
-            grandRes <- subset(grandRes, NormalizedAbsorbance!="RAW.DATA")
-            grandRes$NormalizedAbsorbance <- as.numeric(grandRes$NormalizedAbsorbance)
-            
             #data for plotting; switch blanks from grand res
             if(input$controlOpt == 3){
                 plotRes <- grandRes[!grepl("blank", grandRes$Inoculum),]
@@ -176,10 +171,10 @@ shinyServer(function(input, output) {
     #download for the raw dataset
     output$raw_dataset_download <- renderUI({
         req(input$do, contents())
-        downloadButton('downloadRawDataset', 'Download Raw Data')
+        downloadButton('downloadRaw', 'Download Raw Data')
     })
     
-    output$downloadRawDataset <- downloadHandler(
+    output$downloadRaw <- downloadHandler(
         filename = paste('RawData_', input$folderName, '.csv', sep=''),
         content = function(file) {
             write.csv(rawData, file, row.names = FALSE)

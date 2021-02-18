@@ -302,8 +302,9 @@ main <- function(directory, first_measurement, reader_id, blank_selection){
   grandErr <- avgs[,c("time", "variable", "CIrange")]
   colnames(grandRes)[3] <- "Absorbance"
   colnames(grandErr) <- colnames(grandRes)
-  rawData <- RawPreparation(rawData)
-  das <<- rawData
+  
+  #prepare raw data
+  rawData <<- RawPreparation(rawData) %>% data.frame()
   
   #add information about control
   grandRes <- tryCatch({
@@ -317,18 +318,12 @@ main <- function(directory, first_measurement, reader_id, blank_selection){
     }
     return(NULL)
   })
- 
-  
-  return(123)
 }
 
 #TROUBLESHOOTING-----------------
-directory <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Analysis_studentTrials"
-first_measurement <- "00:00:00"
-reader_id <- 2 #with robot arm
-blank_selection <- 4 #else; no blank
-errMessage <- ""
-dis <- main(directory, first_measurement, reader_id, blank_selection)
-
-
-
+#directory <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Analysis_studentTrials"
+#first_measurement <- "00:00:00"
+#reader_id <- 2 #with robot arm
+#blank_selection <- 4 #else; no blank
+#errMessage <- ""
+#dis <- main(directory, first_measurement, reader_id, blank_selection)
