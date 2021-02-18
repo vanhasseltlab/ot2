@@ -130,7 +130,7 @@ Blank_Substract_timepoint <- function(grand_res_time, blank){
         if(length(cur_data)>0){
           #calculate mean blank at the current drug-concentration combination
           cur_mean_blank <- mean(cur_data$Absorbance)
-          #subtract from subtracted value
+          #subtract from non-blank value
           sub_Val[(grand_res_time$Conc==main_concs[j] & grand_res_time$DrugName==main_names[i])] <- 
             sub_Val[(grand_res_time$Conc==main_concs[j] & grand_res_time$DrugName==main_names[i])] - cur_mean_blank
         }
