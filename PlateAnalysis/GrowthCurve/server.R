@@ -179,4 +179,12 @@ shinyServer(function(input, output) {
             write.csv(rawData, file, row.names = FALSE)
         }
     )
+    
+    #download processor script
+    output$downloadScript <- downloadHandler(
+        filename = "PlatePreProcessor_v2021-02-18.R",
+        content = function(file){
+            file.copy(sourcewd, file)
+        }
+    )
 })

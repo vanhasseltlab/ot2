@@ -19,7 +19,8 @@ shinyUI(
                              "One per-drug concentration" = 3)),
             checkboxGroupInput("plotOptions", "Plotting Options",
                                c("Logarithmic scale" = 'log')),
-            actionButton("do", "Confirm uploaded file and save")
+            actionButton("do", "Confirm uploaded file and save"),
+            downloadButton("downloadScript", "Download Processor Script")
         ),
         
         mainPanel(
