@@ -32,7 +32,7 @@ Extract_oneMeasFile <- function(meas_address_single){
   
   #process measurement results
   measRes <- gsub(" ", "", measRes)
-  measRes <- strsplit(measRes, split=":") %>% bind_rows() %>% data.frame()
+  measRes <- do.call(rbind, strsplit(measRes, split=":")) %>% data.frame()
   colnames(measRes) <- c("Slot", toString(measTime))
   measRes$Slot <- sapply(measRes$Slot, 
                          function(x) if(substring(x, 2, 2)=="0"){paste(substring(x, 1, 1), substring(x, 3, 3), sep="")}else{x})
@@ -44,6 +44,7 @@ Read_allMeasFile <- function(input_wd){
   input_files <- list.files(input_wd)
   input_files <- paste(input_wd, input_files, sep="/")
   meas_res <- sapply(input_files, function(x) Extract_oneMeasFile(x))
+  
   measR <- c()
   for(i in c(1:length(meas_res))){
     if(i==1){
@@ -87,7 +88,7 @@ Proc_noControl <- function(raw_NM, control=F){
   
   #expand well info
   procData <- cbind.data.frame(procData,
-                               bind_rows(strsplit(procData$WellId, split="-")))
+                               do.call(rbind, strsplit(procData$WellId, split="-")))
   
   #get mean and sd
   procData <- cbind.data.frame(procData,
@@ -119,7 +120,7 @@ Proc_getControl <- function(control_address, raw_NM){
   
   #separate type and group
   proc_NMc <- cbind.data.frame(proc_NMc, 
-                               bind_rows(strsplit(proc_NMc$ControlType, split="_")))
+                               do.call(rbind, strsplit(proc_NMc$ControlType, split="_")))
   colnames(proc_NMc)[c(6,7)] <- c("Group", "Type")
   proc_NMc$timeTypeID <- paste(proc_NMc$Time, proc_NMc$ControlType, sep="-")
   
@@ -147,7 +148,7 @@ Proc_getControl <- function(control_address, raw_NM){
 mainFun <- function(platemap_address, inputwd, control_map=NULL){
   #read platemap and measurement results
   plateMap <<- ReadPlateMap(platemap_address)
-  measResults <- Read_allMeasFile(inputwd)
+  measResults <<- Read_allMeasFile(inputwd)
   
   #combine raw data
   rawData_matrix <<- left_join(plateMap, measResults, by="Slot")
