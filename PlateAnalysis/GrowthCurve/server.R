@@ -11,8 +11,8 @@ shinyServer(function(input, output) {
     #### PREPARATION-------------
     #set directories, take source analyzer
     mainwd <- "/srv/shiny-server/files"
-    sourcewd <- "/srv/shiny-server/ot2/PlateAnalysis/GrowthCurve_2/srcPlateAnalyzer.R"
-    templatewd <- "/srv/shiny-server/ot2/PlateAnalysis/GrowthCurve_2/ControlMap.csv"
+    sourcewd <- "/srv/shiny-server/ot2/PlateAnalysis/GrowthCurve/srcPlateAnalyzer.R"
+    templatewd <- "/srv/shiny-server/ot2/PlateAnalysis/GrowthCurve/ControlMap.csv"
     
     #for troubleshooting
     #mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator"
