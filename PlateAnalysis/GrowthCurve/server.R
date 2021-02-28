@@ -1,20 +1,23 @@
 library(shiny)
 .libPaths(c("/home/sebastian/R/x86_64-pc-linux-gnu-library/3.4"))
-library(ggplot2)
-library(chron)
-library(reshape2)
 library(xlsx)
 library(dplyr)
+library(chron)
+library(reshape2)
+library(ggplot2)
 options(stringsAsFactors = F)
 
-errMessage <<- "SUCCESS"
 shinyServer(function(input, output) {
     #### PREPARATION-------------
     #set directories, take source analyzer
     mainwd <- "/srv/shiny-server/files"
-    sourcewd <- "/srv/shiny-server/ot2/PlateAnalysis/GrowthCurve/analyzer.R"
-    #mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\PlateAnalysis\\GrowthCurve"
-    #sourcewd <- paste(mainwd, "\\analyzer.R", sep='') 
+    sourcewd <- "/srv/shiny-server/ot2/PlateAnalysis/GrowthCurve_2/srcPlateAnalyzer.R"
+    templatewd <- "/srv/shiny-server/ot2/PlateAnalysis/GrowthCurve_2/ControlMap.csv"
+    
+    #for troubleshooting
+    #mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator"
+    #sourcewd <- paste(mainwd, "/NewPlateAnalyzer.R", sep='')
+    #templatewd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\ControlMap.csv"
     
     if(!("Analysis" %in% list.files(mainwd))){
         setwd(mainwd)
@@ -35,6 +38,7 @@ shinyServer(function(input, output) {
         }else{
             #PROCESS
             ## File Safekeeping
+            
             #create new directory
             folderName <- input$folderName
             nex <- F
@@ -57,6 +61,7 @@ shinyServer(function(input, output) {
                 #copying plate map
                     
             #copy and rename
+            #plate map
             pmaps <- input$pmap$datapath
             file.copy(input$pMap$datapath, mainwd)
             if('csv' %in% input$pMap$name){
@@ -68,70 +73,49 @@ shinyServer(function(input, output) {
                 file.rename(oldName, newName)
             }
             
-                #copying measurement files
+            #measurement files
+            meas_path <- paste(mainwd, "files", sep="/")
+            dir.create(meas_path)
             fileNames <- fileNames[2:length(fileNames)]
             for(i in c(1:length(fileNames))){
-                file.copy(input$files$datapath[i], mainwd)
+                file.copy(input$files$datapath[i], meas_path)
                 print(input$files$datapath[i])
                 #renaming
-                oldName <- paste(mainwd, "/", toString(i-1), ".csv", sep='')
-                newName <- paste(mainwd, "/", fileNames[i], sep='')
+                oldName <- paste(meas_path, "/", toString(i-1), ".csv", sep='')
+                newName <- paste(meas_path, "/", fileNames[i], sep='')
                 file.rename(oldName, newName)
             }
             
-            
             ## MAIN ##
-            grandRes <- tryCatch({
-                main(mainwd, input$time, input$reader_type, as.numeric(input$controlOpt))
-            },
-            error=function(cond){
-                return(errMessage)
-            })
-            
-            #data for plotting; switch blanks from grand res
-            if(input$controlOpt == 3){
-                plotRes <- grandRes[!grepl("blank", grandRes$Inoculum),]
-                grandRes$Inoculum <- gsub("conc_blank","USED blank for each drug+medium+concentration", grandRes$Inoculum, ignore.case=T)
-                grandRes$Inoculum <- gsub("drug_blank","USED blank for each drug+medium+concentration", grandRes$Inoculum, ignore.case=T)
-            }else if(input$controlOpt==1){
-                plotRes <- grandRes[!grepl("absolute_blank", grandRes$Inoculum),]
-                grandRes$Inoculum <- gsub("absolute_blank","USED blank for all", grandRes$Inoculum, ignore.case=T)
-            }else if(input$controlOpt==2){
-                plotRes <- grandRes[!(grepl("absolute_blank", grandRes$Inoculum) | grepl("drug_blank", grandRes$Inoculum)),]
-                grandRes$Inoculum <- gsub("drug_blank","USED blank for each drug+medium", grandRes$Inoculum, ignore.case=T)
+            if(input$control_selection==1){
+                grandRes <- mainFun(paste(mainwd, "/plateMap.xlsx", sep=""), meas_path)
+            }else if(is.null(input$control_map)){
+                grandRes <- mainFun(paste(mainwd, "/plateMap.xlsx", sep=""), meas_path)
             }else{
-                plotRes <- grandRes
-                grandRes$Inoculum[grepl("blank", grandRes$Inoculum)] <- ""
+                grandRes <- mainFun(paste(mainwd, "/plateMap.xlsx", sep=""), meas_path,
+                                    input$control_map$datapath)
             }
             
-            variable <- c()
-            for(i in c(1:length(plotRes[,1]))){
-                variable <- c(variable,
-                              paste(plotRes[i,c(2:5)], collapse='_'))
-            }
-            plotRes <<- cbind.data.frame(variable, plotRes)
             
-            grandRes <<- grandRes
             return(grandRes)
         }
     })
-    #creating the table
+    
+    #OUTPUT TABLE----------
     output$tab <- renderTable({contents()})
     
     #CREATE PLOT------
     plotData <- reactiveValues()
     observeEvent(input$do,{
-        req(input$do, contents())
-        plotData$plot_m <- ggplot(data=plotRes, aes(x=time, y=Absorbance))+
-            geom_point()+geom_line()+theme_bw()+
-            facet_wrap(~variable)
-        
-        
-        if("log" %in% input$plotOptions){
-            plotData$plot_m <- plotData$plot_m + 
-                scale_y_continuous(trans='log10')
+        req(input$do, input$plotOptions, contents())
+        #create plot
+        if(input$plotOptions=='log'){
+            plotData$plot_m <- plt + scale_y_continuous(trans='log10')+
+                ylab("log10(Absorbance) / (a.u.)")
+        }else{
+            plotData$plot_m <- plt + ylab("Absorbance / (a.u.)")
         }
-        })
+    })
     
     output$plot <- renderPlot({plotData$plot_m})
     
@@ -141,7 +125,71 @@ shinyServer(function(input, output) {
         plotOutput("plot")
     })
     
-    #download button for the image
+    #CONTROL UPLOAD UI------------
+    output$control_upload <- renderUI({
+        req(input$control_selection)
+        if(input$control_selection==2){
+            fileInput("control_map", "Upload Control Map", accept=".csv")
+        }
+    })
+    
+    #download for control map template
+    output$control_download <- renderUI({
+        req(input$control_selection)
+        if(input$control_selection==2){
+            downloadButton('downloadControlMap', 'Download Control Map Template')
+        }
+        
+    })
+    
+    output$downloadControlMap <- downloadHandler(
+        filename = 'ControlMap.csv',
+        content = function(file) {
+            file.copy(templatewd, file)
+        }
+    )
+    
+    #RESULT DOWNLOAD BUTTONS------------
+    #Raw Data; long-format
+    output$download_raw_NM <- renderUI({
+        req(input$do, contents())
+        downloadButton('download_rawNM', 'Download Raw Data (long format)')
+    })
+    
+    output$download_rawNM <- downloadHandler(
+        filename = paste('RawData_', input$folderName, '_longFormat.csv', sep=''),
+        content = function(file) {
+            write.csv(rawData_NM, file, row.names=F)
+        }
+    )
+    
+    #Raw Data; Matrix format
+    output$download_raw_matrix <- renderUI({
+        req(input$do, contents())
+        downloadButton('download_rawMat', 'Download Raw Data (matrix format)')
+    })
+    
+    output$download_rawMat <- downloadHandler(
+        filename = paste('RawData_', input$folderName, '_longFormat.csv', sep=''),
+        content = function(file) {
+            write.csv(rawData_matrix, file, row.names=F)
+        }
+    )
+    
+    #Pre-processed data
+    output$download_prcNM <- renderUI({
+        req(input$do, contents())
+        downloadButton('download_preprocessed', 'Download Preprocessed Data')
+    })
+    
+    output$download_preprocessed <- downloadHandler(
+        filename = paste('Preprocessed_', input$folderName, '.csv', sep=''),
+        content = function(file) {
+            write.csv(proc_NM, file, row.names=F)
+        }
+    )
+    
+    #IMAGE DOWNLOAD BUTTON-----------
     output$plot_download <- renderUI({
         req(input$do, contents())
         downloadButton('downloadPlot', 'Download Plot')
@@ -151,38 +199,12 @@ shinyServer(function(input, output) {
         filename = function() { paste(input$folderName, '.png', sep='') },
         content = function(file) {
             ggsave(file, plot = plotData$plot_m, device = "png")
-       }
-    )
-    
-    #download for dataset
-    output$dataset_download <- renderUI({
-        req(input$do, contents())
-        downloadButton('downloadDataset', 'Download Preprocessed Data')
-    })
-    
-    output$downloadDataset <- downloadHandler(
-        filename = paste('PreprocessedData_', input$folderName, '.csv', sep=''),
-        content = function(file) {
-            write.csv(grandRes, file, row.names = FALSE)
         }
     )
     
-    #download for the raw dataset
-    output$raw_dataset_download <- renderUI({
-        req(input$do, contents())
-        downloadButton('downloadRaw', 'Download Raw Data')
-    })
-    
-    output$downloadRaw <- downloadHandler(
-        filename = paste('RawData_', input$folderName, '.csv', sep=''),
-        content = function(file) {
-            write.csv(rawData, file, row.names = FALSE)
-        }
-    )
-    
-    #download processor script
+    #PRE-PROCESSIR DOWNLOAD----------
     output$downloadScript <- downloadHandler(
-        filename = "PlatePreProcessor_v2021-02-18.R",
+        filename = "PlatePreProcessor_v2021-02-28.R",
         content = function(file){
             file.copy(sourcewd, file)
         }

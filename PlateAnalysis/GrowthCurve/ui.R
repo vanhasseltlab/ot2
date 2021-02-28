@@ -1,33 +1,43 @@
 library(shiny)
 shinyUI(
     pageWithSidebar(
-        headerPanel("Growth Curve Plot for 96-Well Plate"),
+        headerPanel("Growth Curve for 96-Well Plate"),
         
         sidebarPanel(
-            selectInput("reader_type", "Select plate reader",
-                        list("FluostarOmega + Robot Arm" = 2,
-                             "FluostarOmega (no Robot Arm)" = 1)),
+            #file inputs
             fileInput("files", "Upload Measurement Data", accept=".csv",
                       multiple=T),
             fileInput("pMap", "Upload Plate Map", accept=".xlsx"),
+            
+            #control selection
+            radioButtons("control_selection", "",
+                         c("No control" = 1, 
+                           "Use control input" = 2)),
+            uiOutput("control_upload"),
+            uiOutput("control_download"),
+            
+            #names
             textInput("folderName", "Experiment Name", value='defaultFolder'),
-            textInput("time", "Timepoint of first measurement", value="00:00:00"),
-            selectInput("controlOpt", 'Control Options',
-                        list("No Blank" = 0,
-                             "Single Blank" = 1,
-                             "One per-drug" = 2,
-                             "One per-drug concentration" = 3)),
-            checkboxGroupInput("plotOptions", "Plotting Options",
-                               c("Logarithmic scale" = 'log')),
+            
+            #plot options
+            radioButtons("plotOptions", "Plotting Options",
+                               c("Linear scale" = 'lin',
+                                 "Logarithmic scale" = 'log')),
+            
+            #action buttons
             actionButton("do", "Confirm uploaded file and save"),
-            downloadButton("downloadScript", "Download Processor Script")
+            
+            downloadButton("downloadScript", "Download Processor Script"),
+            
+            #downloads
+            uiOutput("plot_download"),
+            uiOutput('download_raw_matrix'),
+            uiOutput('download_raw_NM'),
+            uiOutput('download_prcNM')
         ),
         
         mainPanel(
-            uiOutput("plot_download"),
-            uiOutput("dataset_download"),
-            uiOutput("raw_dataset_download"),
-            tableOutput('tab'),
-            uiOutput('plotting')
+            uiOutput('plotting'),
+            tableOutput('tab')
         )
 ))
