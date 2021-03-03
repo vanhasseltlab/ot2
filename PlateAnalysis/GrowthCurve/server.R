@@ -15,9 +15,9 @@ shinyServer(function(input, output) {
     templatewd <- "/srv/shiny-server/ot2/PlateAnalysis/GrowthCurve/ControlMap.csv"
     
     #for troubleshooting
-    #mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator"
-    #sourcewd <- paste(mainwd, "/NewPlateAnalyzer.R", sep='')
-    #templatewd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\ControlMap.csv"
+    #mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\GrowthCurve"
+    #sourcewd <- paste(mainwd, "/srcPlateAnalyzer.R", sep='')
+    #templatewd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\GrowthCurve\\ControlMap.csv"
     
     if(!("Analysis" %in% list.files(mainwd))){
         setwd(mainwd)

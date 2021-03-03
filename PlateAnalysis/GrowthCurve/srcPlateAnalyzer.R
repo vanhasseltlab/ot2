@@ -6,9 +6,18 @@ ReadPlateMap <- function(plate_map_address){
   
   #separate drug list
   drugList <- plate_map[c(7:14), c(2:13)] %>% t() %>% as.vector()
-  concList <- plate_map[c(17:24), c(2:13)] %>% t() %>% as.vector()
-  mediumList <- plate_map[c(27:34), c(2:13)] %>% t() %>% as.vector()
-  strainList <- plate_map[c(37:44), c(2:13)] %>% t() %>% as.vector()
+  if(drugList[1]=="Drug name"){
+    drugList <- plate_map[c(10:17), c(2:13)] %>% t() %>% as.vector()
+    concList <- plate_map[c(21:28), c(2:13)] %>% t() %>% as.vector()
+    mediumList <- plate_map[c(33:40), c(2:13)] %>% t() %>% as.vector()
+    strainList <- plate_map[c(45:52), c(2:13)] %>% t() %>% as.vector()
+  }else{
+    drugList <- plate_map[c(7:14), c(2:13)] %>% t() %>% as.vector()
+    concList <- plate_map[c(17:24), c(2:13)] %>% t() %>% as.vector()
+    mediumList <- plate_map[c(27:34), c(2:13)] %>% t() %>% as.vector()
+    strainList <- plate_map[c(37:44), c(2:13)] %>% t() %>% as.vector()
+  }
+  
   slotList <- sapply(LETTERS[c(1:8)], function(x) paste(x, c(1:12), sep="")) %>% as.vector()
   plate_map <- cbind.data.frame(slotList, drugList, concList, mediumList, strainList)
   colnames(plate_map) <- c("Slot", "Drug", "Conc", "Medium", "Strain")
