@@ -7,10 +7,10 @@ ReadPlateMap <- function(plate_map_address){
   #separate drug list
   drugList <- plate_map[c(7:14), c(2:13)] %>% t() %>% as.vector()
   if(drugList[1]=="Drug name"){
-    drugList <- plate_map[c(10:17), c(2:13)] %>% t() %>% as.vector()
-    concList <- plate_map[c(21:28), c(2:13)] %>% t() %>% as.vector()
-    mediumList <- plate_map[c(33:40), c(2:13)] %>% t() %>% as.vector()
-    strainList <- plate_map[c(45:52), c(2:13)] %>% t() %>% as.vector()
+    drugList <- plate_map[c(9:16), c(2:13)] %>% t() %>% as.vector()
+    concList <- plate_map[c(19:26), c(2:13)] %>% t() %>% as.vector()
+    mediumList <- plate_map[c(29:36), c(2:13)] %>% t() %>% as.vector()
+    strainList <- plate_map[c(39:46), c(2:13)] %>% t() %>% as.vector()
   }else{
     drugList <- plate_map[c(7:14), c(2:13)] %>% t() %>% as.vector()
     concList <- plate_map[c(17:24), c(2:13)] %>% t() %>% as.vector()
