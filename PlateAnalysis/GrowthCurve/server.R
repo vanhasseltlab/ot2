@@ -87,15 +87,8 @@ shinyServer(function(input, output) {
             }
             
             ## MAIN ##
-            if(input$control_selection==1){
-                grandRes <- mainFun(paste(mainwd, "/plateMap.xlsx", sep=""), meas_path)
-            }else if(is.null(input$control_map)){
-                grandRes <- mainFun(paste(mainwd, "/plateMap.xlsx", sep=""), meas_path)
-            }else{
-                grandRes <- mainFun(paste(mainwd, "/plateMap.xlsx", sep=""), meas_path,
-                                    input$control_map$datapath)
-            }
-            
+            grandRes <- mainFun(paste(mainwd, "/plateMap.xlsx", sep=""), meas_path, 
+                                control_selection=input$control_selection, control_map=input$control_map$datapath)
             
             return(grandRes)
         }
@@ -128,7 +121,7 @@ shinyServer(function(input, output) {
     #CONTROL UPLOAD UI------------
     output$control_upload <- renderUI({
         req(input$control_selection)
-        if(input$control_selection==2){
+        if(input$control_selection==5){
             fileInput("control_map", "Upload Control Map", accept=".csv")
         }
     })
@@ -136,7 +129,7 @@ shinyServer(function(input, output) {
     #download for control map template
     output$control_download <- renderUI({
         req(input$control_selection)
-        if(input$control_selection==2){
+        if(input$control_selection==5){
             downloadButton('downloadControlMap', 'Download Control Map Template')
         }
         
@@ -186,6 +179,19 @@ shinyServer(function(input, output) {
         filename = paste('Preprocessed_', input$folderName, '.csv', sep=''),
         content = function(file) {
             write.csv(proc_NM, file, row.names=F)
+        }
+    )
+    
+    #Pre-processed and averaged data
+    output$download_prcNM_avg <- renderUI({
+        req(input$do, contents())
+        downloadButton('download_preprocessed_avg', 'Download Preprocessed Data (averaged)')
+    })
+    
+    output$download_preprocessed_avg <- downloadHandler(
+        filename = paste('Preprocessed_Averaged_', input$folderName, '.csv', sep=''),
+        content = function(file) {
+            write.csv(proc_NM_aeraged, file, row.names=F)
         }
     )
     
