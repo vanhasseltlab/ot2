@@ -296,14 +296,14 @@ inputwd <- "test"
 
 #### Read Plate Map ####
 #extract address
-plateMap_address <- list.files(platemap_wd)
-plateMap_address <- plateMap_address[grepl("xlsx", plateMap_address)]
-plateMap_address <- paste(platemap_wd, plateMap_address, sep="\\")
-inputwd <- paste(platemap_wd, inputwd, sep="\\")
+#plateMap_address <- list.files(platemap_wd)
+#plateMap_address <- plateMap_address[grepl("xlsx", plateMap_address)]
+#plateMap_address <- paste(platemap_wd, plateMap_address, sep="\\")
+#inputwd <- paste(platemap_wd, inputwd, sep="\\")
 #extract address for control input
 #controlInput_address <- paste(platemap_wd, "ControlMap.csv", sep="\\")
-controlInput_address <- NULL
+#controlInput_address <- NULL
 
 #call main
 #dis <- mainFun(plateMap_address, inputwd, control_map = controlInput_address)
-dis <- mainFun(plateMap_address, inputwd, control_selection=3)
+#dis <- mainFun(plateMap_address, inputwd, control_selection=3)
