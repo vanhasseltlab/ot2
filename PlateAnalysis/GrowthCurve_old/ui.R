@@ -1,7 +1,7 @@
 library(shiny)
 shinyUI(
     pageWithSidebar(
-        headerPanel("Growth Curve Plot for 96-Well Plate"),
+        headerPanel("Growth Curve Plot for 96-Well Plate (old version)"),
         
         sidebarPanel(
             selectInput("reader_type", "Select plate reader",
