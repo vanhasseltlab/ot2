@@ -98,27 +98,28 @@ shinyServer(function(input, output) {
     output$tab <- renderTable({contents()})
     
     #CREATE PLOT------
-    plotData <- reactiveValues()
-    observeEvent(input$do,{
-        req(input$do, input$plotOptions, contents())
-        #create plot
-        if(input$plotOptions=='log'){
-            plotData$plot_m <- plt + scale_y_continuous(trans='log10')+
-                ylab("log10(Absorbance) / (a.u.)")
-        }else{
-            plotData$plot_m <- plt + ylab("Absorbance / (a.u.)")
-        }
-    })
+    #plotData <- reactiveValues()
+    #observeEvent(input$do,{
+    #    req(input$do, input$plotOptions, contents())
+    #    #create plot
+    #    if(input$plotOptions=='log'){
+    #        plotData$plot_m <- plt + scale_y_continuous(trans='log10')+
+    #            ylab("log10(Absorbance) / (a.u.)")
+    #    }else{
+    #        plotData$plot_m <- plt + ylab("Absorbance / (a.u.)")
+    #    }
+    #})
     
-    output$plot <- renderPlot({plotData$plot_m})
+    #output$plot <- renderPlot({plotData$plot_m})
     
     #show plot only after action button pushed
-    output$plotting <- renderUI({
-        req(input$do, contents())
-        plotOutput("plot")
-    })
+    #output$plotting <- renderUI({
+    #    req(input$do, contents())
+    #    plotOutput("plot")
+    #})
     
     #CONTROL UPLOAD UI------------
+    #block deprecated
     output$control_upload <- renderUI({
         req(input$control_selection)
         if(input$control_selection==5){
@@ -143,32 +144,6 @@ shinyServer(function(input, output) {
     )
     
     #RESULT DOWNLOAD BUTTONS------------
-    #Raw Data; long-format
-    output$download_raw_NM <- renderUI({
-        req(input$do, contents())
-        downloadButton('download_rawNM', 'Download Raw Data (long format)')
-    })
-    
-    output$download_rawNM <- downloadHandler(
-        filename = paste('RawData_', input$folderName, '_longFormat.csv', sep=''),
-        content = function(file) {
-            write.csv(rawData_NM, file, row.names=F)
-        }
-    )
-    
-    #Raw Data; Matrix format
-    output$download_raw_matrix <- renderUI({
-        req(input$do, contents())
-        downloadButton('download_rawMat', 'Download Raw Data (matrix format)')
-    })
-    
-    output$download_rawMat <- downloadHandler(
-        filename = paste('RawData_', input$folderName, '_longFormat.csv', sep=''),
-        content = function(file) {
-            write.csv(rawData_matrix, file, row.names=F)
-        }
-    )
-    
     #Pre-processed data
     output$download_prcNM <- renderUI({
         req(input$do, contents())
@@ -182,33 +157,7 @@ shinyServer(function(input, output) {
         }
     )
     
-    #Pre-processed and averaged data
-    output$download_prcNM_avg <- renderUI({
-        req(input$do, contents())
-        downloadButton('download_preprocessed_avg', 'Download Preprocessed Data (averaged)')
-    })
-    
-    output$download_preprocessed_avg <- downloadHandler(
-        filename = paste('Preprocessed_Averaged_', input$folderName, '.csv', sep=''),
-        content = function(file) {
-            write.csv(proc_NM_aeraged, file, row.names=F)
-        }
-    )
-    
-    #IMAGE DOWNLOAD BUTTON-----------
-    output$plot_download <- renderUI({
-        req(input$do, contents())
-        downloadButton('downloadPlot', 'Download Plot')
-    })
-    
-    output$downloadPlot <- downloadHandler(
-        filename = function() { paste(input$folderName, '.png', sep='') },
-        content = function(file) {
-            ggsave(file, plot = plotData$plot_m, device = "png")
-        }
-    )
-    
-    #PRE-PROCESSIR DOWNLOAD----------
+    #PRE-PROCESSOR DOWNLOAD----------
     output$downloadScript <- downloadHandler(
         filename = "PlatePreProcessor_v2021-02-28.R",
         content = function(file){

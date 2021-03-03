@@ -14,18 +14,13 @@ shinyUI(
                          c("No control" = 1, 
                            "Medium control" = 2,
                            "Drug-Medium control" = 3,
-                           "Drug-Medium-Concentration control" = 4,
-                           "User-defined control" = 5)),
-            uiOutput("control_upload"),
-            uiOutput("control_download"),
+                           "Drug-Medium-Concentration control" = 4)),
+                           #"User-defined control" = 5)),
+            #uiOutput("control_upload"),
+            #uiOutput("control_download"),
             
             #names
             textInput("folderName", "Experiment Name", value='defaultFolder'),
-            
-            #plot options
-            radioButtons("plotOptions", "Plotting Options",
-                               c("Linear scale" = 'lin',
-                                 "Logarithmic scale" = 'log')),
             
             #action buttons
             actionButton("do", "Confirm uploaded file and save"),
@@ -33,15 +28,10 @@ shinyUI(
             downloadButton("downloadScript", "Download Processor Script"),
             
             #downloads
-            uiOutput("plot_download"),
-            uiOutput('download_raw_matrix'),
-            uiOutput('download_raw_NM'),
-            uiOutput('download_prcNM'),
-            uiOutput('download_prcNM_avg')
+            uiOutput('download_prcNM')
         ),
         
         mainPanel(
-            uiOutput('plotting'),
             tableOutput('tab')
         )
 ))

@@ -224,6 +224,25 @@ GetControlInfo <- function(control_selection, raw_data){
                                      function(x) if(is.na(x["ControlValue"]) | x["ControlValue"]=="NA"){NA}else{as.numeric(x["Measurement"]) - as.numeric(x["ControlValue"])})
   return(specifics)
 }
+getReplicates <- function(proc_nm){
+  grandres <- c()
+  well_indicators <- proc_nm[,c("WellId", "Slot")] %>% unique()
+  ids <- unique(well_indicators$WellId)
+  for(i in c(1:length(ids))){
+    #subset
+    cur_data <- subset(well_indicators, WellId==ids[i])
+    cur_data$replicates <- c(1:nrow(cur_data))
+    #concatenate
+    if(i==1){
+      grandres <- cur_data
+    }else{
+      grandres <- rbind.data.frame(grandres, cur_data)
+    }
+  }
+  grandres <- grandres[,c("Slot", "replicates")]
+  proc_nm <- left_join(proc_nm, grandres, by="Slot")
+  return(proc_nm)
+}
 #MAIN FUNCTION------------
 mainFun <- function(platemap_address, inputwd, control_selection, control_map=NULL){
   #read platemap and measurement results
@@ -244,8 +263,19 @@ mainFun <- function(platemap_address, inputwd, control_selection, control_map=NU
     proc_NM <- GetControlInfo(control_selection, rawData_NM)
   }
   
+  #add replicates
+  proc_NM <- getReplicates(proc_NM)
+  
+  #column adjustment
+  proc_NM <- proc_NM[,c("Drug", "Medium", 'Strain', "Time", "Conc", "Slot",
+                        "replicates", "ControlValue", "ControlSlots", "Measurement", "correctedValues")]
+  colnames(proc_NM) <- c("drug_name", "media_name", "strain_name", "time", "drug_concentration", "well", 
+                         "replicate_ID", "correction_value", "correction_wells", 
+                         "raw_measurement", "corrected_measurement")
+  
   #average result per-ID
-  frplt <- Proc_average(proc_NM)
+  #frplt <- Proc_average(proc_NM)
+  frplt <- proc_NM
   
   #pass to global
   proc_NM <<- proc_NM
@@ -261,19 +291,19 @@ mainFun <- function(platemap_address, inputwd, control_selection, control_map=NU
 }
 
 #TROUBLESHOOTING-----------------
-#platemap_wd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\GrowthCurve"
-#inputwd <- "test"
+platemap_wd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\GrowthCurve"
+inputwd <- "test"
 
 #### Read Plate Map ####
 #extract address
-#plateMap_address <- list.files(platemap_wd)
-#plateMap_address <- plateMap_address[grepl("xlsx", plateMap_address)]
-#plateMap_address <- paste(platemap_wd, plateMap_address, sep="\\")
-#inputwd <- paste(platemap_wd, inputwd, sep="\\")
+plateMap_address <- list.files(platemap_wd)
+plateMap_address <- plateMap_address[grepl("xlsx", plateMap_address)]
+plateMap_address <- paste(platemap_wd, plateMap_address, sep="\\")
+inputwd <- paste(platemap_wd, inputwd, sep="\\")
 #extract address for control input
 #controlInput_address <- paste(platemap_wd, "ControlMap.csv", sep="\\")
-#controlInput_address <- NULL
+controlInput_address <- NULL
 
 #call main
 #dis <- mainFun(plateMap_address, inputwd, control_map = controlInput_address)
-#dis <- mainFun(plateMap_address, inputwd, control_selection=3)
+dis <- mainFun(plateMap_address, inputwd, control_selection=3)
