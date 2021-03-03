@@ -90,7 +90,7 @@ Create_LongFormat <- function(all_res){
 }
 
 #processing
-Proc_noControl <- function(raw_NM, control=F){
+Proc_average <- function(raw_NM){
   procData <- raw_NM[,c("WellId", "Time")] %>% distinct()
   procData$timeID <- paste(procData$WellId, procData$Time, sep="_")
   raw_NM$timeID <- paste(raw_NM$WellId, raw_NM$Time, sep="_")
@@ -107,14 +107,9 @@ Proc_noControl <- function(raw_NM, control=F){
   colnames(procData)[4:10] <- c("Drug", "Conc", "Medium", "Strain", "AvgMeas", "SDMeas", "nReplicates")
   procData$SDMeas[is.na(procData$SDMeas)] <- 0 #remove NA from single measurements
   
-  #remove no drug asssigned rows
-  if(!control){
-    procData <- subset(procData, Drug!="NA")
-  }
-  
   return(procData)
 }
-Proc_getControl <- function(control_address, raw_NM){
+Proc_manualControl <- function(control_address, raw_NM){
   #read control input
   contInp <- read.csv(control_address, header=T)[,c(2:13)] %>% t() %>% as.vector()
   slotList <- sapply(LETTERS[c(1:8)], function(x) paste(x, c(1:12), sep="")) %>% as.vector()
@@ -152,9 +147,85 @@ Proc_getControl <- function(control_address, raw_NM){
   
   return(proc_NMc)
 }
-
+GetControlInfo <- function(control_selection, raw_data){
+  #expand well IDs
+  specifics <- do.call(rbind, strsplit(raw_data$WellId, split="-"))
+  colnames(specifics) <- c("Drug", "Conc", "Medium", "Strain")
+  specifics <- cbind.data.frame(raw_data, specifics)
+  
+  #PRESENCE CHECK
+  #check drug presence
+  specifics$DrugPresent <- T
+  specifics$DrugPresent[specifics$Drug=="NA" | is.na(specifics$Drug)] <- F
+  
+  #check inoculum presence
+  specifics$InocPresent <- T
+  specifics$InocPresent[specifics$Strain=="NA" | is.na(specifics$Strain)] <- F
+  
+  #CREATE IDENTIFIERS
+  #create medium identifier
+  specifics$medTimeID <- paste(specifics$Medium, specifics$Time, sep="-")
+  
+  #create drug-medium identifier
+  specifics$drugMedID <- paste(specifics$Drug, specifics$Medium, specifics$Time, sep="-")
+  
+  #create drug-medium-concentration identifier
+  specifics$drugMedConcID <- paste(specifics$Drug, specifics$Medium, specifics$Conc, specifics$Time, sep="-")
+  
+  #SELECTING CONTROLS]
+  #check drug-medium control | drug-medium controls can also be used for medium-controls
+  specifics$drugMedControl <- F
+  specifics$drugMedControl[specifics$Conc==0 & specifics$DrugPresent & !specifics$InocPresent] <- T
+  
+  #check drug-medium-concentration controls
+  specifics$drugMedConcControl <- F
+  specifics$drugMedConcControl[specifics$DrugPresent & !specifics$InocPresent] <- T
+  
+  #OPTIONS
+  # 1 = No Control
+  # 2 = Medium-only
+  # 3 = Drug+Med
+  # 4 = Drug+Med+Conc
+  # 5 = User-defined
+  if(control_selection==1){
+    specifics$ControlValue <- 0
+    specifics$ControlSlots <- ""
+  }else if(control_selection==2){
+    controls <- subset(specifics, drugMedControl)[,c("Slot", "Time", "Measurement", "medTimeID")]
+    controls <- cbind.data.frame(unique(controls$medTimeID), 
+                                 sapply(unique(controls$medTimeID), 
+                                        function(x) mean(subset(controls, medTimeID==x)$Measurement)),
+                                 sapply(unique(controls$medTimeID), 
+                                        function(x) paste(subset(controls, medTimeID==x)$Slot, collapse=", ")))
+    colnames(controls) <- c("medTimeID", "ControlValue", "ControlSlots")
+    specifics <- left_join(specifics, controls, by="medTimeID")
+  }else if(control_selection==3){
+    controls <- subset(specifics, drugMedControl)[,c("Slot", "Time", "Measurement", "drugMedID")]
+    controls <- cbind.data.frame(unique(controls$drugMedID), 
+                                 sapply(unique(controls$drugMedID), 
+                                        function(x) mean(subset(controls, drugMedID==x)$Measurement)),
+                                 sapply(unique(controls$drugMedID), 
+                                        function(x) paste(subset(controls, drugMedID==x)$Slot, collapse=", ")))
+    colnames(controls) <- c("drugMedID", "ControlValue", "ControlSlots")
+    specifics <- left_join(specifics, controls, by="drugMedID")
+  }else if(control_selection==4){
+    controls <- subset(specifics, drugMedConcControl)[,c("Slot", "Time", "Measurement", "drugMedConcID")]
+    controls <- cbind.data.frame(unique(controls$drugMedConcID), 
+                                 sapply(unique(controls$drugMedConcID), 
+                                        function(x) mean(subset(controls, drugMedConcID==x)$Measurement)),
+                                 sapply(unique(controls$drugMedConcID), 
+                                        function(x) paste(subset(controls, drugMedConcID==x)$Slot, collapse=", ")))
+    colnames(controls) <- c("drugMedConcID", "ControlValue", "ControlSlots")
+    specifics <- left_join(specifics, controls, by="drugMedConcID")
+  }
+  
+  #Calculate CorrectedValue
+  specifics$correctedValues <- apply(specifics, 1,
+                                     function(x) if(is.na(x["ControlValue"]) | x["ControlValue"]=="NA"){NA}else{as.numeric(x["Measurement"]) - as.numeric(x["ControlValue"])})
+  return(specifics)
+}
 #MAIN FUNCTION------------
-mainFun <- function(platemap_address, inputwd, control_map=NULL){
+mainFun <- function(platemap_address, inputwd, control_selection, control_map=NULL){
   #read platemap and measurement results
   plateMap <<- ReadPlateMap(platemap_address)
   measResults <<- Read_allMeasFile(inputwd)
@@ -164,14 +235,21 @@ mainFun <- function(platemap_address, inputwd, control_map=NULL){
   rawData_NM <<- Create_LongFormat(rawData_matrix) #create long-format
   
   #process data
-  if(is.null(control_map)){
-    frplt <- Proc_noControl(rawData_NM)
-    proc_NM <<- frplt
+  if(!is.null(control_map) & control_selection==5){
+    proc_NM <- Proc_manualControl(control_map, rawData_NM)
   }else{
-    proc_NM <- Proc_getControl(control_map, rawData_NM)
-    frplt <- Proc_noControl(proc_NM, control=T)
-    proc_NM <<- frplt
+    if(control_selection==5){
+      control_selection <- 1
+    }
+    proc_NM <- GetControlInfo(control_selection, rawData_NM)
   }
+  
+  #average result per-ID
+  frplt <- Proc_average(proc_NM)
+  
+  #pass to global
+  proc_NM <<- proc_NM
+  proc_NM_averaged <<- frplt
   
   #create plot
   plt <<- ggplot(data=frplt, aes(x=Time, y=AvgMeas))+
@@ -179,12 +257,12 @@ mainFun <- function(platemap_address, inputwd, control_map=NULL){
     geom_errorbar(aes(ymin=AvgMeas - SDMeas, ymax=AvgMeas + SDMeas), width=0.5)+
     xlab("Time / hours")
   
-  return(proc_NM)
+  return(frplt)
 }
 
 #TROUBLESHOOTING-----------------
-#platemap_wd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator"
-#inputwd <- "TestInput"
+#platemap_wd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\GrowthCurve"
+#inputwd <- "test"
 
 #### Read Plate Map ####
 #extract address
@@ -194,7 +272,8 @@ mainFun <- function(platemap_address, inputwd, control_map=NULL){
 #inputwd <- paste(platemap_wd, inputwd, sep="\\")
 #extract address for control input
 #controlInput_address <- paste(platemap_wd, "ControlMap.csv", sep="\\")
+#controlInput_address <- NULL
 
 #call main
 #dis <- mainFun(plateMap_address, inputwd, control_map = controlInput_address)
-#dis <- mainFun(plateMap_address, inputwd)
+#dis <- mainFun(plateMap_address, inputwd, control_selection=3)
