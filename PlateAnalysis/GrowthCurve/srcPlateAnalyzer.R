@@ -79,7 +79,8 @@ Create_LongFormat <- function(all_res){
   colnames(nmDat)[c(4:5)] <- c("Date", "Hours")
   nmDat$Time <- chron(dates=nmDat$Date, times=nmDat$Hours, format=c(dates='d/m/y', times='h:m:s'))
   nmDat <- nmDat[1:3]
-  nmDat$Time <- as.numeric(nmDat$Time - min(nmDat$Time)) * 24 #standardize to first measurement timepoint (as zero); convert to hours
+  nmDat$Time <- as.numeric(nmDat$Time - min(nmDat$Time)) * 24  %>% #standardize to first measurement timepoint (as zero); convert to hours
+    round(digits=2) #round to two decimal places
   
   #add well ID
   nmDat$WellId <- sapply(nmDat$Slot, function(x) all_res$WellId[all_res$Slot==x])
@@ -147,7 +148,20 @@ Proc_manualControl <- function(control_address, raw_NM){
   
   return(proc_NMc)
 }
-GetControlInfo <- function(control_selection, raw_data){
+GetControlInfo <- function(control_selection, raw_data, raw_control=NULL){
+  if(!is.null(raw_control)){
+    # A | Round times
+    raw_control$Time <- round(raw_control$Time, 2)
+    raw_data$Time <- round(raw_data$Time, 2)
+    # B | Add plate indicator
+    raw_data$plate <- "main"
+    raw_control$plate <- "control"
+    # C | Combine plates
+    raw_data <- rbind.data.frame(raw_data, raw_control)
+  }else{
+    raw_data$plate <- "main plate" #otherwise, allow main plate to be used as control
+  }
+  
   #expand well IDs
   specifics <- do.call(rbind, strsplit(raw_data$WellId, split="-"))
   colnames(specifics) <- c("Drug", "Conc", "Medium", "Strain")
@@ -172,14 +186,16 @@ GetControlInfo <- function(control_selection, raw_data){
   #create drug-medium-concentration identifier
   specifics$drugMedConcID <- paste(specifics$Drug, specifics$Medium, specifics$Conc, specifics$Time, sep="-")
   
-  #SELECTING CONTROLS]
+  #SELECTING CONTROLS
   #check drug-medium control | drug-medium controls can also be used for medium-controls
   specifics$drugMedControl <- F
-  specifics$drugMedControl[specifics$Conc==0 & specifics$DrugPresent & !specifics$InocPresent] <- T
+  specifics$drugMedControl[specifics$Conc==0 & specifics$DrugPresent & 
+                             !specifics$InocPresent & specifics$plate!="main"] <- T
   
   #check drug-medium-concentration controls
   specifics$drugMedConcControl <- F
-  specifics$drugMedConcControl[specifics$DrugPresent & !specifics$InocPresent] <- T
+  specifics$drugMedConcControl[specifics$DrugPresent & 
+                                 !specifics$InocPresent & specifics$plate!="main"] <- T
   
   #OPTIONS
   # 1 = No Control
@@ -187,7 +203,7 @@ GetControlInfo <- function(control_selection, raw_data){
   # 3 = Drug+Med
   # 4 = Drug+Med+Conc
   # 5 = User-defined
-  if(control_selection==1){
+  if(control_selection==1 | control_selection == 5){ #TROUBLESHOOTING MARKER
     specifics$ControlValue <- 0
     specifics$ControlSlots <- ""
   }else if(control_selection==2){
@@ -222,15 +238,24 @@ GetControlInfo <- function(control_selection, raw_data){
   #Calculate CorrectedValue
   specifics$correctedValues <- apply(specifics, 1,
                                      function(x) if(is.na(x["ControlValue"]) | x["ControlValue"]=="NA"){NA}else{as.numeric(x["Measurement"]) - as.numeric(x["ControlValue"])})
+  
+  #add plate information on slot
+  if(!is.null(raw_control)){
+    specifics$ControlSlots[!is.na(specifics$ControlSlots)] <- paste("Control Plate - ", specifics$ControlSlots[!is.na(specifics$ControlSlots)], sep="")
+  }else{
+    specifics$ControlSlots[!is.na(specifics$ControlSlots)] <- paste("Main Plate - ", specifics$ControlSlots[!is.na(specifics$ControlSlots)], sep="")
+  } 
+  
   return(specifics)
 }
-getReplicates <- function(proc_nm){
+addReplicates <- function(proc_nm){
   grandres <- c()
-  well_indicators <- proc_nm[,c("WellId", "Slot")] %>% unique()
-  ids <- unique(well_indicators$WellId)
+  well_indicators <- proc_nm[,c("WellId", "Slot", "plate")] %>% unique()
+  well_indicators$wellPlateID <- paste(well_indicators$WellId, well_indicators$plate, sep="-")
+  ids <- unique(well_indicators$wellPlateID)
   for(i in c(1:length(ids))){
     #subset
-    cur_data <- subset(well_indicators, WellId==ids[i])
+    cur_data <- subset(well_indicators, wellPlateID==ids[i])
     cur_data$replicates <- c(1:nrow(cur_data))
     #concatenate
     if(i==1){
@@ -243,8 +268,11 @@ getReplicates <- function(proc_nm){
   proc_nm <- left_join(proc_nm, grandres, by="Slot")
   return(proc_nm)
 }
+
 #MAIN FUNCTION------------
-mainFun <- function(platemap_address, inputwd, control_selection, control_map=NULL){
+mainFun <- function(platemap_address, inputwd, control_selection, 
+                    control_map_address=NULL, control_meas_wd=NULL, separate_control=F){
+  #EXTRACTION
   #read platemap and measurement results
   plateMap <<- ReadPlateMap(platemap_address)
   measResults <<- Read_allMeasFile(inputwd)
@@ -253,23 +281,36 @@ mainFun <- function(platemap_address, inputwd, control_selection, control_map=NU
   rawData_matrix <<- left_join(plateMap, measResults, by="Slot")
   rawData_NM <<- Create_LongFormat(rawData_matrix) #create long-format
   
-  #process data
-  if(!is.null(control_map) & control_selection==5){
-    proc_NM <- Proc_manualControl(control_map, rawData_NM)
-  }else{
-    if(control_selection==5){
-      control_selection <- 1
-    }
-    proc_NM <- GetControlInfo(control_selection, rawData_NM)
+  #REPEAT EXTRACTION FOR CONTROL PLATE (if prompted)
+  if(!is.null(control_map_address) & !is.null(control_meas_wd) & separate_control){
+    #read platemap and measurement results
+    control_Map <<- ReadPlateMap(control_map_address)
+    control_Res <<- Read_allMeasFile(control_meas_wd)
+    
+    #combine raw controls
+    controlData_matrix <<- left_join(control_Map, control_Res, by="Slot")
+    controlData_NM <<- Create_LongFormat(controlData_matrix) #create long-format
+  }else if(separate_control){
+    errMessage <<- "Control data missing!"
+    control_selection <- 1
   }
   
-  #add replicates
-  proc_NM <- getReplicates(proc_NM)
+  #PROCESSING
+  if(separate_control){
+    proc_NM <- GetControlInfo(control_selection, rawData_NM, controlData_NM)
+  }else{
+    proc_NM <- GetControlInfo(control_selection, rawData_NM) #control selection
+  }
+  proc_NM <- addReplicates(proc_NM) #add replicate numbers
+  
+  #separate well to column and row indicators
+  proc_NM$col <- sapply(proc_NM$Slot, function(x) substring(x, 2, nchar(x)))
+  proc_NM$row <- sapply(proc_NM$Slot, function(x) substring(x, 1, 1))
   
   #column adjustment
-  proc_NM <- proc_NM[,c("Drug", "Medium", 'Strain', "Time", "Conc", "Slot",
+  proc_NM <- proc_NM[,c("Drug", "Medium", 'Strain', "Time", "Conc", "row", "col",
                         "replicates", "ControlValue", "ControlSlots", "Measurement", "correctedValues")]
-  colnames(proc_NM) <- c("drug_name", "media_name", "strain_name", "time", "drug_concentration", "well", 
+  colnames(proc_NM) <- c("drug_name", "media_name", "strain_name", "time", "drug_concentration", "well_row", "well_column", 
                          "replicate_ID", "correction_value", "correction_wells", 
                          "raw_measurement", "corrected_measurement")
   

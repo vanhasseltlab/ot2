@@ -15,23 +15,24 @@ shinyUI(
                            "Medium control" = 2,
                            "Drug-Medium control" = 3,
                            "Drug-Medium-Concentration control" = 4)),
-                           #"User-defined control" = 5)),
-            #uiOutput("control_upload"),
-            #uiOutput("control_download"),
+            checkboxInput("separate_control", "Separate control plate", value=F),
+            uiOutput("control_meas_upload"),
+            uiOutput("control_map_upload"),
             
             #names
             textInput("folderName", "Experiment Name", value='defaultFolder'),
             
             #action buttons
-            actionButton("do", "Confirm uploaded file and save"),
+            actionButton("do", "Confirm uploaded file and save", width=300),
             
-            downloadButton("downloadScript", "Download Processor Script"),
+            downloadButton("downloadScript", "Download Processor Script", width=300),
             
             #downloads
             uiOutput('download_prcNM')
         ),
         
         mainPanel(
+            textOutput('err_message'),
             tableOutput('tab')
         )
 ))

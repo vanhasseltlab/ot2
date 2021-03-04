@@ -7,6 +7,7 @@ library(reshape2)
 library(ggplot2)
 options(stringsAsFactors = F)
 
+errMessage <- ""
 shinyServer(function(input, output) {
     #### PREPARATION-------------
     #set directories, take source analyzer
@@ -33,6 +34,8 @@ shinyServer(function(input, output) {
         if(is.null(infile)){return(NULL)}
         
         fileNames <- c(input$pMap$name, input$files$name)
+        controlNames <- c(input$control_map$name, input$control_meas$name)
+        
         if(input$do==0){
             return(fileNames)
         }else{
@@ -56,24 +59,47 @@ shinyServer(function(input, output) {
             mainwd <- paste(mainwd, folderName, sep="/")
             dir.create(mainwd, recursive=T)
             
+            #create new directory for control map and measurements
+            if(!is.null(input$control_map) & !is.null(input$control_meas)){
+                controlwd <- paste(mainwd, "controls", sep="/")
+                dir.create(controlwd, recursive=T)
+            }
+            
+            
             ########
             #COPY FILES TO MAIN DIRECTORY
                 #copying plate map
                     
             #copy and rename
-            #plate map
+            #plate map - main measurement
             pmaps <- input$pmap$datapath
             file.copy(input$pMap$datapath, mainwd)
             if('csv' %in% input$pMap$name){
                 newName <- paste(mainwd, "/plateMap.csv", sep='')
                 oldName <- paste(mainwd, "/0.csv", sep='')
+                file.rename(oldName, newName)
             }else{
                 newName <- paste(mainwd, "/plateMap.xlsx", sep='')
                 oldName <- paste(mainwd, "/0.xlsx", sep='')
                 file.rename(oldName, newName)
             }
             
-            #measurement files
+            #plate map - control map
+            if(!is.null(input$control_map)){
+                pmaps <- input$control_map$datapath
+                file.copy(input$control_map$datapath, controlwd)
+                if('csv' %in% input$control_map$name){
+                    newName <- paste(controlwd, "/plateMap.csv", sep='')
+                    oldName <- paste(controlwd, "/0.csv", sep='')
+                    file.rename(oldName, newName)
+                }else{
+                    newName <- paste(controlwd, "/plateMap.xlsx", sep='')
+                    oldName <- paste(controlwd, "/0.xlsx", sep='')
+                    file.rename(oldName, newName)
+                }
+            }
+            
+            #measurement files - main measurement
             meas_path <- paste(mainwd, "files", sep="/")
             dir.create(meas_path)
             fileNames <- fileNames[2:length(fileNames)]
@@ -86,9 +112,33 @@ shinyServer(function(input, output) {
                 file.rename(oldName, newName)
             }
             
+            #measurement files - controls
+            if(!is.null(input$control_meas)){
+                meas_path_control <- paste(controlwd, "files", sep="/")
+                dir.create(meas_path_control)
+                controlNames <- controlNames[2:length(controlNames)]
+                for(i in c(1:length(controlNames))){
+                    file.copy(input$control_meas$datapath[i], meas_path_control)
+                    print(input$control_meas$datapath[i])
+                    #renaming
+                    oldName <- paste(meas_path_control, "/", toString(i-1), ".csv", sep='')
+                    newName <- paste(meas_path_control, "/", controlNames[i], sep='')
+                    file.rename(oldName, newName)
+                }
+            }
+            
+            
             ## MAIN ##
-            grandRes <- mainFun(paste(mainwd, "/plateMap.xlsx", sep=""), meas_path, 
-                                control_selection=input$control_selection, control_map=input$control_map$datapath)
+            if(!is.null(input$control_meas) & !is.null(input$control_map) & input$separate_control){
+                grandRes <- mainFun(paste(mainwd, "/plateMap.xlsx", sep=""), meas_path, 
+                                    control_selection=input$control_selection,
+                                    paste(controlwd, "/plateMap.xlsx", sep=""), meas_path_control, separate_control=input$separate_control)
+            }else{
+                #if control plate not provided
+                grandRes <- mainFun(paste(mainwd, "/plateMap.xlsx", sep=""), meas_path, 
+                                    control_selection=input$control_selection)
+            }
+            
             
             return(grandRes)
         }
@@ -119,29 +169,20 @@ shinyServer(function(input, output) {
     #})
     
     #CONTROL UPLOAD UI------------
-    #block deprecated
-    output$control_upload <- renderUI({
-        req(input$control_selection)
-        if(input$control_selection==5){
-            fileInput("control_map", "Upload Control Map", accept=".csv")
+    output$control_map_upload <- renderUI({
+        req(input$separate_control)
+        if(input$separate_control){
+            fileInput("control_map", "Upload Control Map", accept=".xlsx")
         }
     })
     
     #download for control map template
-    output$control_download <- renderUI({
-        req(input$control_selection)
-        if(input$control_selection==5){
-            downloadButton('downloadControlMap', 'Download Control Map Template')
+    output$control_meas_upload <- renderUI({
+        req(input$separate_control)
+        if(input$separate_control){
+            fileInput('control_meas', 'Upload control measurements', accept=".csv", multiple=T)
         }
-        
     })
-    
-    output$downloadControlMap <- downloadHandler(
-        filename = 'ControlMap.csv',
-        content = function(file) {
-            file.copy(templatewd, file)
-        }
-    )
     
     #RESULT DOWNLOAD BUTTONS------------
     #Pre-processed data
@@ -164,4 +205,13 @@ shinyServer(function(input, output) {
             file.copy(sourcewd, file)
         }
     )
+    
+    #ERROR MESSAGE----------
+    err_report <- reactiveValues()
+    observeEvent(input$do,{
+        req(input$do, contents())
+        err_report$message <- errMessage
+    })
+            
+    output$err_message <- renderText({err_report$message})
 })
