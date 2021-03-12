@@ -28,7 +28,8 @@ shinyUI(
             downloadButton("downloadScript", "Download Processor Script", width=300),
             
             #downloads
-            uiOutput('download_prcNM')
+            uiOutput('download_prcNM'),
+            uiOutput('download_controlNM')
         ),
         
         mainPanel(

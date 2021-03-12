@@ -11,9 +11,9 @@ errMessage <- ""
 shinyServer(function(input, output) {
     #### PREPARATION-------------
     #set directories, take source analyzer
-    mainwd <- "/srv/shiny-server/files"
-    sourcewd <- "/srv/shiny-server/ot2/PlateAnalysis/GrowthCurve/srcPlateAnalyzer.R"
-    templatewd <- "/srv/shiny-server/ot2/PlateAnalysis/GrowthCurve/ControlMap.csv"
+    #mainwd <- "/srv/shiny-server/files"
+    #sourcewd <- "/srv/shiny-server/ot2/PlateAnalysis/GrowthCurve/srcPlateAnalyzer.R"
+    #templatewd <- "/srv/shiny-server/ot2/PlateAnalysis/GrowthCurve/ControlMap.csv"
     
     #for troubleshooting
     #mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\GrowthCurve"
@@ -147,27 +147,6 @@ shinyServer(function(input, output) {
     #OUTPUT TABLE----------
     output$tab <- renderTable({contents()})
     
-    #CREATE PLOT------
-    #plotData <- reactiveValues()
-    #observeEvent(input$do,{
-    #    req(input$do, input$plotOptions, contents())
-    #    #create plot
-    #    if(input$plotOptions=='log'){
-    #        plotData$plot_m <- plt + scale_y_continuous(trans='log10')+
-    #            ylab("log10(Absorbance) / (a.u.)")
-    #    }else{
-    #        plotData$plot_m <- plt + ylab("Absorbance / (a.u.)")
-    #    }
-    #})
-    
-    #output$plot <- renderPlot({plotData$plot_m})
-    
-    #show plot only after action button pushed
-    #output$plotting <- renderUI({
-    #    req(input$do, contents())
-    #    plotOutput("plot")
-    #})
-    
     #CONTROL UPLOAD UI------------
     output$control_map_upload <- renderUI({
         req(input$separate_control)
@@ -194,13 +173,26 @@ shinyServer(function(input, output) {
     output$download_preprocessed <- downloadHandler(
         filename = paste('Preprocessed_', input$folderName, '.csv', sep=''),
         content = function(file) {
-            write.csv(proc_NM, file, row.names=F)
+            write.csv(prc_NM, file, row.names=F)
+        }
+    )
+    
+    #Raw control measurement data
+    output$download_controlNM <- renderUI({
+        req(input$do, contents())
+        downloadButton('download_control', 'Download Raw Control Measurement Data')
+    })
+    
+    output$download_control <- downloadHandler(
+        filename = paste('Controls_', input$folderName, '.csv', sep=''),
+        content = function(file) {
+            write.csv(controlData_NM, file, row.names=F)
         }
     )
     
     #PRE-PROCESSOR DOWNLOAD----------
     output$downloadScript <- downloadHandler(
-        filename = "PlatePreProcessor_v2021-02-28.R",
+        filename = "PlatePreProcessor_v2021-03-12.R",
         content = function(file){
             file.copy(sourcewd, file)
         }
