@@ -64,10 +64,10 @@ Read_allMeasFile <- function(input_wd){
   }
   return(measR)
 }
-Create_LongFormat <- function(all_res){
+Create_LongFormat <- function(all_res, coordinate_control=F){
   #extract measurement and slots
   dat_colnames <- colnames(all_res)
-  dat_colnames <- dat_colnames[!(dat_colnames %in% c("Drug", "Conc", "Medium", "Strain", "WellId"))]
+  dat_colnames <- dat_colnames[!(dat_colnames %in% c("Drug", "Conc", "Medium", "Strain", "WellId", "ControlType"))]
   nmDat <- all_res[dat_colnames]
   
   #convert to long-format
@@ -83,10 +83,15 @@ Create_LongFormat <- function(all_res){
     round(digits=2) #round to two decimal places
   
   #add well ID
-  nmDat$WellId <- sapply(nmDat$Slot, function(x) all_res$WellId[all_res$Slot==x])
+  if(coordinate_control){
+    nmDat$WellId <- all_res$ControlType
+  }else{
+    nmDat$WellId <- sapply(nmDat$Slot, function(x) all_res$WellId[all_res$Slot==x])
+  }
   
   #convert measurement to numeric
   nmDat$Measurement <- as.numeric(nmDat$Measurement)
+  
   return(nmDat)
 }
 
@@ -96,6 +101,14 @@ avgControl <- function(all_controls, cur_control_spec){
   #res : average, wells, timepoint, drug, drug concentration, medium, strain
   res <- c(mean(cur_data$Measurement), paste(cur_data$Slot, collapse=", "), cur_data$Time[1],
            cur_data$Drug[1], cur_data$DrugConc[1], cur_data$Medium[1], cur_data$Strain[1]) 
+  return(res)
+}
+avgControl_coord <- function(all_data, cur_group){
+  cur_data <- subset(all_data, GroupTimeID==cur_group & CtrlType=="control")
+  
+  res <- c(mean(cur_data$Measurement), paste(cur_data$Slot, collapse=", "), cur_data$Time[1],
+           cur_data$Drug[1], cur_data$DrugConc[1], cur_data$Medium[1], cur_data$Strain[1]) 
+  
   return(res)
 }
 createControlList <- function(current_control_plate, ctrl_selection){
@@ -146,69 +159,105 @@ assignControl <- function(x, ctrlList){
   return(select_ctrl)
 }
 normalize_to_Control <- function(raw_data, ctrl_data, separate_control=F, control_selection=0){
-  
   # STEP 0 - Expand WellID
   raw_data <- cbind.data.frame(raw_data, do.call(rbind, strsplit(raw_data$WellId, split="-")))
   colnames(raw_data)[5:8] <- c("Drug", "DrugConc", "Medium", "Strain")
-  if(!is.null(ctrl_data)){
-    ctrl_data <- cbind.data.frame(ctrl_data, do.call(rbind, strsplit(ctrl_data$WellId, split="-")))
-    colnames(ctrl_data)[5:8] <- c("Drug", "DrugConc", "Medium", "Strain")
-  }
   
-  if(control_selection!=0){
-    # STEP 1 - Create Control List
-    if(separate_control){
-      #create control list
-      control_list <- createControlList(ctrl_data, control_selection)
-      #specify plate used for control
-      control_list$ControlPlate <- "Separate control plate"
-    }else{
-      #create control list
-      control_list <- createControlList(raw_data, control_selection)
-      #specify plate used for control
-      control_list$ControlPlate <- "On-plate control"
-    }
+  # SELECTION: coordinate control OR else
+  if(control_selection==5){
+    # STEP 1 - Bind controls information to wells
+    prc_NM <- left_join(raw_data, ctrl_data, by="Slot")
+    prc_NM <- cbind.data.frame(prc_NM, do.call(rbind, strsplit(prc_NM$ControlType, split="_")))
+    colnames(prc_NM)[10:11] <- c("Group", "CtrlType")
+    prc_NM$GroupTimeID <- paste(prc_NM$Time, prc_NM$Group, sep="-")
     
-    # STEP 2 - Create Control Spec on both measurement and control datasets
-    if(control_selection==1){
-      #medium only
-      raw_data$controlSpec <- raw_data$Medium
-      control_list$controlSpec <- control_list$Medium
-    }else if(control_selection==2){
-      #medium+drug only
-      raw_data$controlSpec <- paste(raw_data$Medium, raw_data$Drug, sep="_")
-      control_list$controlSpec <- paste(control_list$Medium, control_list$Drug, sep="_")
-    }else{
-      #medium+drug+concentration only
-      raw_data$controlSpec <- paste(raw_data$Medium, raw_data$Drug, raw_data$DrugConc, sep="_")
-      control_list$controlSpec <- paste(control_list$Medium, control_list$Drug, control_list$DrugConc, sep="_")
-    }
+    # STEP 2 - Extract control list
+    control_list_names <- unique(prc_NM$GroupTimeID)
+    control_list_names <- control_list_names[!grepl("ignore", control_list_names)]
+    control_list <- lapply(control_list_names, avgControl_coord, all_data=prc_NM)
     
-    # STEP 3 - Assign Control Measurements
-    prc_list <- apply(raw_data, 1, assignControl, ctrlList=control_list)
-    for(i in c(1:length(prc_list))){
-      #dummy filling for no-control wells
-      if(is.null(prc_list[[i]])){
-        prc_list[[i]] <- rep("-", 9)
-      }
-    }
-    prc_NM <- do.call(rbind, prc_list)[,c(1:3, 8)]
-    colnames(prc_NM)[3] <- c("ControlTime")
-    prc_NM <- cbind.data.frame(raw_data, prc_NM)
+    control_list <- do.call(rbind, control_list) %>% data.frame()
     
-    # STEP 4 - Calculate Normalized Value
-    prc_NM$ControlVal[prc_NM$ControlVal=="-"] <- -99
-    prc_NM$corrected_value <- prc_NM$Measurement - as.numeric(prc_NM$ControlVal)
-    prc_NM$corrected_value[prc_NM$ControlVal==-99] <- "-"
-    prc_NM$ControlVal[prc_NM$ControlVal==-99] <- "-"
+    #res : average, wells, timepoint, drug, drug concentration, medium, strain
+    colnames(control_list) <- c("AvgControl", "ControlSlots", "Time", "Drug", "DrugConc", "Medium", "Strain") 
+    control_list$ControlPlate <- "On-plate control"
+    control_list$GroupTimeID <- control_list_names
+    control_list$ControlSlots <- paste(control_list$ControlPlate, " - ", 
+                                       round(as.numeric(control_list$Time),2), "h - ", 
+                                       control_list$ControlSlots, sep="")
+    
+    # STEP 3 - Bind controls to measurement
+    control_list <- control_list[,c(1, 2, 9)]
+    prc_NM <- left_join(prc_NM, control_list, by="GroupTimeID")
+    
+    # STEP 4 - Apply controls
+    prc_NM$AvgControl[is.na(prc_NM$AvgControl)] <- -99
+    prc_NM$correctedVal <- prc_NM$Measurement - as.numeric(prc_NM$AvgControl)
+    prc_NM$correctedVal[prc_NM$AvgControl==-99] <- "-"
+    prc_NM$ControlSlots[prc_NM$AvgControl==-99] <- "-"
+    prc_NM$AvgControl[prc_NM$AvgControl==-99] <- "-"
+    
   }else{
-    prc_NM <- raw_data
-    prc_NM$controlSpec <- "-"
-    prc_NM$ControlVal <- "-"
-    prc_NM$ControlSlot <- "-"
-    prc_NM$ControlTime <- "-"
-    prc_NM$ControlPlate <- "No control"
-    prc_NM$corrected_value <- "-"
+    if(!is.null(ctrl_data)){
+      ctrl_data <- cbind.data.frame(ctrl_data, do.call(rbind, strsplit(ctrl_data$WellId, split="-")))
+      colnames(ctrl_data)[5:8] <- c("Drug", "DrugConc", "Medium", "Strain")
+    }
+    
+    if(control_selection!=0){
+      # STEP 1 - Create Control List
+      if(separate_control){
+        #create control list
+        control_list <- createControlList(ctrl_data, control_selection)
+        #specify plate used for control
+        control_list$ControlPlate <- "Separate control plate"
+      }else{
+        #create control list
+        control_list <- createControlList(raw_data, control_selection)
+        #specify plate used for control
+        control_list$ControlPlate <- "On-plate control"
+      }
+      
+      # STEP 2 - Create Control Spec on both measurement and control datasets
+      if(control_selection==1){
+        #medium only
+        raw_data$controlSpec <- raw_data$Medium
+        control_list$controlSpec <- control_list$Medium
+      }else if(control_selection==2){
+        #medium+drug only
+        raw_data$controlSpec <- paste(raw_data$Medium, raw_data$Drug, sep="_")
+        control_list$controlSpec <- paste(control_list$Medium, control_list$Drug, sep="_")
+      }else{
+        #medium+drug+concentration only
+        raw_data$controlSpec <- paste(raw_data$Medium, raw_data$Drug, raw_data$DrugConc, sep="_")
+        control_list$controlSpec <- paste(control_list$Medium, control_list$Drug, control_list$DrugConc, sep="_")
+      }
+      
+      # STEP 3 - Assign Control Measurements
+      prc_list <- apply(raw_data, 1, assignControl, ctrlList=control_list)
+      for(i in c(1:length(prc_list))){
+        #dummy filling for no-control wells
+        if(is.null(prc_list[[i]])){
+          prc_list[[i]] <- rep("-", 9)
+        }
+      }
+      prc_NM <- do.call(rbind, prc_list)[,c(1:3, 8)]
+      colnames(prc_NM)[3] <- c("ControlTime")
+      prc_NM <- cbind.data.frame(raw_data, prc_NM)
+      
+      # STEP 4 - Calculate Normalized Value
+      prc_NM$ControlVal[prc_NM$ControlVal=="-"] <- -99
+      prc_NM$corrected_value <- prc_NM$Measurement - as.numeric(prc_NM$ControlVal)
+      prc_NM$corrected_value[prc_NM$ControlVal==-99] <- "-"
+      prc_NM$ControlVal[prc_NM$ControlVal==-99] <- "-"
+    }else{
+      prc_NM <- raw_data
+      prc_NM$controlSpec <- "-"
+      prc_NM$ControlVal <- "-"
+      prc_NM$ControlSlot <- "-"
+      prc_NM$ControlTime <- "-"
+      prc_NM$ControlPlate <- "No control"
+      prc_NM$corrected_value <- "-"
+    }
   }
   
   return(prc_NM)
@@ -242,6 +291,14 @@ mainFun <- function(platemap_address, inputwd, control_selection,
     #combine raw controls
     controlData_matrix <- left_join(control_Map, control_Res, by="Slot")
     controlData_NM <- Create_LongFormat(controlData_matrix) #create long-format
+  }else if(!separate_control & !is.null(control_map_address) & control_selection==5){
+    #IF control selection == 5 (coordinate controls)
+    #Read plate map
+    controlData_NM <- read.csv(control_map_address, header=T)[,2:13] %>% t() %>% unlist() %>% as.vector()
+    controlData_NM <- cbind.data.frame(as.vector(sapply(LETTERS[1:8], function(x) paste(x, c(1:12), sep=""))), 
+                                       controlData_NM)
+    colnames(controlData_NM) <- c("Slot", "ControlType")
+    
   }else if(separate_control){
     errMessage <- "Control data missing!"
     control_selection <- 1
@@ -263,14 +320,21 @@ mainFun <- function(platemap_address, inputwd, control_selection,
   prc_NM <- prc_NM[order(as.numeric(prc_NM$well_column)),]
   prc_NM <- prc_NM[order(prc_NM$well_row),]
   prc_NM <- prc_NM[order(prc_NM$Time),]
-  
+ 
   # Adding time specification to control
-  prc_NM$ControlTime <- sapply(prc_NM$ControlTime, function(x) if(x!="-"){round(as.numeric(x), 2)}else{""})
-  prc_NM$ControlSlot <- paste(prc_NM$ControlPlate, " - ", prc_NM$ControlTime, " hours - ", prc_NM$ControlSlot, sep="")
+  if(control_selection!=5){
+    prc_NM$ControlTime <- sapply(prc_NM$ControlTime, function(x) if(x!="-"){round(as.numeric(x), 2)}else{""})
+    prc_NM$ControlSlot <- paste(prc_NM$ControlPlate, " - ", prc_NM$ControlTime, " hours - ", prc_NM$ControlSlot, sep="")
+    
+    # selecting columns
+    prc_NM <- prc_NM[,c(5, 7, 8, 2, 6, 17, 18, 
+                        16, 10, 11, 3, 14)]
+  }else{
+    prc_NM <- prc_NM[,c(5, 7, 8, 2, 6, 18, 19,
+                        17, 13, 14, 3, 15)]
+  }
   
-  # selecting columns
-  prc_NM <- prc_NM[,c(5, 7, 8, 2, 6, 17, 18, 
-                      16, 10, 11, 3, 14)]
+ 
   colnames(prc_NM) <- c("drug_name", "media_name", "strain_name", "time", "drug_concentration", "well_row", "well_column",
                         "replicate_ID", "correction_value", "correction_wells", "raw_measurement", "corrected_measurement")
   
@@ -291,7 +355,8 @@ mainFun <- function(platemap_address, inputwd, control_selection,
 #measurement_wd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\trainingDat\\Raw data"
 
 #controls
-#controlMap_address <- gsub("COL", "COL_CNTRL", platemapAddress)
+#controlMap_address <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\GrowthCurve\\ControlMap.csv"
 #controlMeas_wd <- gsub("Raw data", "Raw control data", measurement_wd)
 
-#dis <- mainFun(platemapAddress, measurement_wd, 3, controlMap_address, controlMeas_wd, F)
+#dis <- mainFun(platemapAddress, measurement_wd, 5, 
+#               controlMap_address, NULL, separate_control=F)

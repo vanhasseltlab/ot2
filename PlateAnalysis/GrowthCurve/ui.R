@@ -10,14 +10,12 @@ shinyUI(
             fileInput("pMap", "Upload Plate Map", accept=".xlsx"),
             
             #control selection
-            radioButtons("control_selection", "Control Selection",
-                         c("No control" = 1, 
-                           "Medium control" = 2,
-                           "Drug-Medium control" = 3,
-                           "Drug-Medium-Concentration control" = 4)),
+            uiOutput("ctrlSelectionUI"),
             checkboxInput("separate_control", "Separate control plate", value=F),
             uiOutput("control_meas_upload"),
             uiOutput("control_map_upload"),
+            uiOutput("coord_map_download"),
+            
             
             #names
             textInput("folderName", "Experiment Name", value='defaultFolder'),

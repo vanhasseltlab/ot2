@@ -60,7 +60,7 @@ shinyServer(function(input, output) {
             dir.create(mainwd, recursive=T)
             
             #create new directory for control map and measurements
-            if(!is.null(input$control_map) & !is.null(input$control_meas)){
+            if(!is.null(input$control_map) | !is.null(input$control_meas)){
                 controlwd <- paste(mainwd, "controls", sep="/")
                 dir.create(controlwd, recursive=T)
             }
@@ -133,6 +133,10 @@ shinyServer(function(input, output) {
                 grandRes <- mainFun(paste(mainwd, "/plateMap.xlsx", sep=""), meas_path, 
                                     control_selection=input$control_selection,
                                     paste(controlwd, "/plateMap.xlsx", sep=""), meas_path_control, separate_control=input$separate_control)
+            }else if(input$control_selection==5){
+                grandRes <- mainFun(paste(mainwd, "/plateMap.xlsx", sep=""), meas_path, 
+                                    control_selection=input$control_selection, 
+                                    control_map_address=paste(controlwd, "/0.csv", sep=""))
             }else{
                 #if control plate not provided
                 grandRes <- mainFun(paste(mainwd, "/plateMap.xlsx", sep=""), meas_path, 
@@ -144,24 +148,58 @@ shinyServer(function(input, output) {
         }
     })
     
+    
     #OUTPUT TABLE----------
     output$tab <- renderTable({contents()})
     
-    #CONTROL UPLOAD UI------------
-    output$control_map_upload <- renderUI({
-        req(input$separate_control)
+    #CONTROL SELECTION UI------------
+    output$ctrlSelectionUI <- renderUI({
         if(input$separate_control){
-            fileInput("control_map", "Upload Control Map", accept=".xlsx")
+            radioButtons("control_selection", "Control Selection",
+                         c("No control" = 1, 
+                           "Medium control" = 2,
+                           "Drug-Medium control" = 3,
+                           "Drug-Medium-Concentration control" = 4))
+        }else{
+            radioButtons("control_selection", "Control Selection",
+                         c("No control" = 1, 
+                           "Medium control" = 2,
+                           "Drug-Medium control" = 3,
+                           "Drug-Medium-Concentration control" = 4,
+                           "Coordinate/Custom control selection (on-plate)" = 5))
         }
     })
     
-    #download for control map template
+    #CONTROL UPLOAD UI------------
+    output$control_map_upload <- renderUI({
+        if(input$separate_control){
+            fileInput("control_map", "Upload Control Map", accept=".xlsx")
+        }else if(input$control_selection==5){
+            fileInput("control_map", "Upload Control Map", accept=".csv")
+        }
+    })
+    
+    
+    #upload for control measurements
     output$control_meas_upload <- renderUI({
-        req(input$separate_control)
         if(input$separate_control){
             fileInput('control_meas', 'Upload control measurements', accept=".csv", multiple=T)
         }
     })
+    
+    #download coordinate control map
+    output$coord_map_download <- renderUI({
+        if(input$control_selection==5){
+            downloadButton('download_coord_control', 'Download Coordinate Control Template')
+        }
+    })
+    
+    output$download_coord_control <- downloadHandler(
+        filename = "CoordinateControlTemplate.csv",
+        content = function(file) {
+            file.copy(templatewd, file, row.names=F)
+        }
+    )
     
     #RESULT DOWNLOAD BUTTONS------------
     #Pre-processed data
