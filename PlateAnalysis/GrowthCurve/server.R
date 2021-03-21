@@ -197,7 +197,7 @@ shinyServer(function(input, output) {
     output$download_coord_control <- downloadHandler(
         filename = "CoordinateControlTemplate.csv",
         content = function(file) {
-            file.copy(templatewd, file, row.names=F)
+            file.copy(templatewd, file)
         }
     )
     
