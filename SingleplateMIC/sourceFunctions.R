@@ -1,27 +1,26 @@
 #FUNCTIONS LIBRARY------------
 GetStockList <- function(file_name){
-  res <- read.xlsx(file_name, 1, 
-                   endRow=2)
-  res <- res[, colSums(is.na(res))==0]
-  drug_names <- names(res)
-  res <- res[,c(2:length(res))]
-  names(res) <- drug_names[2:length(drug_names)]
+  res <- read_xlsx(file_name, range="C1:M2") %>% data.frame() %>%
+    select_if(function(x) any(!is.na(x)))
+  sl_res <- unlist(res)
+  names(sl_res) <- colnames(res)
   return(res)
 }
 GetWellVols <- function(file_name){
-  res <- read.xlsx(file_name, 1, startRow=5, endRow=6, header=F)
+  res <- read_xlsx(file_name, sheet=1, range="C5:C6", col_names=F) %>% unlist()
+  names(res) <- c("TotalVol", "FillVol")
   return(res)
 }
 GetInocBool <- function(file_name){
-  res <- read.xlsx(file_name, 1, startRow=5, endRow=6, colIndex=c(6), header=F)
+  res <- read_xlsx(file_name, sheet=1, range='F6', col_names=F)
   res <- toString(unlist(res))
   return(res)
 }
 GetPlateMap <- function(file_name){
   #read
-  res <- read.xlsx(file_name, 1, startRow=56, endRow=64, header=T, stringsAsFactors=F)
-  rownames(res) <- res[,1]
-  res <- res[,2:length(res[1,])]
+  res <- read_xlsx(file_name, 1, range="B57:M64", col_names=F) %>% data.frame()
+  rownames(res) <- LETTERS[1:8]
+  colnames(res) <- sapply(c(1:12), toString)
   
   #parse to vector
   map <- c()
@@ -44,22 +43,15 @@ GetPlateMap <- function(file_name){
   for(i in c(1:length(parsed_names))){
     #if well is empty
     if(map[i,2]!="0" & map[i,2]!=""){
-      if(parsed_names[[i]][1]=="" & length(parsed_names[[i]])==3){
+      if(parsed_names[[i]][1]=="0"){
         #if both drug name and inoculum is not filled, then it is a blank fill well (which might as well be blank control)
         nex_info <- c("FILL",
                       "NA",                 #drug name
-                      parsed_names[[i]][2], #concentration
-                      parsed_names[[i]][3], #solvent
+                      parsed_names[[i]][1], #concentration
+                      parsed_names[[i]][2], #solvent
                       "NA")                 #inoculum
-      }else if(parsed_names[[i]][1]!="" & length(parsed_names[[i]])==3){
-        #IF No inoculum control
-        nex_info <- c(paste(parsed_names[[i]][1], parsed_names[[i]][2], parsed_names[[i]][3], sep=' '),
-                      parsed_names[[i]][1], #drug name
-                      parsed_names[[i]][2], #concentration
-                      parsed_names[[i]][3], #solvent
-                      "NA")
       }else{
-        #if all info is complete
+        #if all info is complete OR inoculum not added
         nex_info <- c(paste(parsed_names[[i]][1], parsed_names[[i]][2], parsed_names[[i]][3], sep=' '),
                       parsed_names[[i]][1], #drug name
                       parsed_names[[i]][2], #concentration
@@ -71,6 +63,7 @@ GetPlateMap <- function(file_name){
       rownames(fin_map) <- c()
     }
   }
+  
   #remove blanks from map
   map <- map[(map[,2]!=""),]
   map <- map[(map[,2]!="0"),]
@@ -78,6 +71,7 @@ GetPlateMap <- function(file_name){
   #concatenate info
   fin_map <- cbind.data.frame(map, fin_map)
   colnames(fin_map) <- c('Well', 'fillID', 'solID', 'DrugType', 'DrugConc', 'Solvent', 'Inoc')
+  fin_map$Inoc[is.na(fin_map$Inoc)] <- "NA"
   
   #dropping factor
   fin_map[] <- lapply(fin_map, as.character)
@@ -472,7 +466,7 @@ Cmd_SerialDil <- function(cmd_list, sol_list, dil_map){
 }
 Cmd_DrugSolDist <- function(cmd_list, dil_map, plate_map, deck_map, well_info){
   tipID <- max(as.numeric(cmd_list[,7]), na.rm=T) + 1
-  transV <- well_info[1,2] - well_info[2,2]
+  transV <- well_info[1] - well_info[2]
   
   #standardize decimal separator
   plate_map$solID <- sapply(plate_map$solID, function(x) gsub(",", ".", x))
@@ -508,7 +502,7 @@ Cmd_Inoculate <- function(plate_map, inoc_map, well_info, cmd_list, deck_map, so
                 solvent_map[solvent_map[,2]==curSpec_Case$Solvent[1],1],
                 names(deck_map)[match('96-well', deck_map)],
                 paste(target_wells, collapse=', '),
-                well_info[2,2], 0, tipID, 'Adding blank medium')
+                well_info[2], 0, tipID, 'Adding blank medium')
     #concatenate command
     cmd_list <- rbind(cmd_list, nexCmd)
     #update tip ID
@@ -531,7 +525,7 @@ Cmd_Inoculate <- function(plate_map, inoc_map, well_info, cmd_list, deck_map, so
                   inoc_map[i,1],
                   names(deck_map)[match('96-well', deck_map)],
                   paste(target_wells, collapse=', '),
-                  well_info[2,2], well_info[2,2], tipID, paste('Inoculating: ', inoc_map[i,2]))
+                  well_info[2], well_info[2], tipID, paste('Inoculating: ', inoc_map[i,2]))
       #concatenate command
       cmd_list <- rbind(cmd_list, nexCmd)
       #update tip ID
@@ -560,7 +554,7 @@ Cmd_FillOuter <- function(plate_map, deck_map, solvent_map, well_info, cmd_list)
                 solvent_map[solvent_map[,2]==solvents[i],1],
                 names(deck_map)[match('96-well', deck_map)],
                 target_wells,
-                well_info[1,2], 0, tipID, 'Filling outer wells with WATER')
+                well_info[1], 0, tipID, 'Filling outer wells with WATER')
     
     #concatenate result
     cmd_list <- rbind(cmd_list, nexCmd)
@@ -892,7 +886,7 @@ Int_CreateCmdList <- function(deck_map, sol_list, solvent_map, inoc_map,
 }
 
 #MAIN---------
-main <- function(file_path, file_name){
+main <- function(file_path, file_name=""){
   #READ PLATE------
   stockList <- tryCatch({
     GetStockList(file_path)
@@ -937,7 +931,7 @@ main <- function(file_path, file_name){
   
   #GET SOLUTION LIST AND DILUTION SCHEME-----------
   solList <- tryCatch({
-    CreateSolList(plateMap, wellInfo[1,2], wellInfo[2,2], stockList)
+    CreateSolList(plateMap, wellInfo["TotalVol"], wellInfo["FillVol"], stockList)
   },
   error = function(cond){
     if(errMessage == ""){
@@ -1078,3 +1072,8 @@ main <- function(file_path, file_name){
   
   return(allAmt)
 }
+
+#TROUBLESHOOTING---------------------
+#errMessage <- ""
+#fpath <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\SingleplateMIC\\MIC_InputTemplate.xlsx"
+#main(fpath)

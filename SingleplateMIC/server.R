@@ -1,6 +1,8 @@
 # 2021-01-31
 library(shiny)
-library(xlsx)
+library(readxl)
+library(writexl)
+library(dplyr)
 
 options(stringsAsFactors = F)
 
@@ -46,7 +48,7 @@ shinyServer(function(input, output) {
     
     #perform if file is loaded
     if(input$do==0){
-      dis <- read.xlsx(infile$datapath, 1, rowIndex = c(57:64), colIndex=c(2:13), header=F)
+      dis <- read_xlsx(infile$datapath, sheet=1, range='B57:M64', col_names=F)
       pmap_output <<- dis
     }else{
       #rename files for safekeeping
@@ -144,7 +146,7 @@ shinyServer(function(input, output) {
         
         #add fourth item
         new_userGuideOutput <- rbind.data.frame(usercmd_output[[2]], new_userGuideOutput)
-        new_userGuideOutput <- apply(new_userGuideOutput,2,as.character)
+        new_userGuideOutput <- apply(new_userGuideOutput,2,as.character) %>% data.frame()
         new_userGuideOutput <<- new_userGuideOutput
         
         #savekeeping output files
@@ -156,7 +158,7 @@ shinyServer(function(input, output) {
         #user guide
         usrGuide_name <- paste("RobotHandler_", new_name(), '.xlsx', sep='')
         write_dir <- paste(outputDir_usrGuide, usrGuide_name, sep='/')
-        write.xlsx(new_userGuideOutput, write_dir, row.names = FALSE, col.names=T)
+        write_xlsx(new_userGuideOutput, write_dir, col_names=T)
       }
     }
     return(dis)
@@ -185,9 +187,9 @@ shinyServer(function(input, output) {
     }
   )
   output$guide <- downloadHandler(
-    filename = function(){paste("RobotHandler_", new_name(), '.xlsx', sep='')},
+    filename = function(){paste("RobotHandler_", new_name(), '.csv', sep='')},
     content = function(file) {
-      write.xlsx(new_userGuideOutput, file, row.names = FALSE, col.names=T)
+      write.csv(new_userGuideOutput, file, row.names = FALSE)
     }
   )
   
