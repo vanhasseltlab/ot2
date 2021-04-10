@@ -22,10 +22,10 @@ shinyServer(function(input, output) {
   inputTemplate <- "/srv/shiny-server/ot2/MVPlate/MV_InputTemplate.xlsx" 
   sourceDir <- "/srv/shiny-server/ot2/MVPlate/MVsourceFunctions.R" 
   
-  outputDir_cmdline <- "/home/sebastian/MVplate"
-  outputDir_usrGuide <- "/home/sebastian/MVplate"
-  inputTemplate <- "/home/sebastian/MVplate/MV_InputTemplate.xlsx" 
-  sourceDir <- "/home/sebastian/MVplate/MVsourceFunctions.R" 
+  #outputDir_cmdline <- "/home/sebastian/MVplate"
+  #outputDir_usrGuide <- "/home/sebastian/MVplate"
+  #inputTemplate <- "/home/sebastian/MVplate/MV_InputTemplate.xlsx" 
+  #sourceDir <- "/home/sebastian/MVplate/MVsourceFunctions.R" 
   
   #loading functions--------
   source(sourceDir)
