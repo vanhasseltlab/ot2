@@ -3,7 +3,6 @@
 # > Multiplate (up to 6 plates)
 # > More versatile than "Multiplate MIC" version
 
-
 library(shiny)
 library(readxl)
 library(writexl)
@@ -13,15 +12,15 @@ options(stringsAsFactors = F)
 #SERVER MAIN------------
 shinyServer(function(input, output) {
   #defining directory-------
-  #outputDir_cmdline <-  "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\MVPlate"
-  #outputDir_usrGuide <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\MVPlate"
-  #inputTemplate <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\MVPlate\\MV_InputTemplate.xlsx" 
-  #sourceDir <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\MVPlate\\MVsourceFunctions.R"
+  outputDir_cmdline <-  "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\MVPlate"
+  outputDir_usrGuide <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\MVPlate"
+  inputTemplate <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\MVPlate\\MV_InputTemplate.xlsx" 
+  sourceDir <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\MVPlate\\MVsourceFunctions.R"
   
-  outputDir_cmdline <- "/srv/shiny-server/files/Output_CmdList"
-  outputDir_usrGuide <- "/srv/shiny-server/files/Output_UsrGuide"
-  inputTemplate <- "/srv/shiny-server/ot2/MVPlate/MV_InputTemplate.xlsx" 
-  sourceDir <- "/srv/shiny-server/ot2/MVPlate/MVsourceFunctions.R" 
+  #outputDir_cmdline <- "/srv/shiny-server/files/Output_CmdList"
+  #outputDir_usrGuide <- "/srv/shiny-server/files/Output_UsrGuide"
+  #inputTemplate <- "/srv/shiny-server/ot2/MVPlate/MV_InputTemplate.xlsx" 
+  #sourceDir <- "/srv/shiny-server/ot2/MVPlate/MVsourceFunctions.R" 
   
   #loading functions--------
   source(sourceDir)
@@ -149,8 +148,8 @@ shinyServer(function(input, output) {
         
         #add fourth item
         new_userGuideOutput <- rbind.data.frame(usercmd_output[[2]], new_userGuideOutput)
-        new_userGuideOutput <- apply(new_userGuideOutput,2,as.character)
-        new_userGuideOutput <<- new_userGuideOutput
+        new_userGuideOutput <- apply(new_userGuideOutput,2,as.character) %>% data.frame()
+        new_userGuideOutput <<- new_userGuideOutput 
         
         #savekeeping output files
         #command line
@@ -161,7 +160,7 @@ shinyServer(function(input, output) {
         #user guide
         usrGuide_name <- paste("RobotHandler_", new_name(), '.xlsx', sep='')
         write_dir <- paste(outputDir_usrGuide, usrGuide_name, sep='/')
-        write.xlsx(new_userGuideOutput, write_dir, row.names = FALSE, col.names=T)
+        write_xlsx(new_userGuideOutput, write_dir, col_names=T)
       }
     }
     return(dis)
@@ -194,9 +193,9 @@ shinyServer(function(input, output) {
     }
   )
   output$guide <- downloadHandler(
-    filename = function(){paste("RobotHandler_", new_name(), '.xlsx', sep='')},
+    filename = function(){paste("RobotHandler_", new_name(), '.csv', sep='')},
     content = function(file) {
-      write_xlsx(new_userGuideOutput, file, col.names=T)
+      write.csv(new_userGuideOutput, file, row.names = FALSE)
     }
   )
   
