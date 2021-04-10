@@ -5,7 +5,7 @@
 
 
 library(shiny)
-library(xlsx)
+library(readxl)
 
 options(stringsAsFactors = F)
 

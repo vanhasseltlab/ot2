@@ -2,29 +2,26 @@ options(stringsAsFactors = F)
 #FUNCTIONS LIBRARY------------
 # read input
 GetStockList <- function(file_name){
-  res <- read.xlsx(file_name, 1, 
-                   endRow=2)
-  nas <- which(is.na(res))
-  res <- res[, -c(min(nas):length(res))]
-  drug_names <- names(res)
-  res <- res[,c(2:length(res))]
-  names(res) <- drug_names[2:length(drug_names)]
+  res <- read_xlsx(file_name, range="C1:M2") %>% data.frame() %>%
+    select_if(function(x) any(!is.na(x)))
+  sl_res <- unlist(res)
+  names(sl_res) <- colnames(res)
   return(res)
 }
 GetWellVols <- function(file_name){
-  res <- read.xlsx(file_name, 1, startRow=5, endRow=6, header=F)
+  res <- read_xlsx(file_name, sheet=1, range="C5:C6", col_names=F) %>% unlist()
+  names(res) <- c("TotalVol", "FillVol")
   return(res)
 }
 Get_nPlate <- function(file_name){
-  res <- read.xlsx(file_name, 1, startRow=5, endRow=6, colIndex=c(6), header=F)
-  res <- as.numeric(unlist(res))
+  res <- read_xlsx(file_name, sheet=1, range="F6", col_names=F) %>% unlist()
   return(res)
 }
 GetPlateMap <- function(file_name){
   #read
-  res <- read.xlsx(file_name, 1, startRow=56, endRow=64, header=T, stringsAsFactors=F)
-  rownames(res) <- res[,1]
-  res <- res[,2:length(res[1,])]
+  res <- read_xlsx(file_name, 1, range="B57:M64", col_names=F) %>% data.frame()
+  rownames(res) <- LETTERS[1:8]
+  colnames(res) <- sapply(c(1:12), toString)
   
   #parse to vector
   map <- c()
@@ -47,22 +44,15 @@ GetPlateMap <- function(file_name){
   for(i in c(1:length(parsed_names))){
     #if well is empty
     if(map[i,2]!="0" & map[i,2]!=""){
-      if(parsed_names[[i]][1]=="" & length(parsed_names[[i]])==3){
+      if(parsed_names[[i]][1]=="0"){
         #if both drug name and inoculum is not filled, then it is a blank fill well (which might as well be blank control)
         nex_info <- c("FILL",
                       "NA",                 #drug name
-                      parsed_names[[i]][2], #concentration
-                      parsed_names[[i]][3], #solvent
+                      parsed_names[[i]][1], #concentration
+                      parsed_names[[i]][2], #solvent
                       "NA")                 #inoculum
-      }else if(parsed_names[[i]][1]!="" & length(parsed_names[[i]])==3){
-        #IF No inoculum control
-        nex_info <- c(paste(parsed_names[[i]][1], parsed_names[[i]][2], parsed_names[[i]][3], sep=' '),
-                      parsed_names[[i]][1], #drug name
-                      parsed_names[[i]][2], #concentration
-                      parsed_names[[i]][3], #solvent
-                      "NA")
       }else{
-        #if all info is complete
+        #if all info is complete OR inoculum not added
         nex_info <- c(paste(parsed_names[[i]][1], parsed_names[[i]][2], parsed_names[[i]][3], sep=' '),
                       parsed_names[[i]][1], #drug name
                       parsed_names[[i]][2], #concentration
@@ -74,6 +64,7 @@ GetPlateMap <- function(file_name){
       rownames(fin_map) <- c()
     }
   }
+  
   #remove blanks from map
   map <- map[(map[,2]!=""),]
   map <- map[(map[,2]!="0"),]
@@ -81,6 +72,7 @@ GetPlateMap <- function(file_name){
   #concatenate info
   fin_map <- cbind.data.frame(map, fin_map)
   colnames(fin_map) <- c('Well', 'fillID', 'solID', 'DrugType', 'DrugConc', 'Solvent', 'Inoc')
+  fin_map$Inoc[is.na(fin_map$Inoc)] <- "NA"
   
   #dropping factor
   fin_map[] <- lapply(fin_map, as.character)
@@ -89,37 +81,21 @@ GetPlateMap <- function(file_name){
 
 #preparation
 CreateSolList <- function(plate_map, total_vol_well, inoc_vol, stock_list, n_plate){
-  plate_map$solID <- sapply(plate_map$solID, function(x) gsub(",", ".", x))
-  sol_list <- unique(plate_map$solID)
-  sol_list <- sol_list[!grepl("FILL", sol_list)]
+  plate_map$solID <- gsub(",", ".", plate_map$solID)
   
   #get occurence
   occ <- table(plate_map$solID)
-  occurences <- as.numeric(occ)
-  names(occurences) <- names(occ)
+  occurences <- cbind.data.frame(names(occ), as.numeric(occ))
+  colnames(occurences) <- c("solID", "Occ")
   
-  fin_list <- c()
-  parsed_names <- sapply(sol_list, function(x) strsplit(toString(x), ' ', fixed=T))
-  
-  #iterate through all listed drug concentrations
-  for(i in c(1:length(parsed_names))){
-    nex_info <- c(parsed_names[[i]][1], #drug name
-                  parsed_names[[i]][2], #concentration
-                  parsed_names[[i]][3], #solvent
-                  occurences[sol_list[i]]) #occurence
-    
-    fin_list <- rbind(fin_list, nex_info)
-  }
-  rownames(fin_list) <- c()
-  
-  #final combining
-  fin_list <- cbind.data.frame(sol_list, fin_list)
+  #combine data frames
+  fin_list <- plate_map[,c(3:6)] %>% distinct() %>% left_join(occurences, by="solID") %>% filter(solID!="FILL")
   colnames(fin_list) <- c('SolID', 'DrugType', 'DrugConc', 'Solvent', 'Occurence')
-  fin_list[] <- lapply(fin_list, as.character)
-  #creating numerics
-  fin_list$Occurence <- as.numeric(fin_list$Occurence) * as.numeric(n_plate)
-  fin_list$DrugConc <- as.numeric(fin_list$DrugConc)
+  fin_list[] <- lapply(fin_list, as.character) #convert to character
   
+  #calculating required dilution volume
+  fin_list$Occurence <- as.numeric(fin_list$Occurence)
+  fin_list$DrugConc <- as.numeric(fin_list$DrugConc)
   fin_list <- CalculateDilVolume(fin_list, total_vol_well, inoc_vol, stock_list)
   
   #dropping factors
@@ -153,7 +129,7 @@ CalculateDilVolume <- function(sol_list, total_vol_well, inoc_vol, stock_list){
       curList <- subset(sol_list, DrugType==drugs[j] & Solvent==solvents[i])
       
       #perform following actions only if not null
-      if(length(curList[,1])>0){
+      if(nrow(curList)>0){
         #order according to concentration
         curList <- curList[order(as.numeric(curList$DrugConc)),]
         
@@ -498,7 +474,7 @@ Cmd_SerialDil <- function(cmd_list, sol_list, dil_map){
 }
 Cmd_DrugSolDist <- function(cmd_list, dil_map, plate_map, deck_map, well_info, n_plates){
   tipID <- max(as.numeric(cmd_list[,7]), na.rm=T) + 1
-  transV <- well_info[1,2] - well_info[2,2]
+  transV <- well_info[1] - well_info[2]
   
   #standardize decimal separator
   plate_map$solID <- sapply(plate_map$solID, function(x) gsub(",", ".", x))
@@ -554,7 +530,7 @@ Cmd_FillOuter <- function(plate_map, deck_map, solvent_map, well_info, cmd_list,
                   solvent_map[solvent_map[,2]==solvents[i],1],
                   names(deck_map)[match(plates[j], deck_map)],
                   target_wells,
-                  well_info[1,2], 0, tipID, 'Filling outer wells with WATER')
+                  well_info[1], 0, tipID, 'Filling outer wells with WATER')
       
       #concatenate result
       cmd_list <- rbind(cmd_list, nexCmd)
@@ -973,7 +949,7 @@ main <- function(file_path, file_name=""){
   
   #GET SOLUTION LIST AND DILUTION SCHEME-----------
   solList <- tryCatch({
-    CreateSolList(plateMap, wellInfo[1,2], wellInfo[2,2], stockList, plateNum)
+    CreateSolList(plateMap, wellInfo["TotalVol"], wellInfo["FillVol"], stockList, plateNum)
   },
   error = function(cond){
     if(errMessage == ""){
