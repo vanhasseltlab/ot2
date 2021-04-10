@@ -8,24 +8,28 @@ Sum_and_Round <- function(q){
 }
 ReadInputs <- function(input_file){
   #reading stock information
-  stock_info <- read.xlsx(input_file, sheetIndex=1, header=T, startRow=2, colIndex=c(1:4))
+  stock_info <<- read_xlsx(input_file, sheet=1, skip=1, col_names=T)[,1:4] %>% data.frame()
   
   #reading volume information
-  vol_info <- t(read.xlsx(input_file, sheetIndex=1, header=F, colIndex=c(9:13), endRow=2))
+  vol_info <- read_xlsx(input_file, sheet=1, n_max=2, col_names=F)
+  vol_info <- vol_info[9:ncol(vol_info)] %>% data.frame() %>% t()
+  
   colnames(vol_info) <- vol_info[1,]
   vol_info <- vol_info[-1,]
   vol_info <- vol_info[(!is.na(vol_info[,1]) & 
                           !is.null(vol_info[,1])), ]  #removing volInfo empty row name
   
   #reading solution details
-  sol_details <- read.xlsx(input_file, sheetIndex=1, header=T, colIndex=c(10:13))
+  sol_details <- read_xlsx(input_file, sheet=1, col_names=T) %>% data.frame()
+  sol_details <- sol_details[,c(10:ncol(sol_details))] 
+  
   sol_details <- t(cbind(stock_info[,3], sol_details[-1,]))
   colnames(sol_details) <- stock_info[,2]
   sol_details <- sol_details[(!is.na(sol_details[,1]) & 
                                 !is.null(sol_details[,1])), ] #remove empty row names
   
   #reading manual tube fill
-  manual_fill <- read.xlsx(input_file, sheetIndex=1, header=T, colIndex=c(1:6), startRow=2)
+  manual_fill <- read_xlsx(input_file, sheet=1, col_names=T, skip=1)[,1:6] %>% data.frame()
   
   #return
   return(list(stock_info, vol_info, sol_details, manual_fill))
@@ -496,6 +500,7 @@ M9_complex <- function(file_loc){ #main run function
   return(UsrCommands)
 }
 #TROUBLESHOOTING------------
-#mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\M9MixR"
-#inputName <- "M9MixR_InputTemplate.xlsx"
-#dis <- M9_complex(paste(mainwd, inputName, sep='\\'))
+mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\M9MixR"
+inputName <- "M9MixR_InputTemplate.xlsx"
+fpath <- paste(mainwd, inputName, sep='\\')
+dis <- M9_complex(paste(mainwd, inputName, sep='\\'))

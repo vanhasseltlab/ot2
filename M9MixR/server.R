@@ -1,14 +1,16 @@
 library(shiny)
-library(xlsx)
+library(readxl)
+library(writexl)
+library(dplyr)
 options(stringsAsFactors = F)
 
 #SERVER MAIN------------
 shinyServer(function(input, output) {
   #defining directory-------
-  #outputDir_cmdline <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\M9MixR"
-  #outputDir_usrGuide <-  "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\M9MixR"
-  #inputTemplate <-  "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\M9MixR\\M9MixR_InputTemplate.xlsx"
-  #sourceDir <- paste(outputDir_cmdline, "Maikv1.R", sep="\\")
+  #outputDir_cmdline <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\M9MixR"
+  #outputDir_usrGuide <-  "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\M9MixR"
+  #inputTemplate <-  "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\M9MixR\\M9MixR_InputTemplate.xlsx"
+  #sourceDir <- paste(outputDir_cmdline, "Maikv2.R", sep="\\")
   
   outputDir_cmdline <- "/srv/shiny-server/files/Output_CmdList"
   outputDir_usrGuide <- "/srv/shiny-server/files/Output_UsrGuide"
@@ -39,7 +41,7 @@ shinyServer(function(input, output) {
     if(is.null(infile)){return(NULL)}
     
     if(input$do==0){
-      dis <- read.xlsx(infile$datapath, sheetIndex=1, header=F)
+      dis <- read_xlsx(infile$datapath, sheet=1, col_names = F)
     }else{
       #rename files for safekeeping
       file_name <<- strsplit(infile$name, '.xl')[[1]][1]
@@ -56,7 +58,7 @@ shinyServer(function(input, output) {
       #user guide
       usrGuide_name <- paste("RobotHandler_", new_name(), '.xlsx', sep='')
       write_dir <- paste(outputDir_usrGuide, usrGuide_name, sep='/')
-      write.xlsx(dis, write_dir, row.names = FALSE, col.names=T)
+      write_xlsx(data.frame(dis), write_dir, col_names=T)
       usrGuide <<- dis
     }
     return(dis)
@@ -85,9 +87,9 @@ shinyServer(function(input, output) {
     }
   )
   output$guide <- downloadHandler(
-    filename = function(){paste("RobotHandler_", new_name(), '.xlsx', sep='')},
+    filename = function(){paste("RobotHandler_", new_name(), '.csv', sep='')},
     content = function(file) {
-      write.xlsx(usrGuide, file, row.names = FALSE, col.names=T)
+      write.csv(usrGuide, file, row.names = FALSE)
     }
   )
   
