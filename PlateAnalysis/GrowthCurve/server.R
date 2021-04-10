@@ -1,5 +1,5 @@
 library(shiny)
-.libPaths(c("/home/sebastian/R/x86_64-pc-linux-gnu-library/3.4"))
+#.libPaths(c("/home/sebastian/R/x86_64-pc-linux-gnu-library/3.4"))
 library(readxl)
 library(writexl)
 library(dplyr)
