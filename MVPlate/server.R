@@ -6,6 +6,7 @@
 
 library(shiny)
 library(readxl)
+library(writexl)
 
 options(stringsAsFactors = F)
 
@@ -195,7 +196,7 @@ shinyServer(function(input, output) {
   output$guide <- downloadHandler(
     filename = function(){paste("RobotHandler_", new_name(), '.xlsx', sep='')},
     content = function(file) {
-      write.xlsx(new_userGuideOutput, file, row.names = FALSE, col.names=T)
+      write_xlsx(new_userGuideOutput, file, col.names=T)
     }
   )
   
