@@ -2,18 +2,20 @@
 #data reads
 ReadPlateMap <- function(plate_map_address){
   #read whole map
-  plate_map <- read.xlsx(plate_map_address, 1, header=T)
+  #plate_map <- read.xlsx(plate_map_address, 1, header=T)
+  plate_map <- read_xlsx(plate_map_address, sheet=1, col_names=T) %>% data.frame()
+  plate_map <- plate_map[(!apply(plate_map, 1, function(x) all(is.na(x)))),]
   
   #separate drug list
   drugList <- plate_map[c(7:14), c(2:13)] %>% t() %>% as.vector()
   if(drugList[1]=="Drug name"){
     drugList <- plate_map[c(9:16), c(2:13)] %>% t() %>% as.vector()
-    concList <- plate_map[c(19:26), c(2:13)] %>% t() %>% as.vector()
+    concList <- plate_map[c(19:26), c(2:13)] %>% t() %>% as.vector() %>% as.numeric()
     mediumList <- plate_map[c(29:36), c(2:13)] %>% t() %>% as.vector()
     strainList <- plate_map[c(39:46), c(2:13)] %>% t() %>% as.vector()
   }else{
     drugList <- plate_map[c(7:14), c(2:13)] %>% t() %>% as.vector()
-    concList <- plate_map[c(17:24), c(2:13)] %>% t() %>% as.vector()
+    concList <- plate_map[c(17:24), c(2:13)] %>% t() %>% as.vector() %>% as.numeric()
     mediumList <- plate_map[c(27:34), c(2:13)] %>% t() %>% as.vector()
     strainList <- plate_map[c(37:44), c(2:13)] %>% t() %>% as.vector()
   }
@@ -275,6 +277,7 @@ mainFun <- function(platemap_address, inputwd, control_selection,
   #EXTRACTION---------------------------
   #read platemap and measurement results
   plateMap <- ReadPlateMap(platemap_address)
+  pm <<- plateMap
   measResults <- Read_allMeasFile(inputwd)
   
   #combine raw data
@@ -351,12 +354,13 @@ mainFun <- function(platemap_address, inputwd, control_selection,
 
 #TROUBLESHOOTING-----------------
 #measurement
-#platemapAddress <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\trainingDat\\Platemaps\\Plate_HB_COL.xlsx"
-#measurement_wd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\trainingDat\\Raw data"
+#platemapAddress <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\archived\\trainingDat\\Platemaps\\Plate_HB_COL.xlsx"
+#measurement_wd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\archived\\trainingDat\\Raw data"
 
 #controls
-#controlMap_address <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\GrowthCurve\\ControlMap.csv"
+#controlMap_address <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\archived\\GrowthCurve\\ControlMap.csv"
 #controlMeas_wd <- gsub("Raw data", "Raw control data", measurement_wd)
 
 #dis <- mainFun(platemapAddress, measurement_wd, 5, 
-#               controlMap_address, NULL, separate_control=F)
+#               controlMap_address, NULL, separate_control=T)
+

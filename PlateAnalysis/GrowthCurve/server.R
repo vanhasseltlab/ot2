@@ -1,6 +1,7 @@
 library(shiny)
 .libPaths(c("/home/sebastian/R/x86_64-pc-linux-gnu-library/3.4"))
-library(xlsx)
+library(readxl)
+library(writexl)
 library(dplyr)
 library(chron)
 library(reshape2)
@@ -16,9 +17,9 @@ shinyServer(function(input, output) {
     templatewd <- "/srv/shiny-server/ot2/PlateAnalysis/GrowthCurve/ControlMap.csv"
     
     #for troubleshooting
-    #mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\GrowthCurve"
+    #mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\PlateAnalysis\\GrowthCurve"
     #sourcewd <- paste(mainwd, "/srcPlateAnalyzer.R", sep='')
-    #templatewd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\GrowthCurve\\ControlMap.csv"
+    #templatewd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\PlateAnalysis\\GrowthCurve\\ControlMap.csv"
     
     if(!("Analysis" %in% list.files(mainwd))){
         setwd(mainwd)
