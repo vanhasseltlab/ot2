@@ -5,7 +5,8 @@
 # ---------- SECTION A - Read and Preparation -------------
 ReadInput <- function(data_path){
   #initial read
-  input_file <- read.xlsx(data_path, 1)
+  input_file <- read_xlsx(data_path, sheet=1) %>% data.frame()
+  input_file <- input_file[(!apply(input_file, 1, function(x) all(is.na(x)))),] #removing na-only rows
   
   #A. gather stock information
   stock_info <- input_file[c(1:2),]
@@ -724,5 +725,5 @@ mainExec <- function(file_name){
 
 #TROUBLESHOOTING--------------
 #mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\CQ_Plate"
-#inputFile <- "CQ_InputTemplate (2).xlsx"
+#inputFile <- "CQ_InputTemplate.xlsx"
 #mainExec(paste(mainwd, inputFile, sep="\\"))

@@ -1,5 +1,6 @@
 library(shiny)
-library(xlsx)
+library(readxl)
+library(dplyr)
 
 options(stringsAsFactors = F)
 
@@ -40,8 +41,8 @@ shinyServer(function(input, output) {
     if(is.null(infile)){return(NULL)}
     
     if(input$do==0){
-      dis <- read.xlsx(infile$datapath, sheetIndex=1,
-                       rowIndex=c(57:64), colIndex=c(2:13), header=F)
+      dis <- read_xlsx(infile$datapath, sheet=1,
+                       range="B57:M64", col_names=F)
     }else{
       #rename files for safekeeping
       file_name <<- strsplit(infile$name, '.xl')[[1]][1]
@@ -58,7 +59,7 @@ shinyServer(function(input, output) {
       #user guide
       usrGuide_name <- paste("RobotHandler_", new_name(), '.xlsx', sep='')
       write_dir <- paste(outputDir_usrGuide, usrGuide_name, sep='/')
-      write.xlsx(robotHandler, write_dir, row.names = FALSE, col.names=T)
+      write_xlsx(data.frame(robotHandler), write_dir, col_names=T)
     }
     return(dis)
   })
@@ -88,7 +89,7 @@ shinyServer(function(input, output) {
   output$guide <- downloadHandler(
     filename = function(){paste("RobotHandler_", new_name(), '.xlsx', sep='')},
     content = function(file) {
-      write.xlsx(robotHandler, file, row.names = FALSE, col.names=T)
+      write.csv(robotHandler, file, row.names = FALSE)
     }
   )
   
