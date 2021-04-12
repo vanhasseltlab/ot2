@@ -85,7 +85,7 @@ CreateSolList <- function(plate_map, total_vol_well, inoc_vol, stock_list, n_pla
   
   #get occurence
   occ <- table(plate_map$solID)
-  occurences <- cbind.data.frame(names(occ), as.numeric(occ))
+  occurences <- cbind.data.frame(names(occ), as.numeric(occ)* as.numeric(n_plate)) 
   colnames(occurences) <- c("solID", "Occ")
   
   #combine data frames
@@ -104,6 +104,16 @@ CreateSolList <- function(plate_map, total_vol_well, inoc_vol, stock_list, n_pla
   return(fin_list)
 }
 CalculateDilVolume <- function(sol_list, total_vol_well, inoc_vol, stock_list){
+  sl <<- sol_list
+  tvw <<- total_vol_well
+  iv <<- inoc_vol
+  sl <<- stock_list
+  
+  #sol_list <- sl
+  #total_vol_well <- tvw
+  #inoc_vol <- iv
+  #stock_list <- sl
+  
   #calculate initially required amount
   drugSol_well <- total_vol_well - inoc_vol
   solAmt <- sol_list$Occurence * drugSol_well + 150 #adds 10 uL excess
@@ -1099,5 +1109,7 @@ main <- function(file_path, file_name=""){
 
 #TROUBLESHOOTING---------
 #errMessage <<- ""
-#fpath <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\MVPlate\\MV_InputTemplate.xlsx"
-#main(fpath)
+#fpath <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\MVPlate"
+#dataName <- "20210412_IM_P001_E025_Ciprofloxacin_IC90_InputTemplate.xlsx"
+#dataName <- "MV_InputTemplate.xlsx"
+#main(paste(fpath, dataName, sep="//"))
