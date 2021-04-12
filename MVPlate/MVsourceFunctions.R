@@ -5,8 +5,13 @@ GetStockList <- function(file_name){
   res <- read_xlsx(file_name, range="C1:M2") %>% data.frame() %>%
     select_if(function(x) any(!is.na(x)))
   sl_res <- unlist(res)
+  if(is.character(sl_res[1])){
+    sl_res <- gsub(",", ".", sl_res) %>% as.numeric()
+  }
+  
   names(sl_res) <- colnames(res)
-  return(res)
+  
+  return(sl_res)
 }
 GetWellVols <- function(file_name){
   res <- read_xlsx(file_name, sheet=1, range="C5:C6", col_names=F) %>% unlist()
@@ -74,6 +79,11 @@ GetPlateMap <- function(file_name){
   colnames(fin_map) <- c('Well', 'fillID', 'solID', 'DrugType', 'DrugConc', 'Solvent', 'Inoc')
   fin_map$Inoc[is.na(fin_map$Inoc)] <- "NA"
   
+  #expecting dot/comma decimal separator
+  if(is.character(fin_map$DrugConc[1])){
+    fin_map$DrugConc <- gsub(",", ".", fin_map$DrugConc) %>% as.numeric()
+  }
+  
   #dropping factor
   fin_map[] <- lapply(fin_map, as.character)
   return(fin_map)
@@ -81,6 +91,7 @@ GetPlateMap <- function(file_name){
 
 #preparation
 CreateSolList <- function(plate_map, total_vol_well, inoc_vol, stock_list, n_plate){
+  
   plate_map$solID <- gsub(",", ".", plate_map$solID)
   
   #get occurence
@@ -104,16 +115,6 @@ CreateSolList <- function(plate_map, total_vol_well, inoc_vol, stock_list, n_pla
   return(fin_list)
 }
 CalculateDilVolume <- function(sol_list, total_vol_well, inoc_vol, stock_list){
-  sl <<- sol_list
-  tvw <<- total_vol_well
-  iv <<- inoc_vol
-  sl <<- stock_list
-  
-  #sol_list <- sl
-  #total_vol_well <- tvw
-  #inoc_vol <- iv
-  #stock_list <- sl
-  
   #calculate initially required amount
   drugSol_well <- total_vol_well - inoc_vol
   solAmt <- sol_list$Occurence * drugSol_well + 150 #adds 10 uL excess
