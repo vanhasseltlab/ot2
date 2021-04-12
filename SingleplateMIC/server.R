@@ -189,7 +189,7 @@ shinyServer(function(input, output) {
   output$guide <- downloadHandler(
     filename = function(){paste("RobotHandler_", new_name(), '.csv', sep='')},
     content = function(file) {
-      write.csv(new_userGuideOutput, file, row.names = FALSE)
+      write_xlsx(new_userGuideOutput, file, col_names=T)
     }
   )
   
