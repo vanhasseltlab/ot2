@@ -230,12 +230,12 @@ shinyServer(function(input, output) {
     )
     
     #PRE-PROCESSOR DOWNLOAD----------
-    output$downloadScript <- downloadHandler(
-        filename = "PlatePreProcessor_v2021-03-12.R",
-        content = function(file){
-            file.copy(sourcewd, file)
-        }
-    )
+    #output$downloadScript <- downloadHandler(
+    #    filename = "PlatePreProcessor_v2021-03-12.R",
+    #    content = function(file){
+    #        file.copy(sourcewd, file)
+    #    }
+    #)
     
     #ERROR MESSAGE----------
     err_report <- reactiveValues()

@@ -23,7 +23,7 @@ shinyUI(
             #action buttons
             actionButton("do", "Confirm uploaded file and save", width=300),
             
-            downloadButton("downloadScript", "Download Processor Script", width=300),
+            #downloadButton("downloadScript", "Download Processor Script", width=300),
             
             #downloads
             uiOutput('download_prcNM'),
