@@ -1,3 +1,6 @@
+#LIBRARIES---------
+#library(readxl)
+#library(dplyr)
 #CALLED FUNCTIONS-------------
 #data reads
 ReadPlateMap <- function(plate_map_address){
@@ -31,7 +34,7 @@ ReadPlateMap <- function(plate_map_address){
 Extract_oneMeasFile <- function(meas_address_single){
   #read whole csv file
   measRes <- read.csv(meas_address_single, header=T)
-  
+ 
   #extract measurement timestamp nad measurement results
   measTime <- measRes[1,1]
   measRes <- measRes[c(8:103),]
@@ -77,6 +80,7 @@ Create_LongFormat <- function(all_res, coordinate_control=F){
   colnames(nmDat) <- c("Slot", "Time", "Measurement")
   
   #convert time to chron format
+  nmDat$Time <- gsub("\\(.*?\\)", "", nmDat$Time)
   nmDat <- cbind.data.frame(nmDat, t(sapply(nmDat$Time, function(x) strsplit(toString(x), split="-")[[1]])))
   colnames(nmDat)[c(4:5)] <- c("Date", "Hours")
   nmDat$Time <- chron(dates=nmDat$Date, times=nmDat$Hours, format=c(dates='d/m/y', times='h:m:s'))
@@ -277,7 +281,6 @@ mainFun <- function(platemap_address, inputwd, control_selection,
   #EXTRACTION---------------------------
   #read platemap and measurement results
   plateMap <- ReadPlateMap(platemap_address)
-  pm <<- plateMap
   measResults <- Read_allMeasFile(inputwd)
   
   #combine raw data
@@ -354,13 +357,12 @@ mainFun <- function(platemap_address, inputwd, control_selection,
 
 #TROUBLESHOOTING-----------------
 #measurement
-#platemapAddress <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\archived\\trainingDat\\Platemaps\\Plate_HB_COL.xlsx"
-#measurement_wd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\archived\\trainingDat\\Raw data"
+#platemapAddress <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Analysis_studentTrials\\New CSV data + platemap\\20210506_JN_P001_E036_Cef_Mutants1947_imputtemplate.xlsx"
+
+#measurement_wd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Analysis_studentTrials\\New CSV data + platemap\\inputs"
 
 #controls
-#controlMap_address <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\archived\\GrowthCurve\\ControlMap.csv"
-#controlMeas_wd <- gsub("Raw data", "Raw control data", measurement_wd)
+#controlMap_address <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Analysis_studentTrials\\New CSV data + platemap\\b_test.csv"
 
-#dis <- mainFun(platemapAddress, measurement_wd, 5, 
-#               controlMap_address, NULL, separate_control=T)
-
+#dis <- mainFun(platemapAddress, measurement_wd, 1, 
+#               NULL, NULL, separate_control=F)
