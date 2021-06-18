@@ -21,7 +21,7 @@ shinyUI(fluidPage(
                    "OT2 protocol processor for MIC with combination drugs (applicable for multiple plates)", placement='right', trigger='hover'),
             
             tipify(actionButton("M9Mixer", "Medium Mixer", width='300px',
-                                onclick ="window.open('http://132.229.100.197:2222/ot2/m9MixR')"),
+                                onclick ="window.open('http://132.229.100.197:2222/ot2/M9MixR')"),
                    "OT2 protocol processor for medium/solution mixing", placement='right', trigger='hover'),
             
             #plate analysis
