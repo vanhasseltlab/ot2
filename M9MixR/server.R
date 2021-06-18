@@ -16,9 +16,10 @@ shinyServer(function(input, output) {
   outputDir_cmdline <- "/srv/shiny-server/files/Output_CmdList"
   outputDir_usrGuide <- "/srv/shiny-server/files/Output_UsrGuide"
   inputTemplate <- "/srv/shiny-server/ot2/M9MixR/M9MixR_InputTemplate.xlsx" 
+  sourceDir <- "/srv/shiny-server/ot2/M9MixR/Maikv2.R"
   
   #loading functions--------
-  source("/srv/shiny-server/ot2/M9MixR/Maikv2.R" )
+  source(sourceDir)
   
   #Obtain names---------
   new_name <- reactive({

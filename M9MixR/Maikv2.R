@@ -500,7 +500,7 @@ M9_complex <- function(file_loc){ #main run function
   return(UsrCommands)
 }
 #TROUBLESHOOTING------------
-mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\M9MixR"
-inputName <- "M9MixR_InputTemplate.xlsx"
-fpath <- paste(mainwd, inputName, sep='\\')
-dis <- M9_complex(paste(mainwd, inputName, sep='\\'))
+#mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\M9MixR"
+#inputName <- "M9MixR_InputTemplate.xlsx"
+#fpath <- paste(mainwd, inputName, sep='\\')
+#dis <- M9_complex(paste(mainwd, inputName, sep='\\'))
