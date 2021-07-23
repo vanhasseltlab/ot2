@@ -3,7 +3,7 @@ library(shinyBS)
 shinyUI(fluidPage(
     
     pageWithSidebar(
-        headerPanel("OT Support Home"),
+        headerPanel("OT2 Supporting Apps"),
         
         sidebarPanel(
             #OT2 protocol designers
@@ -29,6 +29,11 @@ shinyUI(fluidPage(
             tipify(actionButton("growthCurve", "Growth Data", width='300px',
                                 onclick ="window.open('http://132.229.100.197:2222/ot2/PlateAnalysis/GrowthCurve')"),
                    "Integrates plate reader outputs into a long-format table", placement='right', trigger='hover'),
+            
+            #User Guide download buttons
+            titlePanel("Guides"),
+            downloadButton("downloadRobotGuide", label = "OT2 General Guide"),
+            
             width = 12
         ),
         mainPanel(
