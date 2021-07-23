@@ -32,7 +32,8 @@ shinyUI(fluidPage(
             
             #User Guide download buttons
             titlePanel("Guides"),
-            downloadButton("downloadRobotGuide", label = "OT2 General Guide"),
+            downloadButton("downloadRobotGuide", label = "OT2 General Guide", width='600px'),
+            downloadButton("downloadServerGuide", label = "Web Server General Guide", width='600px'),
             
             width = 12
         ),
