@@ -4,6 +4,10 @@ shinyUI(
         headerPanel("Growth Curve for 96-Well Plate"),
         
         sidebarPanel(
+            #link to home
+            actionButton("Home", "Home", width='300px',
+                         onclick ="window.open('https://vanhasseltlab.lacdr.leidenuniv.nl/ot2/home')"),
+            
             #file inputs
             fileInput("files", "Upload Measurement Data", accept=".csv",
                       multiple=T),

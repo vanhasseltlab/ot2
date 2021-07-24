@@ -4,6 +4,11 @@ shinyUI(
   pageWithSidebar(
     headerPanel("CQ Plate - MIC"),
     sidebarPanel(
+      #link to home
+      actionButton("Home", "Home", width='300px',
+                   onclick ="window.open('https://vanhasseltlab.lacdr.leidenuniv.nl/ot2/home')"),
+      
+      #main
       fileInput("file", "Upload Plate Map", accept=".xlsx"),
       downloadButton("downloadTemplate", label = "Template Input"),
       textInput("pmid", 'Plate Map ID (PMID)'),

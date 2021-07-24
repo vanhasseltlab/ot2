@@ -5,8 +5,11 @@ shinyUI(
     headerPanel("Multiplate MIC - OT2 Commander"),
     
     sidebarPanel(
-      tags$a(href="http://132.229.100.197:2222/ot2/SingleplateMIC/",
-             "Link to Single Plate MIC"),
+      #link to home
+      actionButton("Home", "Home", width='300px',
+                   onclick ="window.open('https://vanhasseltlab.lacdr.leidenuniv.nl/ot2/home')"),
+      
+      #main
       fileInput("file", "Upload Plate Map", accept=".xlsx"),
       downloadButton("downloadTemplate", label = "Template Input"),
       textInput("pmid", 'Plate Map ID (PMID)'),
