@@ -85,7 +85,7 @@ shinyUI(fluidPage(
              ),
              
              #Overview----------
-             tabPanel("Overview", id = "taby",
+             tabPanel("New Booking", id = "taby",
                       verticalLayout(
                         sidebarLayout(
                           sidebarPanel(
