@@ -112,7 +112,8 @@ createCalendar <- function(equipment_name, all_schedule, add_month=0){
           axis.text.y=element_blank(),axis.ticks=element_blank(),
           axis.title.x=element_blank(),
           axis.title.y=element_blank(),
-          plot.title = element_text(size=35, face='bold', hjust = 0.5))
+          plot.title = element_text(size=35, face='bold', hjust = 0.5),
+          plot.subtitle = element_text(hjust=0.5))
   
   #return
   return(list(output_plot, dateCoordinate))
