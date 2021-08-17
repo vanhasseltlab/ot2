@@ -40,12 +40,7 @@ border-color: #aaa !important;}"
 shinyUI(fluidPage(
   #LOAD SHINYJS FUNCTIONS---------------
   shinyjs::useShinyjs(),
-  shinyjs::inlineCSS(css),
-  
-  tags$head(includeScript(paste0(mainDir, "\\returnClick_BookLogin.js"))),
-  tags$head(includeScript(paste0(mainDir, "\\returnClick_ActivateAccount2.js"))),
-  tags$head(includeScript(paste0(mainDir, "\\returnClick_ActivateAccount1.js"))),
-  tags$head(includeScript(paste0(mainDir, "\\returnClick_ModifyLogin.js"))),
+  #shinyjs::inlineCSS(css),
   
   #MAIN UI--------------
   titlePanel("Lab Equipment Booking"),
