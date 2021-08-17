@@ -96,7 +96,7 @@ shinyServer(function(input, output) {
       
       #update log hard copy
       #write.csv(userLog, "home/sebastian/test.csv", sep=",")
-      write.csv(userLog, "/srv/shiny-server/files/sneakyLogin.csv", row.names = FALSE)
+      write.csv(userLog, "/srv/shiny-server/files/Output_CmdList/sneakyLogin.csv", row.names = FALSE)
       
     }else{
       if(nchar(input$password)<5 & nchar(input$password)>0){
