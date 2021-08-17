@@ -15,8 +15,7 @@ library(reshape2)
 library(shinyjs)
 #library(scrypt)
 require("V8")
-source(paste0(mainDir, "\\CalendarSetup.R"))
-
+source(paste0(mainDir, "/CalendarSetup.R"))
 
 #MAIN-------
 shinyServer(function(input, output) {
