@@ -82,7 +82,7 @@ shinyServer(function(input, output) {
     userLog <- read.csv(paste0(mainDir, "/", userLog_dir)) #re-read each time
     if(input$password==input$password_retype & nchar(input$password)>=5){
       #update user log
-      userLog$Activation[userLog$Username==input$activation_user] <- T
+      userLog$Activation[userLog$Username==input$activation_user] <- TRUE
       userLog$Password[userLog$Username==input$activation_user] <- scrypt::hashPassword(input$password)
       userLog$ActivationCode[userLog$Username==input$activation_user] <- paste0("Activated on: ", toString(Sys.time()))
       
@@ -95,7 +95,7 @@ shinyServer(function(input, output) {
       output$activation_error <- renderText({"Account activated. Password set successfully"})
       
       #update log hard copy
-      write.csv(userLog, paste0(mainDir, "/", userLog_dir), row.names=F)
+      #write.csv(userLog, paste0(mainDir, "/", userLog_dir), row.names=F)
       
     }else{
       if(nchar(input$password)<5 & nchar(input$password)>0){
