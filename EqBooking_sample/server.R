@@ -86,9 +86,9 @@ shinyServer(function(input, output) {
       #userLog$ActivationCode[userLog$Username==input$activation_user] <- paste0("Activated on: ", toString(Sys.time()))
       
       #lock inputs
-      disable("password")
-      disable("password_retype")
-      hide("new_pass")
+      #disable("password")
+      #disable("password_retype")
+      #hide("new_pass")
       
       #message
       output$activation_error <- renderText({"Account activated. Password set successfully"})
