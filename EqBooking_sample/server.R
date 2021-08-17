@@ -361,7 +361,7 @@ shinyServer(function(input, output) {
     userTable <- subset(scheduleTable, Username==currentUser()) %>%
       mutate(Start.date = sapply(Start.date, function(x) chron(as.numeric(x), out.format=c(dates='d-m-y'))),
              End.date = sapply(End.date, function(x) chron(as.numeric(x), out.format=c(dates='d-m-y')))) %>%
-      filter(Start.date >= chron(toString(Sys.Date()), format=c(dates='y-m-d'))) %>%
+      #filter(Start.date >= chron(toString(Sys.Date()), format=c(dates='y-m-d'))) %>%
       mutate(Start.date = sapply(Start.date, function(x){as.numeric(x) %>% chron(out.format=c(dates='d-m-y')) %>% toString()}),
              End.date = sapply(End.date, function(x){as.numeric(x) %>% chron(out.format=c(dates='d-m-y')) %>% toString()}))
     
@@ -382,7 +382,8 @@ shinyServer(function(input, output) {
       selections <- c("")
     }else{
       #selection for drop-down menu
-      selections <- apply(userBookings(), 1, function(x) {
+      user_booking_table <- userBookings() %>% filter(Start.date >= chron(toString(Sys.Date()), format=c(dates='y-m-d')))
+      selections <- apply(user_booking_table, 1, function(x) {
         if(x["Start.date"]==x["End.date"]){
           paste0(x["Equipment"], " : ", x["Start.date"], " - ", 
                  x["Start.time"]," ~ ", x["End.time"])
@@ -519,6 +520,7 @@ shinyServer(function(input, output) {
         
         #get user's booking
         current_books <- userBookings() %>% 
+          filter(Start.date >= chron(toString(Sys.Date()), format=c(dates='y-m-d'))) %>%
           mutate(Start.date = sapply(Start.date, function(x) chron(x, format=c(dates='d-m-y'))),
                  End.date = sapply(End.date, function(x) chron(x, format=c(dates='d-m-y'))))
         
@@ -552,11 +554,14 @@ shinyServer(function(input, output) {
       book_index <- which(dropDown()==input$book_to_modify)
       
       #get user's booking; remove the indexed row
-      current_books <- userBookings()[-book_index,]
+      current_user_bookings <- userBookings() %>% filter(Start.date >= chron(toString(Sys.Date()), format=c(dates='y-m-d')))
+      current_user_bookings <- current_user_bookings[-book_index,]
+      old_bookings <- userBookings() %>% filter(Start.date < chron(toString(Sys.Date()), format=c(dates='y-m-d')))
       
       #get the rest of bookings in the schedule table
       all_bookings <- subset(scheduleTable, Username!=currentUser()) %>%
-        rbind.data.frame(current_books) %>%
+        rbind.data.frame(old_bookings) %>%
+        rbind.data.frame(current_user_bookings) %>%
         mutate(No = as.numeric(No)) %>%
         arrange(No)
       
