@@ -95,7 +95,7 @@ shinyServer(function(input, output) {
       output$activation_error <- renderText({"Account activated. Password set successfully"})
       
       #update log hard copy
-      write.csv(userLog, "home/sebastian/test.csv", sep=",")
+      #write.csv(userLog, "home/sebastian/test.csv", sep=",")
       
     }else{
       if(nchar(input$password)<5 & nchar(input$password)>0){
@@ -131,7 +131,7 @@ shinyServer(function(input, output) {
       output$change_pass_error <- renderText("Password changed. Refresh page to make new bookings")
       
       #update log hard copy
-      write.csv(userLog, paste0(mainDir, "/", userLog_dir), row.names=F)
+      #write.csv(userLog, paste0(mainDir, "/", userLog_dir), row.names=F)
     }else{
       output$change_pass_error <- renderText("Invalid username/password!")
     }
@@ -299,7 +299,7 @@ shinyServer(function(input, output) {
       colnames(new_schedule) <- colnames(scheduleTable)
       
       #output:write excel
-      write_xlsx(new_schedule, path=paste0(mainDir, "/", scheduleTable_dir), col_names=T)
+      #write_xlsx(new_schedule, path=paste0(mainDir, "/", scheduleTable_dir), col_names=T)
       
       #confirm; disable further inputs
       hide("confirm_book")
@@ -531,7 +531,7 @@ shinyServer(function(input, output) {
           mutate(No = as.numeric(No)) %>% arrange(No)
         
         #write
-        write_xlsx(all_bookings, path=paste0(mainDir, "/", scheduleTable_dir), col_names=T)
+        #write_xlsx(all_bookings, path=paste0(mainDir, "/", scheduleTable_dir), col_names=T)
         
         #confirm; disable further inputs
         hide("confirm_manage")
@@ -559,7 +559,7 @@ shinyServer(function(input, output) {
                End.date = as.numeric(chron(End.date, format=c(dates='d-m-y')))) %>% arrange(No)
       
       #write
-      write_xlsx(all_bookings, path=paste0(mainDir, "/", scheduleTable_dir), col_names=T)
+      #write_xlsx(all_bookings, path=paste0(mainDir, "/", scheduleTable_dir), col_names=T)
       
       hide("confirm_manage")
       output$Conf_modify <- renderText({"Booking removed"})
