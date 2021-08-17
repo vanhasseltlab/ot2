@@ -19,5 +19,10 @@ source(paste0(mainDir, "/CalendarSetup.R"))
 
 #MAIN-------
 shinyServer(function(input, output) {
-    
+  # GENERAL LOGIN--------------
+  #   disabling tabs before login
+  disable(selector = '.navbar-nav a[data-value="Overview"')
+  disable(selector = '.navbar-nav a[data-value="New Booking"')
+  disable(selector = '.navbar-nav a[data-value="Manage Bookings"')
+  
 })
