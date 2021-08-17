@@ -1,5 +1,5 @@
 #INPUT-------------
-#mainDir <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\Calendar\\EqBooking_v5"
+#mainDir <- "C:/Users/Sebastian/Desktop/MSc Leiden 2nd Year/##LabAst Works/Incubator/Calendar/EqBooking_v5"
 mainDir <- "/srv/shiny-server/ot2/EqBooking_sample"
 scheduleTable_dir <- "ScheduleHardCopy.xlsx"
 userLog_dir <- "sneakyLogin.csv"
@@ -27,7 +27,7 @@ shinyServer(function(input, output) {
   
   #  A | Login
   observeEvent(input$login_book, {
-    userLog <- read.csv(paste0(mainDir, "\\", userLog_dir)) #re-read each time
+    userLog <- read.csv(paste0(mainDir, "/", userLog_dir)) #re-read each time
     hashedAuth <- userLog$Password[userLog$Username==input$user_login]
     if(length(hashedAuth)>0){
       passAuth <- verifyPassword(hashedAuth, input$password_login)
@@ -56,7 +56,7 @@ shinyServer(function(input, output) {
   hide("password_retype")
   hide("new_pass")
   observeEvent(input$activate_confirm, {
-    userLog <<- read.csv(paste0(mainDir, "\\", userLog_dir)) %>% #re-read each time
+    userLog <<- read.csv(paste0(mainDir, "/", userLog_dir)) %>% #re-read each time
       subset(Username==input$activation_user)
     
     if(nrow(userLog)==1 & !userLog$Activation){
@@ -78,7 +78,7 @@ shinyServer(function(input, output) {
   
   #setup new password
   observeEvent(input$new_pass, {
-    userLog <- read.csv(paste0(mainDir, "\\", userLog_dir)) #re-read each time
+    userLog <- read.csv(paste0(mainDir, "/", userLog_dir)) #re-read each time
     if(input$password==input$password_retype & nchar(input$password)>=5){
       #update user log
       userLog$Activation[userLog$Username==input$activation_user] <- T
@@ -94,7 +94,7 @@ shinyServer(function(input, output) {
       output$activation_error <- renderText({"Account activated. Password set successfully"})
       
       #update log hard copy
-      write.csv(userLog, paste0(mainDir, "\\", userLog_dir), row.names=F)
+      write.csv(userLog, paste0(mainDir, "/", userLog_dir), row.names=F)
     }else{
       if(nchar(input$password)<5 & nchar(input$password)>0){
         output$activation_error <- renderText({"Minimum password length is 5 characters!"})
@@ -106,7 +106,7 @@ shinyServer(function(input, output) {
   
   #  C | Change Password
   observeEvent(input$new_password_confirm, {
-    userLog <- read.csv(paste0(mainDir, "\\", userLog_dir)) #re-read each time
+    userLog <- read.csv(paste0(mainDir, "/", userLog_dir)) #re-read each time
     hashedAuth <- userLog$Password[userLog$Username==input$change_pass_user]
     if(length(hashedAuth)>0){
       passAuth <- verifyPassword(hashedAuth, input$old_password)
@@ -129,7 +129,7 @@ shinyServer(function(input, output) {
       output$change_pass_error <- renderText("Password changed. Refresh page to make new bookings")
       
       #update log hard copy
-      write.csv(userLog, paste0(mainDir, "\\", userLog_dir), row.names=F)
+      write.csv(userLog, paste0(mainDir, "/", userLog_dir), row.names=F)
     }else{
       output$change_pass_error <- renderText("Invalid username/password!")
     }
