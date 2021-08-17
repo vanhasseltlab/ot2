@@ -29,8 +29,24 @@ timeSlots <- sapply(timeSlots, function(x) if(nchar(x)<5){paste0("0", x)}else{x}
 names(timeSlots) <- timeSlots
 timeSlots <<- timeSlots
 
+#SHINYJS EXTENSION-------------
+css <- "
+.nav li a.disabled {
+background-color: #aaa !important;
+color: #333 !important;
+cursor: not-allowed !important;
+border-color: #aaa !important;}"
 #MAIN----------
 shinyUI(fluidPage(
+  #LOAD SHINYJS FUNCTIONS---------------
+  shinyjs::useShinyjs(),
+  shinyjs::inlineCSS(css),
+  
+  tags$head(includeScript(paste0(mainDir, "\\returnClick_BookLogin.js"))),
+  tags$head(includeScript(paste0(mainDir, "\\returnClick_ActivateAccount2.js"))),
+  tags$head(includeScript(paste0(mainDir, "\\returnClick_ActivateAccount1.js"))),
+  tags$head(includeScript(paste0(mainDir, "\\returnClick_ModifyLogin.js"))),
+  
   #MAIN UI--------------
   titlePanel("Lab Equipment Booking"),
   navbarPage("",id="navbarPage",
