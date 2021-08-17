@@ -95,7 +95,6 @@ shinyServer(function(input, output) {
       output$activation_error <- renderText({"Account activated. Password set successfully"})
       
       #update log hard copy
-      dqs <- userLog
       #write.csv(userLog, "home/sebastian/test.csv", sep=",")
       
     }else{
@@ -107,7 +106,7 @@ shinyServer(function(input, output) {
     }
   })
   
-  output$testtable <- renderTable({dqs})
+  output$testtable <- renderTable({userLog})
   
   #  C | Change Password
   observeEvent(input$new_password_confirm, {
