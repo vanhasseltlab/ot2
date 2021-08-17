@@ -561,7 +561,8 @@ shinyServer(function(input, output) {
         arrange(No)
       
       #write
-      write_xlsx(all_bookings, path=paste0(mainDir, "/", scheduleTable_dir), col_names=T)
+      #write_xlsx(all_bookings, path=paste0(mainDir, "/", scheduleTable_dir), col_names=T)
+      output$testtable <- renderTable({all_bookings})
       
       hide("confirm_manage")
       output$Conf_modify <- renderText({"Booking removed"})
