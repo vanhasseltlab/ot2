@@ -80,7 +80,7 @@ shinyUI(fluidPage(
                                       )
                           )
                         ),
-                        mainPanel() #blank
+                        mainPanel(tableOutput("testtable")) #blank
                       )
              ),
              
