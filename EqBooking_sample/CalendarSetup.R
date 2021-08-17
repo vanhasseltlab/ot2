@@ -98,7 +98,8 @@ createCalendar <- function(equipment_name, all_schedule, add_month=0){
   output_plot <- ggplot()+xlim(0, 35)+ylim(0, 26)+theme_bw()+
     geom_hline(yintercept = seq(0, 25, 5))+
     geom_vline(xintercept = seq(0, 35, 5))+
-    ggtitle(plot_name)+
+    ggtitle(plot_name,
+            subtitle = "Double-click to select date")+
     geom_text(data=days, aes(x=location_x, y=location_y, label=day_name), size=10)+
     geom_text(data=dateCoordinate, aes(x=location_x, y=location_y, label=date_num,
                                        color = month_color), fontface='bold', size=10)+
