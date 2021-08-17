@@ -11,7 +11,7 @@ shinyServer(function(input, output) {
     }
   )
   
-  output$downloadRobotGuide <- downloadHandler(
+  output$downloadRobotQuickGuide <- downloadHandler(
     filename="2021-07-23_OT2QuickGuide.pdf",
     content = function(file) {
       file.copy(robotQuickGuideDir, file)
