@@ -141,8 +141,7 @@ shinyUI(fluidPage(
                         ),
                         mainPanel(
                           tableOutput("user_bookings"),
-                          textOutput("error_message_no_bookings"),
-                          tableOutput("testtable")
+                          textOutput("error_message_no_bookings")
                         )
                       )
              )

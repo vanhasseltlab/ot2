@@ -104,8 +104,6 @@ shinyServer(function(input, output) {
         output$activation_error <- renderText({"Re-typed password not identical!"})
       }
     }
-    
-    output$testtable <- renderTable({userLog})
   })
   
  
@@ -572,7 +570,6 @@ shinyServer(function(input, output) {
       
       #write
       write_xlsx(all_bookings, path=paste0(mainDir, "/", scheduleTable_dir), col_names=T)
-      output$testtable <- renderTable({all_bookings})
       
       hide("confirm_manage")
       output$Conf_modify <- renderText({"Booking removed"})
