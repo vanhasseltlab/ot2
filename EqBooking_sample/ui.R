@@ -13,7 +13,7 @@ library(writexl)
 library(chron)
 library(reshape2)
 library(shinyjs)
-#library(scrypt)
+library(scrypt)
 #source(paste0(mainDir, "\\CalendarSetup.R"))
 #scheduleTable <- read_excel(paste0(mainDir, "\\", scheduleTable_dir), sheet=1)
 
