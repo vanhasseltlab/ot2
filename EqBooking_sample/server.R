@@ -3,7 +3,7 @@
 mainDir <- "/srv/shiny-server/files/EqBooking"
 mainDir2 <- "/srv/shiny-server/ot2/EqBooking_sample"
 scheduleTable_dir <- "ScheduleHardCopy.xlsx"
-userLog_dir <- "/srv/shiny-server/files/sneakyLogin.csv"
+userLog_dir <- "sneakyLogin.csv"
 
 #LIBRARIES-------------
 library(shiny)

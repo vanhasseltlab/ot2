@@ -2,6 +2,7 @@
 #mainDir <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\Calendar\\EqBooking_v5"
 mainDir <- "/srv/shiny-server/files/EqBooking"
 mainDir2 <- "/srv/shiny-server/ot2/EqBooking_sample"
+
 scheduleTable_dir <- "ScheduleHardCopy.xlsx"
 
 #LIBRARIES-------
