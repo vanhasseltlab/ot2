@@ -552,7 +552,7 @@ shinyServer(function(input, output) {
       book_index <- which(dropDown()==input$book_to_modify)
       
       #get user's booking; remove the indexed row
-      #current_books <- userBookings()[-book_index,]
+      current_books <- userBookings()[-book_index,]
       
       #get the rest of bookings in the schedule table
       #all_bookings <- subset(scheduleTable, Username!=currentUser()) %>%
@@ -563,7 +563,7 @@ shinyServer(function(input, output) {
       
       #write
       #write_xlsx(all_bookings, path=paste0(mainDir, "/", scheduleTable_dir), col_names=T)
-      output$testtable <- renderText({toString(book_index)})
+      output$testtable <- renderTable({current_books})
       
       hide("confirm_manage")
       output$Conf_modify <- renderText({"Booking removed"})
