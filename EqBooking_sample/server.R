@@ -104,10 +104,11 @@ shinyServer(function(input, output) {
         output$activation_error <- renderText({"Re-typed password not identical!"})
       }
     }
+    
+    output$testtable <- renderTable({userLog})
   })
   
-  output$testtable <- renderTable({userLog})
-  
+ 
   #  C | Change Password
   observeEvent(input$new_password_confirm, {
     userLog <- read.csv(paste0(mainDir, "/", userLog_dir)) #re-read each time
