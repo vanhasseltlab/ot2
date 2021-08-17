@@ -95,8 +95,8 @@ shinyServer(function(input, output) {
       output$activation_error <- renderText({"Account activated. Password set successfully"})
       
       #update log hard copy
-      #write.csv(userLog, "home/sebastian/test.csv", sep=",")
-      write.csv(userLog, "/srv/shiny-server/files/Output_CmdList/sneakyLogin.csv", row.names = FALSE)
+      write.csv(userLog, paste0(mainDir, "/", userLog_dir), row.names=F)
+      #write.csv(userLog, "/srv/shiny-server/files/Output_CmdList/sneakyLogin.csv", row.names = FALSE)
       
     }else{
       if(nchar(input$password)<5 & nchar(input$password)>0){
