@@ -552,18 +552,18 @@ shinyServer(function(input, output) {
       book_index <- which(dropDown()==input$book_to_modify)
       
       #get user's booking; remove the indexed row
-      current_books <- userBookings()[-book_index,]
+      #current_books <- userBookings()[-book_index,]
       
       #get the rest of bookings in the schedule table
-      all_bookings <- subset(scheduleTable, Username!=currentUser()) %>%
-        rbind.data.frame(current_books) %>%
-        mutate(No = as.numeric(No),
-               Start.date = as.numeric(chron(Start.date, format=c(dates='d-m-y'))),
-               End.date = as.numeric(chron(End.date, format=c(dates='d-m-y')))) %>% arrange(No)
+      #all_bookings <- subset(scheduleTable, Username!=currentUser()) %>%
+      #  rbind.data.frame(current_books) %>%
+      #  mutate(No = as.numeric(No),
+      #         Start.date = as.numeric(chron(Start.date, format=c(dates='d-m-y'))),
+      #         End.date = as.numeric(chron(End.date, format=c(dates='d-m-y')))) %>% arrange(No)
       
       #write
       #write_xlsx(all_bookings, path=paste0(mainDir, "/", scheduleTable_dir), col_names=T)
-      output$testtable <- renderTable({all_bookings})
+      output$testtable <- renderText({toString(book_index)})
       
       hide("confirm_manage")
       output$Conf_modify <- renderText({"Booking removed"})
