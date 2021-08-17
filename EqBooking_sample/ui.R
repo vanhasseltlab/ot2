@@ -40,7 +40,7 @@ border-color: #aaa !important;}"
 shinyUI(fluidPage(
   #LOAD SHINYJS FUNCTIONS---------------
   shinyjs::useShinyjs(),
-  #shinyjs::inlineCSS(css),
+  shinyjs::inlineCSS(css),
   
   #MAIN UI--------------
   titlePanel("Lab Equipment Booking"),
