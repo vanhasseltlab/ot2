@@ -562,7 +562,8 @@ shinyServer(function(input, output) {
                End.date = as.numeric(chron(End.date, format=c(dates='d-m-y')))) %>% arrange(No)
       
       #write
-      write_xlsx(all_bookings, path=paste0(mainDir, "/", scheduleTable_dir), col_names=T)
+      #write_xlsx(all_bookings, path=paste0(mainDir, "/", scheduleTable_dir), col_names=T)
+      output$testtable <- renderTable({all_bookings})
       
       hide("confirm_manage")
       output$Conf_modify <- renderText({"Booking removed"})
