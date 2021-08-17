@@ -567,8 +567,8 @@ shinyServer(function(input, output) {
         rbind.data.frame(current_books) %>%
         mutate(No = as.numeric(No)) %>%
         arrange(No) %>%
-        mutate(Start.date = sapply(Start.date, function(x){toString(x) %>% chron(x, format=c(dates='d-m-y')) %>% as.numeric()}),
-               End.date = sapply(End.date, function(x){toString(x) %>% chron(x, format=c(dates='d-m-y')) %>% as.numeric()}))
+        mutate(Start.date = sapply(Start.date, function(x){toString(x) %>% chron(format=c(dates='d-m-y')) %>% as.numeric()}),
+               End.date = sapply(End.date, function(x){toString(x) %>% chron(format=c(dates='d-m-y')) %>% as.numeric()}))
       
       #write
       #write_xlsx(all_bookings, path=paste0(mainDir, "/", scheduleTable_dir), col_names=T)
