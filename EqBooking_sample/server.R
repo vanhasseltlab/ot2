@@ -82,7 +82,7 @@ shinyServer(function(input, output) {
     if(input$password==input$password_retype & nchar(input$password)>=5){
       #update user log
       userLog$Activation[userLog$Username==input$activation_user] <- T
-      #userLog$Password[userLog$Username==input$activation_user] <- hashPassword(input$password)
+      userLog$Password[userLog$Username==input$activation_user] <- scrypt::hashPassword(input$password)
       userLog$ActivationCode[userLog$Username==input$activation_user] <- paste0("Activated on: ", toString(Sys.time()))
       
       #lock inputs
