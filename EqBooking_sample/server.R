@@ -95,6 +95,7 @@ shinyServer(function(input, output) {
       
       #update log hard copy
       write.csv(userLog, paste0(mainDir, "/", userLog_dir), row.names=F)
+      
     }else{
       if(nchar(input$password)<5 & nchar(input$password)>0){
         output$activation_error <- renderText({"Minimum password length is 5 characters!"})
