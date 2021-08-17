@@ -15,7 +15,7 @@ library(reshape2)
 library(shinyjs)
 library(scrypt)
 source(paste0(mainDir, "\\CalendarSetup.R"))
-scheduleTable <- read_excel(paste0(mainDir, "\\", scheduleTable_dir), sheet=1)
+#scheduleTable <- read_excel(paste0(mainDir, "\\", scheduleTable_dir), sheet=1)
 
 #MAIN----------
 shinyUI(fluidPage(
