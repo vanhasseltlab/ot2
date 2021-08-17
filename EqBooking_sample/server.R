@@ -555,15 +555,15 @@ shinyServer(function(input, output) {
       current_books <- userBookings()[-book_index,]
       
       #get the rest of bookings in the schedule table
-      #all_bookings <- subset(scheduleTable, Username!=currentUser()) %>%
-      #  rbind.data.frame(current_books) %>%
+      all_bookings <- subset(scheduleTable, Username!=currentUser()) %>%
+        rbind.data.frame(current_books)
       #  mutate(No = as.numeric(No),
       #         Start.date = as.numeric(chron(Start.date, format=c(dates='d-m-y'))),
       #         End.date = as.numeric(chron(End.date, format=c(dates='d-m-y')))) %>% arrange(No)
       
       #write
       #write_xlsx(all_bookings, path=paste0(mainDir, "/", scheduleTable_dir), col_names=T)
-      output$testtable <- renderTable({current_books})
+      output$testtable <- renderTable({all_bookings})
       
       hide("confirm_manage")
       output$Conf_modify <- renderText({"Booking removed"})
