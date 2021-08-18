@@ -575,8 +575,8 @@ shinyServer(function(input, output) {
       
       #get the rest of bookings in the schedule table
       all_bookings <- subset(scheduleTable_r, Username!=currentUser()) %>%
-        rbind.data.frame(user_oldBookings)
-      #  rbind.data.frame(current_books) %>%
+        rbind.data.frame(user_oldBookings) %>%
+        rbind.data.frame(current_books)
       #  mutate(No = as.numeric(No)) %>%
       #  arrange(No) %>%
       #  mutate(Start.date = sapply(Start.date, function(x){toString(x) %>% chron(format=c(dates='d-m-y')) %>% as.numeric()}),
