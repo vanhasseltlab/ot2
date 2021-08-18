@@ -147,7 +147,7 @@ shinyUI(fluidPage(
                         )
                       ),
                       
-                      tableOutput("user_availability")
+                      tableOutput("time_availability")
              )
   )
 ))
