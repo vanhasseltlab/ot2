@@ -591,6 +591,11 @@ shinyServer(function(input, output) {
       #write
       write_xlsx(all_bookings, path=paste0(mainDir, "/", scheduleTable_dir), col_names=T)
       
+      current_books_show <- current_books %>%
+        mutate(Start.date = sapply(Start.date, function(x) toString(chron(as.numeric(x), out.format=c(dates='d-m-y')))),
+               End.date = sapply(End.date, function(x) toString(chron(as.numeric(x), out.format=c(dates='d-m-y')))))
+      output$user_bookings <- renderTable(current_books_show, bordered=T, rownames=T)
+      
       hide("confirm_manage")
       output$Conf_modify <- renderText({"Booking removed"})
       show("Conf_modify")
