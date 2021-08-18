@@ -571,15 +571,16 @@ shinyServer(function(input, output) {
         filter(Start.date < chron(toString(Sys.Date()), format=c(dates='y-m-d'))) %>%
         mutate(Start.date = sapply(Start.date, function(x){as.numeric(x) %>% chron(out.format=c(dates='d-m-y')) %>% toString()}),
                End.date = sapply(End.date, function(x){as.numeric(x) %>% chron(out.format=c(dates='d-m-y')) %>% toString()}))
-        
+      
+      output$test_table <- renderTable({user_oldBookings}) 
       #get the rest of bookings in the schedule table
-      all_bookings <- subset(scheduleTable_r, Username!=currentUser()) %>%
-        rbind.data.frame(user_oldBookings) %>%
-        rbind.data.frame(current_books) %>%
-        mutate(No = as.numeric(No)) %>%
-        arrange(No) %>%
-        mutate(Start.date = sapply(Start.date, function(x){toString(x) %>% chron(format=c(dates='d-m-y')) %>% as.numeric()}),
-               End.date = sapply(End.date, function(x){toString(x) %>% chron(format=c(dates='d-m-y')) %>% as.numeric()}))
+      #all_bookings <- subset(scheduleTable_r, Username!=currentUser()) %>%
+      #  rbind.data.frame(user_oldBookings) %>%
+      #  rbind.data.frame(current_books) %>%
+      #  mutate(No = as.numeric(No)) %>%
+      #  arrange(No) %>%
+      #  mutate(Start.date = sapply(Start.date, function(x){toString(x) %>% chron(format=c(dates='d-m-y')) %>% as.numeric()}),
+      #         End.date = sapply(End.date, function(x){toString(x) %>% chron(format=c(dates='d-m-y')) %>% as.numeric()}))
       
       #write
       #write_xlsx(all_bookings, path=paste0(mainDir, "/", scheduleTable_dir), col_names=T)
