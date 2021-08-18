@@ -563,7 +563,9 @@ shinyServer(function(input, output) {
       book_index <- which(dropDown()==input$book_to_modify)
       
       #get user's booking; remove the indexed row
-      current_books <- userBookings()[-book_index,]
+      current_books <- userBookings()[-book_index,] %>%
+        mutate(Start.date = sapply(Start.date, function(x){toString(x) %>% chron(format=c(dates='d-m-y')) %>% as.numeric()}),
+               End.date = sapply(End.date, function(x){toString(x) %>% chron(format=c(dates='d-m-y')) %>% as.numeric()}))
       
       user_oldBookings <- subset(scheduleTable_r, Username==currentUser()) %>%
         mutate(Start.date = sapply(Start.date, function(x) chron(as.numeric(x), out.format=c(dates='d-m-y'))),
@@ -576,10 +578,7 @@ shinyServer(function(input, output) {
       all_bookings <- subset(scheduleTable_r, Username!=currentUser()) %>%
         rbind.data.frame(user_oldBookings) %>%
         rbind.data.frame(current_books)
-      #  mutate(No = as.numeric(No)) %>%
-      #  arrange(No) %>%
-      #  mutate(Start.date = sapply(Start.date, function(x){toString(x) %>% chron(format=c(dates='d-m-y')) %>% as.numeric()}),
-      #         End.date = sapply(End.date, function(x){toString(x) %>% chron(format=c(dates='d-m-y')) %>% as.numeric()}))
+        mutate(No = as.numeric(No)) %>% arrange(No) 
       
       output$test_table <- renderTable({all_bookings}) 
       
