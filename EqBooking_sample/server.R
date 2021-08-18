@@ -494,13 +494,13 @@ shinyServer(function(input, output) {
       return(book_table)
     }
   })
-  output$time_availability <- renderTable({
-    if(input$modification=="Remove"){NULL}else{availabilityDate()}
-  }, bordered=T, rownames=T)
   
   #show output table for current user's bookings
   output$user_bookings <- renderTable(userBookings(), bordered=T, rownames=T)
   output$error_message_no_bookings <- renderText("No bookings found")
+  output$time_availability <- renderTable({
+    if(input$modification=="Remove"){NULL}else{availabilityDate()}
+  }, bordered=T, rownames=T)
   
   #hide/show based on radio input: modify OR remove booking
   observeEvent(input$modification, {
@@ -549,6 +549,7 @@ shinyServer(function(input, output) {
         
         #write
         write_xlsx(all_bookings, path=paste0(mainDir, "/", scheduleTable_dir), col_names=T)
+        output$user_bookings <- renderTable(userBookings(), bordered=T, rownames=T) #update table
         
         #confirm; disable further inputs
         hide("confirm_manage")
