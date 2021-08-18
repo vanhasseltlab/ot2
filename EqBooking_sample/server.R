@@ -497,9 +497,7 @@ shinyServer(function(input, output) {
   
   #show output table for current user's bookings
   output$user_bookings <- renderTable(userBookings(), bordered=T, rownames=T)
-  reactive({
-    input$confirm_manage
-    
+  observeEvent(input$confirm_manage, {
     output$user_bookings <- renderTable(userBookings(), bordered=T, rownames=T)
   })
   output$error_message_no_bookings <- renderText("No bookings found")
