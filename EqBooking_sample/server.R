@@ -303,9 +303,8 @@ shinyServer(function(input, output) {
       write_xlsx(new_schedule, path=paste0(mainDir, "/", scheduleTable_dir), col_names=T)
       
       #update calendar
-      #calendarSc_updated <- createCalendar(input$eqName, new_schedule, calendar_month())
-      #output$calendar <- {renderPlot(calendarSc_updated[[1]])}
-      scheduleTable <- new_schedule
+      calendarSc_updated <- createCalendar(input$eqName, new_schedule, calendar_month())
+      output$calendar <- renderPlot({calendarSc_updated[[1]]})
       
       #confirm; disable further inputs
       hide("confirm_book")
