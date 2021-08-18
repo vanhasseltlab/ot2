@@ -568,10 +568,9 @@ shinyServer(function(input, output) {
       user_oldBookings <- subset(scheduleTable_r, Username==currentUser()) %>%
         mutate(Start.date = sapply(Start.date, function(x) chron(as.numeric(x), out.format=c(dates='d-m-y'))),
                End.date = sapply(End.date, function(x) chron(as.numeric(x), out.format=c(dates='d-m-y')))) %>%
-        filter(Start.date < chron(toString(Sys.Date()), format=c(dates='y-m-d'))) %>%
-        mutate(Start.date = sapply(Start.date, function(x){as.numeric(x) %>% chron(out.format=c(dates='d-m-y')) %>% toString()}),
-               End.date = sapply(End.date, function(x){as.numeric(x) %>% chron(out.format=c(dates='d-m-y')) %>% toString()}))
-      
+        filter(Start.date < chron(toString(Sys.Date()), format=c(dates='y-m-d')))
+        #mutate(Start.date = sapply(Start.date, function(x){as.numeric(x) %>% chron(out.format=c(dates='d-m-y')) %>% toString()}),
+        #       End.date = sapply(End.date, function(x){as.numeric(x) %>% chron(out.format=c(dates='d-m-y')) %>% toString()}))
       
       #get the rest of bookings in the schedule table
       all_bookings <- subset(scheduleTable_r, Username!=currentUser()) %>%
