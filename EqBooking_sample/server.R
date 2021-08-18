@@ -366,7 +366,7 @@ shinyServer(function(input, output) {
   userBookings <- reactive({
     if(is.null(currentUser())){NULL}
     
-    scheduleTable_r <- read_excel(paste0(mainDir, "\\", scheduleTable_dir), sheet=1)
+    scheduleTable_r <- read_excel(paste0(mainDir, "/", scheduleTable_dir), sheet=1)
     userTable <- subset(scheduleTable_r, Username==currentUser()) %>%
       mutate(Start.date = sapply(Start.date, function(x) chron(as.numeric(x), out.format=c(dates='d-m-y'))),
              End.date = sapply(End.date, function(x) chron(as.numeric(x), out.format=c(dates='d-m-y')))) %>%
@@ -439,7 +439,7 @@ shinyServer(function(input, output) {
       
       #read booking schedule
       eq_name <- strsplit(input$book_to_modify, split=" : ")[[1]][1]
-      scheduleTable_r <- read_excel(paste0(mainDir, "\\", scheduleTable_dir), sheet=1)
+      scheduleTable_r <- read_excel(paste0(mainDir, "/", scheduleTable_dir), sheet=1)
       eqSch <- subset(scheduleTable_r, Equipment==eq_name & No != current_books$No) %>% 
         mutate(Start.date = chron(as.numeric(Start.date), out.format=c(dates="d/m/y")), 
                End.date = chron(as.numeric(End.date), out.format=c(dates="d/m/y"))) %>%
@@ -518,7 +518,7 @@ shinyServer(function(input, output) {
   observeEvent(input$confirm_manage, {
     if(input$confirm_manage==0){NULL}
     
-    scheduleTable_r <- read_excel(paste0(mainDir, "\\", scheduleTable_dir), sheet=1)
+    scheduleTable_r <- read_excel(paste0(mainDir, "/", scheduleTable_dir), sheet=1)
     if(input$modification=="Modify"){
       #checking slot availability
       availability <- availabilityDate()[c(1,3),]
