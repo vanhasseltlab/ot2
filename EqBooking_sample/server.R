@@ -580,10 +580,8 @@ shinyServer(function(input, output) {
         rbind.data.frame(current_books) %>%
         mutate(No = as.numeric(No)) %>% arrange(No) 
       
-      output$test_table <- renderTable({all_bookings}) 
-      
       #write
-      #write_xlsx(all_bookings, path=paste0(mainDir, "/", scheduleTable_dir), col_names=T)
+      write_xlsx(all_bookings, path=paste0(mainDir, "/", scheduleTable_dir), col_names=T)
       
       hide("confirm_manage")
       output$Conf_modify <- renderText({"Booking removed"})
