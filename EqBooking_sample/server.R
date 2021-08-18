@@ -294,7 +294,7 @@ shinyServer(function(input, output) {
     # execute
     if(eq_approval){
       #execute if confirm button pushed and input is approved
-      new_input <- c("No" = nrow(scheduleTable)+1, 
+      new_input <- c("No" = max(scheduleTable$No)+1, 
                      "Username"=currentUser(), "Equipment" = input$eqName,
                      "Start.date"=input$start_date, 
                      "Start.time"=input$start_time,
@@ -572,15 +572,17 @@ shinyServer(function(input, output) {
         mutate(Start.date = sapply(Start.date, function(x){as.numeric(x) %>% chron(out.format=c(dates='d-m-y')) %>% toString()}),
                End.date = sapply(End.date, function(x){as.numeric(x) %>% chron(out.format=c(dates='d-m-y')) %>% toString()}))
       
-      output$test_table <- renderTable({user_oldBookings}) 
+      
       #get the rest of bookings in the schedule table
-      #all_bookings <- subset(scheduleTable_r, Username!=currentUser()) %>%
-      #  rbind.data.frame(user_oldBookings) %>%
+      all_bookings <- subset(scheduleTable_r, Username!=currentUser()) %>%
+        rbind.data.frame(user_oldBookings)
       #  rbind.data.frame(current_books) %>%
       #  mutate(No = as.numeric(No)) %>%
       #  arrange(No) %>%
       #  mutate(Start.date = sapply(Start.date, function(x){toString(x) %>% chron(format=c(dates='d-m-y')) %>% as.numeric()}),
       #         End.date = sapply(End.date, function(x){toString(x) %>% chron(format=c(dates='d-m-y')) %>% as.numeric()}))
+      
+      output$test_table <- renderTable({user_oldBookings}) 
       
       #write
       #write_xlsx(all_bookings, path=paste0(mainDir, "/", scheduleTable_dir), col_names=T)
