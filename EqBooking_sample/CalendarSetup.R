@@ -64,7 +64,7 @@ equipmentAvails <- function(eq_name, schedule_table, calendar_table){
       }}) %>% as.vector() %>% matrix(nrow=2) %>% t() %>% data.frame()
     colnames(use_table) <- c("Date", "Availability")
     
-    use_table <- use_table %>% mutate(Date = sapply(Date, function(x) chron(as.numeric(x), out.format=c(dates="y-m-d"))),
+    use_table <- use_table %>% mutate(Date = sapply(Date, function(x) chron(x, format=c(dates='y-m-d'), out.format=c(dates="y-m-d"))),
                                       Availability = as.numeric(Availability)/length(timeSlots))
     
     #get sum of usage
