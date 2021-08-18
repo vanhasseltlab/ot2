@@ -181,14 +181,15 @@ shinyServer(function(input, output) {
     
     return(c(starting_date, ending_date))
   })
+  booking_period <- bookPeriod()
   
   #  start/end date UI
   output$start_date_ui <- renderUI({
-    dateInput("start_date", "From", min = Sys.Date(), value=bookPeriod()[1])
+    dateInput("start_date", "From", min = Sys.Date(), value=booking_period[1])
   })
   
   output$end_date_ui <- renderUI({
-    dateInput("end_date", "To", min = bookPeriod()[1], value=bookPeriod()[2])
+    dateInput("end_date", "To", min = booking_period[1], value=booking_period[2])
   })
   
   #  end time UI
@@ -303,6 +304,7 @@ shinyServer(function(input, output) {
       write_xlsx(new_schedule, path=paste0(mainDir, "/", scheduleTable_dir), col_names=T)
       
       #update calendar
+      booking_period <- isolate(bookPeriod())
       calendarSc_updated <- createCalendar(input$eqName, new_schedule, calendar_month())
       output$calendar <- renderPlot({calendarSc_updated[[1]]})
       
