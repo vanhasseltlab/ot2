@@ -113,38 +113,41 @@ shinyUI(fluidPage(
                             plotOutput("calendar", dblclick = "calendar_dblclick")
                           )
                         ),
-                        tableOutput("availability"),
-                        tableOutput("troubleshoot"))
+                        tableOutput("availability"))
              ),
              #Manage Bookings----------
              tabPanel("Manage Bookings", id = "tab_three",
-                      sidebarLayout(
-                        sidebarPanel(
-                          #Selections
-                          uiOutput("book_to_modify_ui"),
-                          radioButtons("modification", "", choices=c("Remove", "Modify"), inline=T, selected='Remove'),
-                          
-                          #modifications
-                          #from
-                          uiOutput("start_date_ui_modify"), #selecting start date; reactive to old booking
-                          uiOutput("start_time_ui_modify"), #selecting start time; reactive to old booking
-                          
-                          #to
-                          uiOutput("end_date_ui_modify"), #selecting end date; reactive to starting date
-                          uiOutput("end_time_ui_modify"), #selecting end time; reactive to starting time
-                          
-                          #Confirm button
-                          actionButton("confirm_manage", "Confirm"),
-                          textOutput("confirm_message"),
-                          textOutput("Conf_modify"),
-                          tags$head(tags$style("#confirm_message{color:red; font-style:italic;}")),
-                          tags$head(tags$style("#Conf_modify{color:blue; font-style:italic;}"))
-                        ),
-                        mainPanel(
-                          tableOutput("user_bookings"),
-                          textOutput("error_message_no_bookings")
+                      verticalLayout(
+                        sidebarLayout(
+                          sidebarPanel(
+                            #Selections
+                            uiOutput("book_to_modify_ui"),
+                            radioButtons("modification", "", choices=c("Remove", "Modify"), inline=T, selected='Remove'),
+                            
+                            #modifications
+                            #from
+                            uiOutput("start_date_ui_modify"), #selecting start date; reactive to old booking
+                            uiOutput("start_time_ui_modify"), #selecting start time; reactive to old booking
+                            
+                            #to
+                            uiOutput("end_date_ui_modify"), #selecting end date; reactive to starting date
+                            uiOutput("end_time_ui_modify"), #selecting end time; reactive to starting time
+                            
+                            #Confirm button
+                            actionButton("confirm_manage", "Confirm"),
+                            textOutput("confirm_message"),
+                            textOutput("Conf_modify"),
+                            tags$head(tags$style("#confirm_message{color:red; font-style:italic;}")),
+                            tags$head(tags$style("#Conf_modify{color:blue; font-style:italic;}"))
+                          ),
+                          mainPanel(
+                            tableOutput("user_bookings"),
+                            textOutput("error_message_no_bookings")
+                          )
                         )
-                      )
+                      ),
+                      
+                      tableOutput("user_availability")
              )
   )
 ))
