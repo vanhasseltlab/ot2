@@ -366,8 +366,6 @@ shinyServer(function(input, output) {
   userBookings <- reactive({
     if(is.null(currentUser())){NULL}
     
-    input$confirm_manage
-    
     scheduleTable_r <- read_excel(paste0(mainDir, "/", scheduleTable_dir), sheet=1)
     userTable <- subset(scheduleTable_r, Username==currentUser()) %>%
       mutate(Start.date = sapply(Start.date, function(x) chron(as.numeric(x), out.format=c(dates='d-m-y'))),
@@ -499,6 +497,11 @@ shinyServer(function(input, output) {
   
   #show output table for current user's bookings
   output$user_bookings <- renderTable(userBookings(), bordered=T, rownames=T)
+  reactive({
+    input$confirm_manage
+    
+    output$user_bookings <- renderTable(userBookings(), bordered=T, rownames=T)
+  })
   output$error_message_no_bookings <- renderText("No bookings found")
   output$time_availability <- renderTable({
     if(input$modification=="Remove"){NULL}else{availabilityDate()}
@@ -551,7 +554,6 @@ shinyServer(function(input, output) {
         
         #write
         write_xlsx(all_bookings, path=paste0(mainDir, "/", scheduleTable_dir), col_names=T)
-        output$user_bookings <- renderTable(userBookings(), bordered=T, rownames=T) #update table
         
         #confirm; disable further inputs
         hide("confirm_manage")
