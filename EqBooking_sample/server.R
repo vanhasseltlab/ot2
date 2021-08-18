@@ -582,7 +582,7 @@ shinyServer(function(input, output) {
       #  mutate(Start.date = sapply(Start.date, function(x){toString(x) %>% chron(format=c(dates='d-m-y')) %>% as.numeric()}),
       #         End.date = sapply(End.date, function(x){toString(x) %>% chron(format=c(dates='d-m-y')) %>% as.numeric()}))
       
-      output$test_table <- renderTable({user_oldBookings}) 
+      output$test_table <- renderTable({all_bookings}) 
       
       #write
       #write_xlsx(all_bookings, path=paste0(mainDir, "/", scheduleTable_dir), col_names=T)
