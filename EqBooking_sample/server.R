@@ -550,7 +550,10 @@ shinyServer(function(input, output) {
         
         #write
         write_xlsx(all_bookings, path=paste0(mainDir, "/", scheduleTable_dir), col_names=T)
-        output$user_bookings <- renderTable(current_books, bordered=T, rownames=T)
+        current_books_show <- current_books %>%
+          mutate(Start.date = sapply(Start.date, function(x) chron(as.numeric(x), out.format=c(dates='d-m-y'))),
+                 End.date = sapply(End.date, function(x) chron(as.numeric(x), out.format=c(dates='d-m-y'))))
+        output$user_bookings <- renderTable(current_books_show, bordered=T, rownames=T)
         
         #confirm; disable further inputs
         hide("confirm_manage")
