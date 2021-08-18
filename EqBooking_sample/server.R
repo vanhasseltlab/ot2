@@ -366,6 +366,8 @@ shinyServer(function(input, output) {
   userBookings <- reactive({
     if(is.null(currentUser())){NULL}
     
+    input$confirm_manage
+    
     scheduleTable_r <- read_excel(paste0(mainDir, "/", scheduleTable_dir), sheet=1)
     userTable <- subset(scheduleTable_r, Username==currentUser()) %>%
       mutate(Start.date = sapply(Start.date, function(x) chron(as.numeric(x), out.format=c(dates='d-m-y'))),
