@@ -52,6 +52,7 @@ equipmentAvails <- function(eq_name, schedule_table, calendar_table){
   
   if(nrow(eq_table)==0){
     calendar_table$Availability <- 0
+    use_table <- NULL
   }else{
     #get used time in hours
     use_table <- apply(eq_table, 1, function(x){
@@ -72,7 +73,7 @@ equipmentAvails <- function(eq_name, schedule_table, calendar_table){
                                           function(x) sum(subset(use_table, Date==as.numeric(x))$Availability))
   }
   
-  return(calendar_table)
+  return(list(calendar_table, use_table))
 }
 
 #CORE FUNCTION------------
@@ -93,6 +94,8 @@ createCalendar <- function(equipment_name, all_schedule, add_month=0){
   dateCoordinate <- dateCorrection(dateCoordinate, days, add_month)
   plot_name <- paste0(format(dateCoordinate[[2]], "%B"), "  ", format(dateCoordinate[[2]], "%Y"))
   dateCoordinate <- equipmentAvails(equipment_name, all_schedule, dateCoordinate[[1]])
+  use_table <- dateCoordinate[[2]]
+  dateCoordinate <- dateCoordinate[[1]]
   
   #   create ggplot
   output_plot <- ggplot()+xlim(0, 35)+ylim(0, 26)+theme_bw()+
@@ -116,5 +119,5 @@ createCalendar <- function(equipment_name, all_schedule, add_month=0){
           plot.subtitle = element_text(hjust=0.5))
   
   #return
-  return(list(output_plot, dateCoordinate))
+  return(list(output_plot, dateCoordinate, use_table))
 }

@@ -157,7 +157,8 @@ shinyServer(function(input, output) {
   })
   scheduleTable <- read_excel(paste0(mainDir, "/", scheduleTable_dir), sheet=1)
   calendarSc <- reactive({createCalendar(input$eqName, scheduleTable, calendar_month())})
-  output$calendar <- {renderPlot(calendarSc()[[1]])}
+  output$calendar <- renderPlot({calendarSc()[[1]]})
+  output$troubleshoot <- renderTable({calendarSc()[[3]]})
   
   #date handling
   bookPeriod <- reactive({
@@ -303,8 +304,8 @@ shinyServer(function(input, output) {
       write_xlsx(new_schedule, path=paste0(mainDir, "/", scheduleTable_dir), col_names=T)
       
       #update calendar
-      calendarSc <- reactive({createCalendar(input$eqName, new_schedule, calendar_month())})
-      output$calendar <- {renderPlot(calendarSc()[[1]])}
+      #calendarSc <- reactive({createCalendar(input$eqName, new_schedule, calendar_month())})
+      #output$calendar <- {renderPlot(calendarSc()[[1]])}
       
       #confirm; disable further inputs
       hide("confirm_book")

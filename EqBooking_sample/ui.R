@@ -113,7 +113,8 @@ shinyUI(fluidPage(
                             plotOutput("calendar", dblclick = "calendar_dblclick")
                           )
                         ),
-                        tableOutput("availability"))
+                        tableOutput("availability"),
+                        tableOutput("troubleshoot"))
              ),
              #Manage Bookings----------
              tabPanel("Manage Bookings", id = "tab_three",
