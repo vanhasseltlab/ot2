@@ -85,7 +85,7 @@ shinyUI(fluidPage(
              ),
              
              #Overview----------
-             tabPanel("New Booking", id = "taby",
+             tabPanel("New Booking", id = "tab_two",
                       verticalLayout(
                         sidebarLayout(
                           sidebarPanel(
@@ -116,7 +116,7 @@ shinyUI(fluidPage(
                         tableOutput("availability"))
              ),
              #Manage Bookings----------
-             tabPanel("Manage Bookings", id = "fourth_tab",
+             tabPanel("Manage Bookings", id = "tab_three",
                       sidebarLayout(
                         sidebarPanel(
                           #Selections

@@ -302,6 +302,10 @@ shinyServer(function(input, output) {
       #output:write excel
       write_xlsx(new_schedule, path=paste0(mainDir, "/", scheduleTable_dir), col_names=T)
       
+      #update calendar
+      calendarSc <- reactive({createCalendar(input$eqName, new_schedule, calendar_month())})
+      output$calendar <- {renderPlot(calendarSc()[[1]])}
+      
       #confirm; disable further inputs
       hide("confirm_book")
       output$Conf_message <- renderText({"Booking successful!"})
