@@ -550,7 +550,7 @@ shinyServer(function(input, output) {
         
         #write
         write_xlsx(all_bookings, path=paste0(mainDir, "/", scheduleTable_dir), col_names=T)
-        delay(1000, {output$user_bookings <- renderTable(userBookings(), bordered=T, rownames=T)})
+        output$user_bookings <- renderTable(current_books, bordered=T, rownames=T)
         
         #confirm; disable further inputs
         hide("confirm_manage")
