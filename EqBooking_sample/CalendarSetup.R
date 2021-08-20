@@ -46,9 +46,10 @@ equipmentAvails <- function(eq_name, schedule_table, calendar_table){
   #subset current equipment within relevant date
   eq_table <- subset(schedule_table, Equipment==eq_name) %>%
     mutate(Start.date = chron(as.numeric(Start.date), out.format='y-m-d'),
-           End.date = chron(as.numeric(End.date), out.format='y-m-d')) %>%
-    filter((Start.date >= period[1] & Start.date <= period[2]) | 
-             (End.date >= period[1] & End.date <= period[2]))
+           End.date = chron(as.numeric(End.date), out.format='y-m-d'),
+           Active = !grepl("Removed", Note)) %>%
+    filter(((Start.date  >= period[1] & Start.date <= period[2]) |
+              (End.date >= period[1] & End.date <= period[2])) & Active)
   
   if(nrow(eq_table)==0){
     calendar_table$Availability <- 0

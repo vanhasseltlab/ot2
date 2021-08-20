@@ -1,7 +1,11 @@
 #INPUT-------------
-#mainDir <- "C:/Users/Sebastian/Desktop/MSc Leiden 2nd Year/##LabAst Works/Incubator/Calendar/EqBooking_v5"
+#mainDir <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator"
+#mainDir2 <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\EqBooking_sample"
+
+#webserver inputs
 mainDir <- "/srv/shiny-server/files/EqBooking"
 mainDir2 <- "/srv/shiny-server/ot2/EqBooking_sample"
+
 scheduleTable_dir <- "ScheduleHardCopy.xlsx"
 userLog_dir <- "sneakyLogin.csv"
 
@@ -22,7 +26,6 @@ source(paste0(mainDir2, "/CalendarSetup.R"))
 shinyServer(function(input, output) {
   # GENERAL LOGIN--------------
   #   disabling tabs before login
-  disable(selector = '.navbar-nav a[data-value="Overview"')
   disable(selector = '.navbar-nav a[data-value="New Booking"')
   disable(selector = '.navbar-nav a[data-value="Manage Bookings"')
   
@@ -57,7 +60,7 @@ shinyServer(function(input, output) {
   hide("password_retype")
   hide("new_pass")
   observeEvent(input$activate_confirm, {
-    userLog <<- read.csv(paste0(mainDir, "/", userLog_dir)) %>% #re-read each time
+    userLog <- read.csv(paste0(mainDir, "/", userLog_dir)) %>% #re-read each time
       subset(Username==input$activation_user)
     
     if(nrow(userLog)==1 & !userLog$Activation){
@@ -152,75 +155,31 @@ shinyServer(function(input, output) {
   })
   
   # OVERVIEW AND NEW BOOKING-----------
+  hide("reset_booking")
+  
+  scheduleTable <<- read_excel(paste0(mainDir, "/", scheduleTable_dir), sheet=1) #initial read
+  
+  #  Calendar
   calendar_month <- reactive({
     input$add_month - input$red_month
   })
-  scheduleTable <- read_excel(paste0(mainDir, "/", scheduleTable_dir), sheet=1)
-  calendarSc <- reactive({createCalendar(input$eqName, scheduleTable, calendar_month())})
-  output$calendar <- renderPlot({calendarSc()[[1]]})
-  
-  #date handling
-  bookPeriod <- reactive({
-    if(input$confirm_book==0){
-      current_click <- input$calendar_dblclick
-    }else{
-      current_click <- isolate(input$calendar_dblclick)
-    }
-    
-    #starting period
-    if(is.null(current_click)){
-      starting_date <- Sys.Date()
-    }else{
-      starting_date <- calendarSc()[[2]] %>%
-        filter(border_x>=(current_click$x-5) & border_y>=current_click$y) %>%
-        arrange(border_x, border_y)
-      starting_date <- paste0("20", toString(starting_date$actual_date[1])) %>% as.Date(format="%Y-%m-%d")
-      if(starting_date < Sys.Date()){starting_date <- Sys.Date()}
-    }
-    
-    #ending period
-    if(is.null(current_click)){
-      ending_date <- Sys.Date()
-    }else{
-      ending_date <- starting_date
-    }
-    
-    return(c(starting_date, ending_date))
-  })
-  
-  #  start/end date UI
-  output$start_date_ui <- renderUI({
-    dateInput("start_date", "From", min = Sys.Date(), value=bookPeriod()[1])
-  })
-  
-  output$end_date_ui <- renderUI({
-    dateInput("end_date", "To", min = bookPeriod()[1], value=bookPeriod()[2])
-  })
-  
-  #  end time UI
-  observeEvent(input$start_time, {
-    min_index <- which(timeSlots == input$start_time)
-    finish_time_slot <- if(min_index==length(timeSlots)){c()}else{timeSlots[(min_index+1):length(timeSlots)]}
-    
-    output$end_time_ui <- renderUI({
-      selectInput("end_time", "", finish_time_slot)
-    })
-  })
+  calendarSc <- reactive({createCalendar(input$eqName, scheduleTable, calendar_month())}) #initial render
+  output$calendar <- renderPlot({calendarSc()[[1]]}) #initial render
   
   #  Availability Plot
   current_eqSch <- reactive({
     #check current input period
     book_period <- c(input$start_date, input$end_date) %>% sapply(function(x) toString(x)) %>%
       chron(format=c(dates='y-m-d'), out.format=c(dates='d/m/y'))
-    
     book_time <- c(input$start_time, input$end_time) %>% sapply(function(x) toString(x))
     
     #read schedule table
     eqSch <- subset(scheduleTable, Equipment==input$eqName) %>% 
       mutate(Start.date = chron(as.numeric(Start.date), out.format=c(dates="d/m/y")), 
-             End.date = chron(as.numeric(End.date), out.format=c(dates="d/m/y"))) %>%
-      filter((Start.date  >= book_period[1] & Start.date <= book_period[2]) |
-               (End.date >= book_period[1] & End.date <= book_period[2]))
+             End.date = chron(as.numeric(End.date), out.format=c(dates="d/m/y")),
+             Active = !grepl("Removed", Note)) %>%
+      filter(((Start.date  >= book_period[1] & Start.date <= book_period[2]) |
+                (End.date >= book_period[1] & End.date <= book_period[2])) & Active)
     eqSch$Start.time <- sapply(eqSch$Start.time, function(x) paste0(x, ":00"))
     eqSch$End.time <- sapply(eqSch$End.time, function(x) paste0(x, ":00"))
     
@@ -258,7 +217,115 @@ shinyServer(function(input, output) {
       sub_eqsch <- subset(eqSch, Start <= x & End > x)
       if(nrow(sub_eqsch)==0){return(" ")}else{return(sub_eqsch$Username)}
     })
+    
     return(book_table)
+  })
+  output$availability <- renderTable(current_eqSch(), rownames=T, bordered=T)
+  
+  #  calendar and schedule udpate
+  observeEvent(input$confirm_book | input$confirm_manage, {
+    #calendar update
+    calendarSc <- reactive({createCalendar(input$eqName, scheduleTable, calendar_month())})
+    output$calendar <- renderPlot({calendarSc()[[1]]})
+    
+    #availability plot update
+    current_eqSch <- reactive({
+      #check current input period
+      book_period <- c(input$start_date, input$end_date) %>% sapply(function(x) toString(x)) %>%
+        chron(format=c(dates='y-m-d'), out.format=c(dates='d/m/y'))
+      book_time <- c(input$start_time, input$end_time) %>% sapply(function(x) toString(x))
+      
+      #read schedule table
+      eqSch <- subset(scheduleTable, Equipment==input$eqName) %>% 
+        mutate(Start.date = chron(as.numeric(Start.date), out.format=c(dates="d/m/y")), 
+               End.date = chron(as.numeric(End.date), out.format=c(dates="d/m/y")),
+               Active = !grepl("Removed", Note)) %>%
+        filter(((Start.date  >= book_period[1] & Start.date <= book_period[2]) |
+                  (End.date >= book_period[1] & End.date <= book_period[2])) & Active)
+      eqSch$Start.time <- sapply(eqSch$Start.time, function(x) paste0(x, ":00"))
+      eqSch$End.time <- sapply(eqSch$End.time, function(x) paste0(x, ":00"))
+      
+      #creating schedule table
+      time_slots <- seq(8, 18, 1) %>% sapply(function(x){
+        time <- paste0(x, ":00")
+        if(nchar(time) == 4){time <- paste0("0", time)}
+        return(time)
+      })
+      
+      date_period <- sapply(seq(0,as.numeric(book_period[2]-book_period[1]),1), 
+                            function(x) toString(book_period[1]+x))
+      date_period <- sapply(date_period, 
+                            function(x) paste0(x, " - ", time_slots)) %>% as.vector()
+      book_table <- replicate(2, replicate(length(date_period), "")) %>% t() %>% data.frame()
+      rownames(book_table) <- c("Booked", "Current Selection")
+      colnames(book_table) <- date_period
+      
+      #filling schedule table
+      book_span <- sapply(c(1:2), 
+                          function(x) paste0(book_period[x], " - ", book_time[x]))
+      
+      book_span <- which(colnames(book_table) %in% book_span)
+      book_span <- c(book_span[1]:(book_span[2]-1))
+      book_table[2, book_span] <- "Selected"
+      
+      #filling booked slots
+      eqSch$Start <- apply(eqSch, 1, 
+                           function(x) which(date_period==paste0(x["Start.date"], " - ", substring(toString(x["Start.time"]), 1, 5))))
+      eqSch$End <- apply(eqSch, 1, 
+                         function(x) which(date_period==paste0(x["End.date"], " - ", substring(toString(x["End.time"]), 1, 5))))
+      
+      date_period2 <- data.frame(num = seq(1, length(date_period), 1), slots = date_period)
+      book_table[1,] <- sapply(date_period2$num, function(x){
+        sub_eqsch <- subset(eqSch, Start <= x & End > x)
+        if(nrow(sub_eqsch)==0){return(" ")}else{return(sub_eqsch$Username)}
+      })
+      
+      return(book_table)
+    })
+    output$availability <- renderTable(current_eqSch(), rownames=T, bordered=T)
+  })
+  
+  #  date handling
+  bookPeriod <- reactive({
+    #starting period
+    if(is.null(input$calendar_dblclick)){
+      starting_date <- Sys.Date()
+      ending_date <- Sys.Date()
+    }else{
+      current_click <- input$calendar_dblclick
+      starting_date <- calendarSc()[[2]] %>%
+        filter(border_x>=(current_click$x-5) & border_y>=current_click$y) %>%
+        arrange(border_x, border_y)
+      starting_date <- paste0("20", toString(starting_date$actual_date[1])) %>% as.Date(format="%Y-%m-%d")
+      if(starting_date < Sys.Date()){starting_date <- Sys.Date()}
+      
+      ending_date <- starting_date
+    }
+    
+    tryCatch({
+      return_period <- isolated_period
+      isolated_period <<- c()
+      if(is.null(return_period)){return(c(starting_date, ending_date))}else{return(return_period)}
+      }, error=function(cond){return(c(starting_date, ending_date))})
+  })
+  
+  #  start/end date UI
+  output$start_date_ui <- renderUI({
+    dateInput("start_date", "From", min = Sys.Date(), value=bookPeriod()[1])
+  })
+  
+  output$end_date_ui <- renderUI({
+    dateInput("end_date", "To", min = bookPeriod()[1], value=bookPeriod()[2])
+  })
+  
+  #  end time UI
+  observeEvent(input$start_time, {
+    min_index <- which(timeSlots == input$start_time)
+    finish_time_slot <- if(min_index==length(timeSlots)){c()}else{timeSlots[(min_index+1):length(timeSlots)]}
+    
+    output$end_time_ui <- renderUI({
+      selectInput("end_time", "", finish_time_slot)
+    })
   })
   
   #  Create booking
@@ -273,7 +340,8 @@ shinyServer(function(input, output) {
     #equipment schedule subsetting
     eqSch <- subset(scheduleTable, Equipment==input$eqName) %>% 
       mutate(Start.date = chron(as.numeric(Start.date), out.format=c(dates="y-m-d")), 
-             End.date = chron(as.numeric(End.date), out.format=c(dates="y-m-d")))
+             End.date = chron(as.numeric(End.date), out.format=c(dates="y-m-d")),
+             Active = !grepl("Removed", Note)) %>% filter(Active)
     eqSch$Start.time <- sapply(eqSch$Start.time, function(x) paste0(x, ":00"))
     eqSch$End.time <- sapply(eqSch$End.time, function(x) paste0(x, ":00"))
     
@@ -294,7 +362,8 @@ shinyServer(function(input, output) {
     # execute
     if(eq_approval){
       #execute if confirm button pushed and input is approved
-      new_input <- c("No" = max(scheduleTable$No)+1, 
+      booking_number <- if(nrow(scheduleTable)==0){1}else{max(as.numeric(scheduleTable$No))+1}
+      new_input <- c("No" = booking_number, 
                      "Username"=currentUser(), "Equipment" = input$eqName,
                      "Start.date"=input$start_date, 
                      "Start.time"=input$start_time,
@@ -305,15 +374,16 @@ shinyServer(function(input, output) {
       new_schedule <- rbind.data.frame(scheduleTable, new_input)
       colnames(new_schedule) <- colnames(scheduleTable)
       
+      #isolate booking period for subsequent bookings
+      isolated_period <<- isolate(bookPeriod())
+      
       #output:write excel
       write_xlsx(new_schedule, path=paste0(mainDir, "/", scheduleTable_dir), col_names=T)
-      
-      #update calendar
-      calendarSc_updated <- createCalendar(input$eqName, new_schedule, calendar_month())
-      output$calendar <- renderPlot({calendarSc_updated[[1]]})
+      scheduleTable <<- read_excel(paste0(mainDir, "/", scheduleTable_dir), sheet=1) #refresh read
       
       #confirm; disable further inputs
       hide("confirm_book")
+      show("reset_booking")
       output$Conf_message <- renderText({"Booking successful!"})
       show("Conf_message")
       toggleState("eqName")
@@ -321,9 +391,7 @@ shinyServer(function(input, output) {
       toggleState("start_time")
       toggleState("end_date")
       toggleState("end_time")
-    }else{
-      show("Error_message")
-    }
+    }else{show("Error_message")}
   })
   
   #  handling error message
@@ -333,10 +401,26 @@ shinyServer(function(input, output) {
     hide("Error_message")
   })
   
-  #  Render availability plot
-  output$availability <- renderTable(current_eqSch(), rownames=T, bordered=T)
+  #  reset
+  observeEvent(input$reset_booking, {
+    #hide/show action button
+    hide("reset_booking")
+    show("confirm_book")
+    hide("Conf_message")
+    
+    #resetting inputs
+    reset("confirm_booking")
+    reset("reset_booking")
+    reset("calendar_dblclick")
+    enable("start_date")
+    enable("start_time")
+    enable("end_date")
+    enable("end_time")
+    enable("eqName")
+  })
   
   # MANAGE BOOKINGS--------------
+  hide("reset_manage")
   hide("end_date_ui_modify")
   hide("end_time_ui_modify")
   hide("start_date_ui_modify")
@@ -366,14 +450,12 @@ shinyServer(function(input, output) {
   userBookings <- reactive({
     if(is.null(currentUser())){NULL}
     
-    scheduleTable_r <- read_excel(paste0(mainDir, "/", scheduleTable_dir), sheet=1)
-    userTable <- subset(scheduleTable_r, Username==currentUser()) %>%
+    userTable <- subset(scheduleTable, Username==currentUser()) %>%
       mutate(Start.date = sapply(Start.date, function(x) chron(as.numeric(x), out.format=c(dates='d-m-y'))),
              End.date = sapply(End.date, function(x) chron(as.numeric(x), out.format=c(dates='d-m-y')))) %>%
       filter(Start.date >= chron(toString(Sys.Date()), format=c(dates='y-m-d'))) %>%
       mutate(Start.date = sapply(Start.date, function(x){as.numeric(x) %>% chron(out.format=c(dates='d-m-y')) %>% toString()}),
              End.date = sapply(End.date, function(x){as.numeric(x) %>% chron(out.format=c(dates='d-m-y')) %>% toString()}))
-    
     if(nrow(userTable)==0){
       show("error_message_no_bookings")
       return(NULL)
@@ -384,14 +466,14 @@ shinyServer(function(input, output) {
   })
   
   #setup dropdown menu for booking selection
-  output$book_to_modify_ui <- renderUI(selectInput("book_to_modify", "Select Booking", dropDown()))
-  
   dropDown <- reactive({
-    if(is.null(userBookings())){
+    available_selection <- userBookings() %>%
+      mutate(Active = !grepl("Removed", Note)) %>% filter(Active)
+    if(is.null(available_selection) | nrow(available_selection)==0){
       selections <- c("")
     }else{
       #selection for drop-down menu
-      selections <- apply(userBookings(), 1, function(x) {
+      selections <- apply(available_selection, 1, function(x) {
         if(x["Start.date"]==x["End.date"]){
           paste0(x["Equipment"], " : ", x["Start.date"], " - ", 
                  x["Start.time"]," ~ ", x["End.time"])
@@ -402,6 +484,7 @@ shinyServer(function(input, output) {
     }
     return(selections)
   })
+  output$book_to_modify_ui <- renderUI(selectInput("book_to_modify", "Select Booking", dropDown()))
   
   #get original settings
   original_dates <- reactive({
@@ -409,10 +492,10 @@ shinyServer(function(input, output) {
     
     #get relevant booking period
     book_index <- which(dropDown()==input$book_to_modify)
-    book_dates <- c(userBookings()$Start.date[book_index], userBookings()$End.date[book_index]) %>%
+    current_books <- userBookings() %>%
+      mutate(Active = !grepl("Removed", Note)) %>% filter(Active)
+    book_dates <- c(current_books$Start.date[book_index], current_books$End.date[book_index]) %>%
       chron(format=c(dates='d-m-y'), out.format=c(dates="d-m-y"))
-    
-    return(book_dates)
   })
   
   original_times <- reactive({
@@ -420,7 +503,9 @@ shinyServer(function(input, output) {
     
     #get relevant booking period
     book_index <- which(dropDown()==input$book_to_modify)
-    book_times <- c(userBookings()$Start.time[book_index], userBookings()$End.time[book_index]) 
+    current_books <- userBookings() %>%
+      mutate(Active = !grepl("Removed", Note)) %>% filter(Active)
+    book_times <- c(current_books$Start.time[book_index], current_books$End.time[book_index]) 
     
     return(book_times)
   })
@@ -430,7 +515,9 @@ shinyServer(function(input, output) {
     if(input$modification=="Remove"){return(userBookings())}else{
       #get relevant booking period
       book_index <- which(dropDown()==input$book_to_modify)
-      current_books <- userBookings()[book_index,]
+      current_books <- userBookings() %>%
+        mutate(Active = !grepl("Removed", Note)) %>% filter(Active)
+      current_books <- current_books[book_index,]
       
       #input
       book_period <- c(input$start_date_modify, input$end_date_modify) %>%
@@ -439,12 +526,13 @@ shinyServer(function(input, output) {
       
       #read booking schedule
       eq_name <- strsplit(input$book_to_modify, split=" : ")[[1]][1]
-      scheduleTable_r <- read_excel(paste0(mainDir, "/", scheduleTable_dir), sheet=1)
-      eqSch <- subset(scheduleTable_r, Equipment==eq_name & No != current_books$No) %>% 
+      
+      eqSch <- subset(scheduleTable, Equipment==eq_name & No != current_books$No) %>% 
         mutate(Start.date = chron(as.numeric(Start.date), out.format=c(dates="d/m/y")), 
-               End.date = chron(as.numeric(End.date), out.format=c(dates="d/m/y"))) %>%
-        filter((Start.date  >= book_period[1] & Start.date <= book_period[2]) |
-                 (End.date >= book_period[1] & End.date <= book_period[2]))
+               End.date = chron(as.numeric(End.date), out.format=c(dates="d/m/y")),
+               Active = !grepl("Removed", Note)) %>%
+        filter(((Start.date  >= book_period[1] & Start.date <= book_period[2]) |
+                 (End.date >= book_period[1] & End.date <= book_period[2])) & Active)
       eqSch$Start.time <- sapply(eqSch$Start.time, function(x) paste0(x, ":00"))
       eqSch$End.time <- sapply(eqSch$End.time, function(x) paste0(x, ":00"))
       
@@ -497,11 +585,165 @@ shinyServer(function(input, output) {
   
   #show output table for current user's bookings
   output$user_bookings <- renderTable(userBookings(), bordered=T, rownames=T)
-  
   output$error_message_no_bookings <- renderText("No bookings found")
   output$time_availability <- renderTable({
     if(input$modification=="Remove"){NULL}else{availabilityDate()}
   }, bordered=T, rownames=T)
+  
+  #update availability table based on confirmed changes
+  observeEvent(input$confirm_manage | input$confirm_book, {
+    #user bookings table
+    userBookings <- reactive({
+      if(is.null(currentUser())){NULL}
+      
+      userTable <- subset(scheduleTable, Username==currentUser()) %>%
+        mutate(Start.date = sapply(Start.date, function(x) chron(as.numeric(x), out.format=c(dates='d-m-y'))),
+               End.date = sapply(End.date, function(x) chron(as.numeric(x), out.format=c(dates='d-m-y')))) %>%
+        filter(Start.date >= chron(toString(Sys.Date()), format=c(dates='y-m-d'))) %>%
+        mutate(Start.date = sapply(Start.date, function(x){as.numeric(x) %>% chron(out.format=c(dates='d-m-y')) %>% toString()}),
+               End.date = sapply(End.date, function(x){as.numeric(x) %>% chron(out.format=c(dates='d-m-y')) %>% toString()}))
+      if(nrow(userTable)==0){
+        show("error_message_no_bookings")
+        return(NULL)
+      }else{
+        hide("error_message_no_bookings")
+        return(userTable)
+      }
+    })
+    output$user_bookings <- renderTable(userBookings(), bordered=T, rownames=T)
+    
+    #dropdown menu: booking selection
+    dropDown <- reactive({
+      available_selection <- userBookings() %>%
+        mutate(Active = !grepl("Removed", Note)) %>% filter(Active)
+      if(is.null(available_selection) | nrow(available_selection)==0){
+        selections <- c("")
+      }else{
+        #selection for drop-down menu
+        selections <- apply(available_selection, 1, function(x) {
+          if(x["Start.date"]==x["End.date"]){
+            paste0(x["Equipment"], " : ", x["Start.date"], " - ", 
+                   x["Start.time"]," ~ ", x["End.time"])
+          }else{
+            paste0(x["Equipment"], " : ", x["Start.date"], " - ", x["Start.time"],
+                   " ~ ", x["End.date"], " - ", x["End.time"])
+          }}) 
+      }
+      return(selections)
+    })
+    output$book_to_modify_ui <- renderUI(selectInput("book_to_modify", "Select Booking", dropDown()))
+    
+    #reset input settigns
+    original_dates <- reactive({
+      if(is.null(input$book_to_modify)){NULL}
+      
+      #get relevant booking period
+      book_index <- which(dropDown()==input$book_to_modify)
+      current_books <- userBookings() %>%
+        mutate(Active = !grepl("Removed", Note)) %>% filter(Active)
+      book_dates <- c(current_books$Start.date[book_index], current_books$End.date[book_index]) %>%
+        chron(format=c(dates='d-m-y'), out.format=c(dates="d-m-y"))
+    })
+    original_times <- reactive({
+      if(is.null(input$book_to_modify)){NULL}
+      
+      #get relevant booking period
+      book_index <- which(dropDown()==input$book_to_modify)
+      current_books <- userBookings() %>%
+        mutate(Active = !grepl("Removed", Note)) %>% filter(Active)
+      book_times <- c(current_books$Start.time[book_index], current_books$End.time[book_index]) 
+      
+      return(book_times)
+    })
+    output$end_date_ui_modify <- renderUI({
+      dateInput("end_date_modify", "To", min=input$start_date_modify, value=original_dates()[2])
+    })
+    output$end_time_ui_modify <- renderUI({
+      selectInput("end_time_modify", "", time_slot_range_modify())
+    })
+    output$start_date_ui_modify <- renderUI({
+      dateInput("start_date_modify", "From", min = Sys.Date(), value=original_dates()[1]) #select start date
+    })
+    output$start_time_ui_modify <- renderUI({
+      selectInput("start_time_modify", "", timeSlots, selected=original_times()[1]) #select start time
+    })
+    
+    #availability table
+    availabilityDate <- reactive({
+      if(input$modification=="Remove"){return(userBookings())}else{
+        #get relevant booking period
+        book_index <- which(dropDown()==input$book_to_modify)
+        current_books <- userBookings() %>%
+          mutate(Active = !grepl("Removed", Note)) %>% filter(Active)
+        current_books <- current_books[book_index,]
+        
+        #input
+        book_period <- c(input$start_date_modify, input$end_date_modify) %>%
+          sapply(function(x) chron(toString(x), format=c(dates='y-m-d'), out.format = c(dates='d/m/y')))
+        book_time <- c(input$start_time_modify, input$end_time_modify) %>% sapply(function(x) toString(x))
+        
+        #read booking schedule
+        eq_name <- strsplit(input$book_to_modify, split=" : ")[[1]][1]
+        
+        eqSch <- subset(scheduleTable, Equipment==eq_name & No != current_books$No) %>% 
+          mutate(Start.date = chron(as.numeric(Start.date), out.format=c(dates="d/m/y")), 
+                 End.date = chron(as.numeric(End.date), out.format=c(dates="d/m/y")),
+                 Active = !grepl("Removed", Note)) %>%
+          filter(((Start.date  >= book_period[1] & Start.date <= book_period[2]) |
+                    (End.date >= book_period[1] & End.date <= book_period[2])) & Active)
+        eqSch$Start.time <- sapply(eqSch$Start.time, function(x) paste0(x, ":00"))
+        eqSch$End.time <- sapply(eqSch$End.time, function(x) paste0(x, ":00"))
+        
+        #creating schedule table
+        time_slots <- seq(8, 18, 1) %>% sapply(function(x){
+          time <- paste0(x, ":00")
+          if(nchar(time) == 4){time <- paste0("0", time)}
+          return(time)
+        })
+        date_period <- sapply(seq(0,as.numeric(book_period[2]-book_period[1]),1), 
+                              function(x) toString(chron(book_period[1]+x, out.format=c(dates='d/m/y'))))
+        date_period <- sapply(date_period, 
+                              function(x) paste0(x, " - ", time_slots)) %>% as.vector()
+        book_table <- replicate(3, replicate(length(date_period), "")) %>% t() %>% data.frame()
+        rownames(book_table) <- c("Booked", "Old Booking", "Current Selection")
+        colnames(book_table) <- date_period
+        
+        #filling schedule table
+        book_span <- sapply(c(1:2), 
+                            function(x) paste0(chron(as.numeric(book_period[x]), out.format=c(dates='d/m/y')), 
+                                               " - ", book_time[x]))
+        book_span <- which(colnames(book_table) %in% book_span)
+        book_span <- c(book_span[1]:(book_span[2]-1))
+        book_table[3, book_span] <- "Selected"
+        
+        #filling booked slots
+        eqSch$Start <- apply(eqSch, 1, 
+                             function(x) which(date_period==paste0(x["Start.date"], " - ", substring(toString(x["Start.time"]), 1, 5))))
+        eqSch$End <- apply(eqSch, 1, 
+                           function(x) which(date_period==paste0(x["End.date"], " - ", substring(toString(x["End.time"]), 1, 5))))
+        
+        date_period2 <- data.frame(num = seq(1, length(date_period), 1), slots = date_period)
+        book_table[1,] <- sapply(date_period2$num, function(x){
+          sub_eqsch <- subset(eqSch, Start <= x & End > x)
+          if(nrow(sub_eqsch)==0){return(" ")}else{return(sub_eqsch$Username)}
+        })
+        
+        #filling old slots
+        current_books <- c(paste0(gsub("-", "/", current_books$Start.date), " - ", current_books$Start.time),
+                           paste0(gsub("-", "/", current_books$End.date), " - ", current_books$End.time))
+        
+        current_books_index <- which(colnames(book_table) %in% current_books)
+        
+        current_books_index <- seq(current_books_index[1], current_books_index[2]-1, 1)
+        book_table[2,current_books_index] <- "Old Booking"
+        
+        return(book_table)
+      }
+    })
+    output$time_availability <- renderTable({
+      if(input$modification=="Remove"){NULL}else{availabilityDate()}
+    }, bordered=T, rownames=T)
+  })
   
   #hide/show based on radio input: modify OR remove booking
   observeEvent(input$modification, {
@@ -522,7 +764,6 @@ shinyServer(function(input, output) {
   observeEvent(input$confirm_manage, {
     if(input$confirm_manage==0){NULL}
     
-    scheduleTable_r <- read_excel(paste0(mainDir, "/", scheduleTable_dir), sheet=1)
     if(input$modification=="Modify"){
       #checking slot availability
       availability <- availabilityDate()[c(1,3),]
@@ -535,7 +776,8 @@ shinyServer(function(input, output) {
         #get user's booking
         current_books <- userBookings() %>% 
           mutate(Start.date = sapply(Start.date, function(x) chron(x, format=c(dates='d-m-y'))),
-                 End.date = sapply(End.date, function(x) chron(x, format=c(dates='d-m-y'))))
+                 End.date = sapply(End.date, function(x) chron(x, format=c(dates='d-m-y'))),
+                 Active = !grepl("Removed", Note)) %>% filter(Active)
         
         #modify user's booking
         current_books$Start.date[book_index] <- input$start_date_modify
@@ -543,17 +785,26 @@ shinyServer(function(input, output) {
         current_books$End.date[book_index] <- input$end_date_modify
         current_books$End.time[book_index] <- input$end_time_modify
         
+        #leave note
+        new_note <- paste0("Modified from ", strsplit(input$book_to_modify, split=" : ")[[1]][2], "; by ", input$user_login, " at ", toString(Sys.time()))
+        if(!is.na(current_books$Note[book_index])){
+          current_books$Note[book_index] <- paste0(new_note, "\n", current_books$Note[book_index])
+        }else{current_books$Note[book_index] <- new_note}
+        
+        removed_books <- userBookings() %>% 
+          mutate(Start.date = sapply(Start.date, function(x) chron(x, format=c(dates='d-m-y'))),
+                 End.date = sapply(End.date, function(x) chron(x, format=c(dates='d-m-y'))),
+                 Active = !grepl("Removed", Note)) %>% filter(!Active)
+        
         #get the rest of bookings in the schedule table
-        all_bookings <- subset(scheduleTable_r, Username!=currentUser()) %>%
+        all_bookings <- subset(scheduleTable, Username!=currentUser()) %>%
           rbind.data.frame(current_books) %>%
-          mutate(No = as.numeric(No)) %>% arrange(No)
+          rbind.data.frame(removed_books) %>%
+          mutate(No = as.numeric(No)) %>% arrange(No) %>% dplyr::select(-Active)
         
         #write
         write_xlsx(all_bookings, path=paste0(mainDir, "/", scheduleTable_dir), col_names=T)
-        current_books_show <- current_books %>%
-          mutate(Start.date = sapply(Start.date, function(x) toString(chron(as.numeric(x), out.format=c(dates='d-m-y')))),
-                 End.date = sapply(End.date, function(x) toString(chron(as.numeric(x), out.format=c(dates='d-m-y')))))
-        output$user_bookings <- renderTable(current_books_show, bordered=T, rownames=T)
+        scheduleTable <<- read_excel(paste0(mainDir, "/", scheduleTable_dir), sheet=1) #update global
         
         #confirm; disable further inputs
         hide("confirm_manage")
@@ -565,42 +816,54 @@ shinyServer(function(input, output) {
         toggleState("start_time_modify")
         toggleState("end_date_modify")
         toggleState("end_time_modify")
+        hide("time_availability")
+        show("reset_manage")
       }
     }else{
       #get index of modified booking within current user's booking table
       book_index <- which(dropDown()==input$book_to_modify)
       
       #get user's booking; remove the indexed row
-      current_books <- userBookings()[-book_index,] %>%
-        mutate(Start.date = sapply(Start.date, function(x){toString(x) %>% chron(format=c(dates='d-m-y')) %>% as.numeric()}),
-               End.date = sapply(End.date, function(x){toString(x) %>% chron(format=c(dates='d-m-y')) %>% as.numeric()}))
+      current_books <- userBookings() %>% 
+        mutate(Start.date = sapply(Start.date, function(x) chron(x, format=c(dates='d-m-y'))),
+               End.date = sapply(End.date, function(x) chron(x, format=c(dates='d-m-y'))),
+               Active = !grepl("Removed", Note)) %>% filter(Active)
       
-      user_oldBookings <- subset(scheduleTable_r, Username==currentUser()) %>%
+      current_books <- userBookings() %>%
+        mutate(Start.date = sapply(Start.date, function(x){toString(x) %>% chron(format=c(dates='d-m-y')) %>% as.numeric()}),
+               End.date = sapply(End.date, function(x){toString(x) %>% chron(format=c(dates='d-m-y')) %>% as.numeric()}),
+               Active = !grepl("Removed", Note)) %>% filter(Active)
+      
+      current_books$Note[book_index] <- paste0("Removed by ", input$user_login, " at ", toString(Sys.time()))
+      
+      #other bookings to append
+      removed_books <- userBookings() %>%
+        mutate(Start.date = sapply(Start.date, function(x){toString(x) %>% chron(format=c(dates='d-m-y')) %>% as.numeric()}),
+               End.date = sapply(End.date, function(x){toString(x) %>% chron(format=c(dates='d-m-y')) %>% as.numeric()}),
+               Active = !grepl("Removed", Note)) %>% filter(!Active)
+      
+      user_oldBookings <- subset(scheduleTable, Username==currentUser()) %>%
         mutate(Start.date = sapply(Start.date, function(x) chron(as.numeric(x), out.format=c(dates='d-m-y'))),
                End.date = sapply(End.date, function(x) chron(as.numeric(x), out.format=c(dates='d-m-y')))) %>%
         filter(Start.date < chron(toString(Sys.Date()), format=c(dates='y-m-d')))
-        #mutate(Start.date = sapply(Start.date, function(x){as.numeric(x) %>% chron(out.format=c(dates='d-m-y')) %>% toString()}),
-        #       End.date = sapply(End.date, function(x){as.numeric(x) %>% chron(out.format=c(dates='d-m-y')) %>% toString()}))
       
       #get the rest of bookings in the schedule table
-      all_bookings <- subset(scheduleTable_r, Username!=currentUser()) %>%
+      all_bookings <- subset(scheduleTable, Username!=currentUser()) %>%
         rbind.data.frame(user_oldBookings) %>%
         rbind.data.frame(current_books) %>%
-        mutate(No = as.numeric(No)) %>% arrange(No) 
+        rbind.data.frame(removed_books) %>%
+        mutate(No = as.numeric(No)) %>% arrange(No) %>% dplyr::select(-Active)
       
       #write
       write_xlsx(all_bookings, path=paste0(mainDir, "/", scheduleTable_dir), col_names=T)
-      
-      current_books_show <- current_books %>%
-        mutate(Start.date = sapply(Start.date, function(x) toString(chron(as.numeric(x), out.format=c(dates='d-m-y')))),
-               End.date = sapply(End.date, function(x) toString(chron(as.numeric(x), out.format=c(dates='d-m-y')))))
-      output$user_bookings <- renderTable(current_books_show, bordered=T, rownames=T)
+      scheduleTable <<- read_excel(paste0(mainDir, "/", scheduleTable_dir), sheet=1) #update global
       
       hide("confirm_manage")
       output$Conf_modify <- renderText({"Booking removed"})
       show("Conf_modify")
       toggleState("book_to_modify")
       toggleState("modification")
+      show("reset_manage")
     }
   })
   
@@ -619,4 +882,22 @@ shinyServer(function(input, output) {
     }
   })
   output$confirm_message <- renderText({conf_message()})
+  
+  # reset manage operations
+  observeEvent(input$reset_manage, {
+    #reactivating confirm buttons
+    show("confirm_manage")
+    hide("reset_manage")
+    
+    #re-enabling inputs
+    hide("Conf_modify")
+    enable("book_to_modify")
+    enable("modification")
+    enable("start_date_modify")
+    enable("start_time_modify")
+    enable("end_date_modify")
+    enable("end_time_modify")
+    show("time_availability")
+  })
 })
+

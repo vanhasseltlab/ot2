@@ -1,5 +1,8 @@
 #INPUT-------------
-#mainDir <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\Calendar\\EqBooking_v5"
+#mainDir <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator"
+#mainDir2 <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\EqBooking_sample"
+
+#webserver inputs
 mainDir <- "/srv/shiny-server/files/EqBooking"
 mainDir2 <- "/srv/shiny-server/ot2/EqBooking_sample"
 
@@ -84,7 +87,7 @@ shinyUI(fluidPage(
                       )
              ),
              
-             #Overview----------
+             #New Booking----------
              tabPanel("New Booking", id = "tab_two",
                       verticalLayout(
                         sidebarLayout(
@@ -105,11 +108,14 @@ shinyUI(fluidPage(
                             textOutput("Error_message"),
                             textOutput("Conf_message"),
                             tags$head(tags$style("#Error_message{color:red; font-style:italic;}")),
-                            tags$head(tags$style("#Conf_message{color:blue; font-style:italic;}"))
+                            tags$head(tags$style("#Conf_message{color:red; font-style:italic;}")),
+                            
+                            #reset button
+                            actionLink("reset_booking", "Back")
                           ),
                           mainPanel(
-                            actionButton("red_month", "<<"),
-                            actionButton("add_month", ">>"),
+                            actionButton("red_month", "<< Previous Month"),
+                            actionButton("add_month", "Next Month>>"),
                             plotOutput("calendar", dblclick = "calendar_dblclick")
                           )
                         ),
@@ -138,7 +144,10 @@ shinyUI(fluidPage(
                             textOutput("confirm_message"),
                             textOutput("Conf_modify"),
                             tags$head(tags$style("#confirm_message{color:red; font-style:italic;}")),
-                            tags$head(tags$style("#Conf_modify{color:blue; font-style:italic;}"))
+                            tags$head(tags$style("#Conf_modify{color:red; font-style:italic;}")),
+                            
+                            #reset button
+                            actionLink("reset_manage", "Back")
                           ),
                           mainPanel(
                             tableOutput("user_bookings"),
@@ -146,7 +155,6 @@ shinyUI(fluidPage(
                           )
                         )
                       ),
-                      
                       tableOutput("time_availability")
              )
   )
