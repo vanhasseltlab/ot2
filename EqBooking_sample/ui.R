@@ -2,9 +2,12 @@
 #mainDir <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator"
 #mainDir2 <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\EqBooking_sample"
 
+mainDir <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\EquipmentBook_CvH"
+mainDir2 <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\EquipmentBook_CvH\\main"
+
 #webserver inputs
-mainDir <- "/srv/shiny-server/files/EqBooking"
-mainDir2 <- "/srv/shiny-server/ot2/EqBooking_sample"
+#mainDir <- "/srv/shiny-server/files/EqBooking"
+#mainDir2 <- "/srv/shiny-server/ot2/EqBooking_sample"
 
 scheduleTable_dir <- "ScheduleHardCopy.xlsx"
 
@@ -17,15 +20,14 @@ library(writexl)
 library(chron)
 library(reshape2)
 library(shinyjs)
-library(scrypt, lib.loc="/home/sebastian/R/x86_64-pc-linux-gnu-library/4.1/")
+#library(scrypt, lib.loc="/home/sebastian/R/x86_64-pc-linux-gnu-library/4.1/")
+library(scrypt)
 source(paste0(mainDir2, "/CalendarSetup.R"))
 scheduleTable <- read_excel(paste0(mainDir, "/", scheduleTable_dir), sheet=1)
 
 #PRE - SETUP-----------------
-eq_list <- c("Hood 3 (03.14)", "Hood 4 (03.14)", "Hood 1 (03.18)",
-             "Hood 2 (03.18)", "Hood 5 (03.04)", "Autoclave",
-             "Bench 3", "Bench 4", "KX-2 Fluostar3", "KX-2 Fluostar4",
-             "OT2 L", "OT2 R", "Plate pourer")
+eq_list <- read.csv(paste0(mainDir, "\\equipmentList.csv"), header=T, as.is=T) %>%
+  dplyr::select(Equipment) %>% unlist()
 names(eq_list) <- eq_list
 
 timeSlots <- paste0(seq(8, 18, 1), ":00")
@@ -156,6 +158,58 @@ shinyUI(fluidPage(
                         )
                       ),
                       tableOutput("time_availability")
+             ),
+             #ADMIN------------
+             tabPanel("Admin", id = "tab_four",
+                      verticalLayout(
+                        sidebarLayout(
+                          sidebarPanel(
+                            tabsetPanel(
+                              tabPanel(title='Manage Accounts',
+                                       textInput("account_name", label="Username"),
+                                       actionButton("account_reset", label="Reset Password"),
+                                       actionButton("account_make_admin", label="Make Admin"),
+                                       actionButton("create_user", label="Create New Account"),
+                                       actionLink("refresh_account_admin", "Back")
+                              ),
+                              tabPanel(title="Manage Bookings",
+                                       checkboxInput("show_removed", "Show Removed Bookings", value=F),
+                                       checkboxInput("show_old", "Show Old Bookings", value=F),
+                                       uiOutput("user_booking_ui"),
+                                       selectInput("eq_list_admin", "Equipment", choices=c("All", eq_list), selected="All"),
+                                       uiOutput("booking_selection"),
+                                       radioButtons("admin_modify_booking_options", label="", choices=c("Remove", "Modify"), inline=T, selected="Remove"),
+                                       
+                                       #modify time inputs
+                                       #from
+                                       uiOutput("admin_start_date_ui_modify"), #selecting start date; reactive to old booking
+                                       uiOutput("admin_start_time_ui_modify"), #selecting start time; reactive to old booking
+                                       
+                                       #to
+                                       uiOutput("admin_end_date_ui_modify"), #selecting end date; reactive to starting date
+                                       uiOutput("admin_end_time_ui_modify"), #selecting end time; reactive to starting time
+                                       
+                                       #confirm button
+                                       actionButton("admin_modify_confirm", "Confirm"),
+                                       actionLink("admin_back", "Back"),
+                                       textOutput("error_message_admin"),
+                                       textOutput("conf_message_admin_2"),
+                                       tags$head(tags$style("#error_message_admin{color:red; font-style:italic;}")),
+                                       tags$head(tags$style("#conf_message_admin2{color:blue; font-style:italic;}"))
+                              )
+                            )
+                          ),
+                          mainPanel(
+                            verbatimTextOutput("confMessage_admin"),
+                            tags$head(tags$style(HTML("#confMessage_admin {font-size: 20px;}"))),
+                            
+                            #booking list
+                            dataTableOutput("user_booking_table_admin"),
+                            tableOutput("check")
+                          )
+                        )
+                      ),
+                      tableOutput("time_avail_admin")
              )
   )
 ))
