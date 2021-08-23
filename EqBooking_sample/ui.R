@@ -2,12 +2,12 @@
 #mainDir <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator"
 #mainDir2 <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\EqBooking_sample"
 
-#mainDir <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\EquipmentBook_CvH"
-#mainDir2 <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\EquipmentBook_CvH\\main"
+mainDir <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\EquipmentBook_CvH"
+mainDir2 <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\EquipmentBook_CvH\\main"
 
 #webserver inputs
-mainDir <- "/srv/shiny-server/files/EqBooking"
-mainDir2 <- "/srv/shiny-server/ot2/EqBooking_sample"
+#mainDir <- "/srv/shiny-server/files/EqBooking"
+#mainDir2 <- "/srv/shiny-server/ot2/EqBooking_sample"
 
 scheduleTable_dir <- "ScheduleHardCopy.xlsx"
 
@@ -20,9 +20,9 @@ library(writexl)
 library(chron)
 library(reshape2)
 library(shinyjs)
-library(scrypt, lib.loc="/home/sebastian/R/x86_64-pc-linux-gnu-library/4.1/")
+#library(scrypt, lib.loc="/home/sebastian/R/x86_64-pc-linux-gnu-library/4.1/")
 library(stringi)
-#library(scrypt)
+library(scrypt)
 source(paste0(mainDir2, "/CalendarSetup.R"))
 scheduleTable <- read_excel(paste0(mainDir, "/", scheduleTable_dir), sheet=1)
 
