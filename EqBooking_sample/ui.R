@@ -10,7 +10,7 @@ mainDir <- "/srv/shiny-server/files/EqBooking"
 mainDir2 <- "/srv/shiny-server/ot2/EqBooking_sample"
 
 scheduleTable_dir <- "ScheduleHardCopy.xlsx"
-eqList_dir <- "equipmentList.csv"
+
 #LIBRARIES-------
 library(shiny)
 library(ggplot2)
@@ -21,12 +21,13 @@ library(chron)
 library(reshape2)
 library(shinyjs)
 library(scrypt, lib.loc="/home/sebastian/R/x86_64-pc-linux-gnu-library/4.1/")
+library(stringi)
 #library(scrypt)
 source(paste0(mainDir2, "/CalendarSetup.R"))
 scheduleTable <- read_excel(paste0(mainDir, "/", scheduleTable_dir), sheet=1)
 
 #PRE - SETUP-----------------
-eq_list <- read.csv(paste0(mainDir, "/", eqList_dir), header=T, as.is=T) %>%
+eq_list <- read.csv(paste0(mainDir, "\\equipmentList.csv"), header=T, as.is=T) %>%
   dplyr::select(Equipment) %>% unlist()
 names(eq_list) <- eq_list
 
