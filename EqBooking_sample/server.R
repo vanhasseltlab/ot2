@@ -118,7 +118,6 @@ shinyServer(function(input, output) {
     }
   })
   
- 
   #  C | Change Password
   observeEvent(input$new_password_confirm, {
     userLog <- read.csv(paste0(mainDir, "/", userLog_dir)) #re-read each time
