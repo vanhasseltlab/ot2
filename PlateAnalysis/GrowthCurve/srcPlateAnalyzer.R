@@ -6,17 +6,14 @@ library(dplyr)
 ReadPlateMap <- function(plate_map_address){
   #read whole map
   plate_map <- read_xlsx(plate_map_address, sheet=1, col_names=F, trim_ws=F) %>% data.frame()
-  ori <<- plate_map
+  
   #separate drug list
   drugList <- plate_map[c(8:15), c(2:13)] %>% t() %>% as.vector()
   if(drugList[1]=="Drug name"){
     drugList <- plate_map[c(10:17), c(2:13)] %>% t() %>% as.vector()
     concList <- plate_map[c(21:28), c(2:13)] %>% t() %>% as.vector() %>% as.numeric()
-    cl <<- concList
     mediumList <- plate_map[c(33:40), c(2:13)] %>% t() %>% as.vector()
-    ml <<- mediumList
     strainList <- plate_map[c(45:52), c(2:13)] %>% t() %>% as.vector()
-    sl <<- strainList
   }else{
     drugList <- plate_map[c(8:15), c(2:13)] %>% t() %>% as.vector()
     concList <- plate_map[c(18:25), c(2:13)] %>% t() %>% as.vector() %>% as.numeric()
@@ -282,7 +279,6 @@ mainFun <- function(platemap_address, inputwd, control_selection,
   #EXTRACTION---------------------------
   #read platemap and measurement results
   plateMap <- ReadPlateMap(platemap_address)
-  dqs <<- plateMap
   measResults <- Read_allMeasFile(inputwd)
   
   #combine raw data
