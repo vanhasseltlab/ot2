@@ -4,9 +4,9 @@ shinyServer(function(input, output) {
     observeEvent(input$Send, {
         email <- envelope() %>%
             from("cvh.lab.server@gmail.com") %>%
-            to("sebastian.tandar@gmail.com") %>%
-            subject("Testing_emayili") %>%
-            text("Test_text_send")
+            to(input$email_address) %>%
+            subject(input$subject) %>%
+            text("Test send")
         
         smtp <- server(host='smtp.gmail.com',
                        port=465,
