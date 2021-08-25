@@ -1,7 +1,7 @@
 
 library(shiny)
 
-# Define UI for application that draws a histogram
 shinyUI(fluidPage(
+    textInput("email_address", "Send message to:"),
     actionButton('send', "Send")
 ))
