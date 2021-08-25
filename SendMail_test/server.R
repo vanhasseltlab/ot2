@@ -1,5 +1,5 @@
 library(shiny)
-library(emayili)
+library(emayili, lib.loc="/home/sebastian/R/x86_64-pc-linux-gnu-library/4.1/")
 shinyServer(function(input, output) {
     observeEvent(input$Send, {
         email <- envelope() %>%
