@@ -167,7 +167,7 @@ shinyServer(function(input, output) {
     eq_list_current <- read.csv(paste0(mainDir, "/equipmentList.csv"), header=T, as.is=T) %>%
       mutate(Active = sapply(Comment, function(x) !grepl("Removed", x))) %>% filter(Active) %>%
       dplyr::select(Equipment) %>% unlist()
-    names(eq_list) <- eq_list
+    names(eq_list_current) <- eq_list_current
     
     selectInput("eqName", "Select Equipment", eq_list_current)
   })
