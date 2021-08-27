@@ -164,12 +164,12 @@ shinyServer(function(input, output) {
   
   #  dropdown menu for equipment selection
   output$eqName_ui <- renderUI({
-    eq_list <- read.csv(paste0(mainDir, "/equipmentList.csv"), header=T, as.is=T) %>%
+    eq_list_current <- read.csv(paste0(mainDir, "/equipmentList.csv"), header=T, as.is=T) %>%
       mutate(Active = sapply(Comment, function(x) !grepl("Removed", x))) %>% filter(Active) %>%
       dplyr::select(Equipment) %>% unlist()
     names(eq_list) <- eq_list
     
-    selectInput("eqName", "Select Equipment", eq_list, selected=eq_list[1])
+    selectInput("eqName", "Select Equipment", eq_list_current)
   })
   
   #  calendar and schedule udpate
