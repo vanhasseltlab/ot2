@@ -24,11 +24,6 @@ source(paste0(mainDir2, "/CalendarSetup.R"))
 scheduleTable <- read_excel(paste0(mainDir, "/", scheduleTable_dir), sheet=1)
 
 #PRE - SETUP-----------------
-eq_list <- read.csv(paste0(mainDir, "/equipmentList.csv"), header=T, as.is=T) %>%
-  mutate(Active = sapply(Comment, function(x) !grepl("Removed", x))) %>% filter(Active) %>%
-  dplyr::select(Equipment) %>% unlist()
-names(eq_list) <- eq_list
-
 timeSlots <- paste0(seq(8, 18, 1), ":00")
 timeSlots <- sapply(timeSlots, function(x) if(nchar(x)<5){paste0("0", x)}else{x})
 names(timeSlots) <- timeSlots
@@ -94,7 +89,7 @@ shinyUI(fluidPage(
                         sidebarLayout(
                           sidebarPanel(
                             #Select Equipment
-                            selectInput("eqName", "Select Equipment", eq_list, selected=eq_list[1]),
+                            uiOutput("eqName_ui"),
                             
                             #from
                             uiOutput("start_date_ui"),
@@ -176,7 +171,7 @@ shinyUI(fluidPage(
                                        checkboxInput("show_removed", "Show Removed Bookings", value=F),
                                        checkboxInput("show_old", "Show Old Bookings", value=F),
                                        uiOutput("user_booking_ui"),
-                                       selectInput("eq_list_admin", "Equipment", choices=c("All", eq_list), selected="All"),
+                                       uiOutput("eq_list_admin_ui"),
                                        uiOutput("booking_selection"),
                                        radioButtons("admin_modify_booking_options", label="", choices=c("Remove", "Modify"), inline=T, selected="Remove"),
                                        

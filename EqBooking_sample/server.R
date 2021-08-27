@@ -162,6 +162,16 @@ shinyServer(function(input, output) {
   # OVERVIEW AND NEW BOOKING-----------
   hide("reset_booking")
   
+  #  dropdown menu for equipment selection
+  output$eqName_ui <- renderUI({
+    eq_list <- read.csv(paste0(mainDir, "/equipmentList.csv"), header=T, as.is=T) %>%
+      mutate(Active = sapply(Comment, function(x) !grepl("Removed", x))) %>% filter(Active) %>%
+      dplyr::select(Equipment) %>% unlist()
+    names(eq_list) <- eq_list
+    
+    selectInput("eqName", "Select Equipment", eq_list, selected=eq_list[1])
+  })
+  
   #  calendar and schedule udpate
   observeEvent((input$admin_modify_confirm | input$confirm_manage | input$confirm_book | input$login_book), {
     scheduleTable <<- read_excel(paste0(mainDir, "/", scheduleTable_dir), sheet=1) #initial read
@@ -817,6 +827,16 @@ shinyServer(function(input, output) {
   hide("time_avail_admin")
   hide("admin_back")
   hide("error_message_admin")
+  
+  # setting up equipment list
+  output$eq_list_admin_ui <- renderUI({
+    eq_list <- read.csv(paste0(mainDir, "/equipmentList.csv"), header=T, as.is=T) %>%
+      mutate(Active = sapply(Comment, function(x) !grepl("Removed", x))) %>% filter(Active) %>%
+      dplyr::select(Equipment) %>% unlist()
+    names(eq_list) <- eq_list
+    
+    selectInput("eq_list_admin", "Equipment", choices=c("All", eq_list), selected="All")
+  })
   
   # subset booking per-user
   output$user_booking_ui <- renderUI({
