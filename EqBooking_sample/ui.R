@@ -1,9 +1,6 @@
 #INPUT-------------
-#mainDir <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator"
-#mainDir2 <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\EqBooking_sample"
-
-#mainDir <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\EquipmentBook_CvH"
-#mainDir2 <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\EquipmentBook_CvH\\main"
+#mainDir <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\EquipmentBook_CvH\\local_incubator"
+#mainDir2 <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\EquipmentBook_CvH\\local_incubator\\main"
 
 #webserver inputs
 mainDir <- "/srv/shiny-server/files/EqBooking"
@@ -27,7 +24,8 @@ source(paste0(mainDir2, "/CalendarSetup.R"))
 scheduleTable <- read_excel(paste0(mainDir, "/", scheduleTable_dir), sheet=1)
 
 #PRE - SETUP-----------------
-eq_list <- read.csv(paste0(mainDir, "/equipmentList.csv"), header=T, as.is=T) %>%
+eq_list <- read.csv(paste0(mainDir, "\\equipmentList.csv"), header=T, as.is=T) %>%
+  mutate(Active = sapply(Comment, function(x) !grepl("Removed", x))) %>% filter(Active) %>%
   dplyr::select(Equipment) %>% unlist()
 names(eq_list) <- eq_list
 
@@ -167,10 +165,11 @@ shinyUI(fluidPage(
                           sidebarPanel(
                             tabsetPanel(
                               tabPanel(title='Manage Accounts',
+                                       radioButtons("acc_manage_menu", label="Selection", 
+                                                    choices=c("Reset Password", "Make Admin", "Create New Account"), inline=T),
                                        textInput("account_name", label="Username"),
-                                       actionButton("account_reset", label="Reset Password"),
-                                       actionButton("account_make_admin", label="Make Admin"),
-                                       actionButton("create_user", label="Create New Account"),
+                                       uiOutput("activation_email_ui"),
+                                       actionButton("confirm_acc_manage", "Confirm"),
                                        actionLink("refresh_account_admin", "Back")
                               ),
                               tabPanel(title="Manage Bookings",
@@ -197,6 +196,12 @@ shinyUI(fluidPage(
                                        textOutput("conf_message_admin_2"),
                                        tags$head(tags$style("#error_message_admin{color:red; font-style:italic;}")),
                                        tags$head(tags$style("#conf_message_admin2{color:blue; font-style:italic;}"))
+                              ),
+                              tabPanel(title="Manage Equipments",
+                                       radioButtons("eq_menu", label="", choices=c("Add", "Rename", "Remove"), inline=T),
+                                       uiOutput("equipment_selection_menu"),
+                                       textInput("new_eq_name", "Equipment Name"),
+                                       actionButton("eq_modify_confirm", "Confirm")
                               )
                             )
                           ),
