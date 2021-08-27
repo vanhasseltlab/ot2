@@ -1113,7 +1113,7 @@ shinyServer(function(input, output) {
   hide("new_eq_name")
   observeEvent(input$eq_menu, {
     #re-read equipment list
-    eq_table <- read.csv(paste0(mainDir, "\\equipmentList.csv"), header=T, as.is=T) %>%
+    eq_table <- read.csv(paste0(mainDir, "/equipmentList.csv"), header=T, as.is=T) %>%
       mutate(Active = sapply(Comment, function(x) !grepl("Removed", x))) %>% filter(Active) %>% dplyr::select(-Active) #remove inactive books
     eq_list <- eq_table %>% dplyr::select(Equipment) %>% unlist()
     names(eq_list) <- eq_list
@@ -1131,7 +1131,7 @@ shinyServer(function(input, output) {
   # execute changes
   observeEvent(input$eq_modify_confirm, {
     #re-read equipment list
-    eq_table <- read.csv(paste0(mainDir, "\\equipmentList.csv"), header=T, as.is=T)
+    eq_table <- read.csv(paste0(mainDir, "/equipmentList.csv"), header=T, as.is=T)
     
     if(input$eq_menu == "Add"){
       #check equipment name
@@ -1143,7 +1143,7 @@ shinyServer(function(input, output) {
                                 Comment = paste0("Created on ", toString(Sys.time())))
         
         eq_table <- rbind.data.frame(eq_table, next_item)
-        write.csv(eq_table, paste0(mainDir, "\\equipmentList.csv"), row.names = F)
+        write.csv(eq_table, paste0(mainDir, "/equipmentList.csv"), row.names = F)
         output$confMessage_admin <- renderText(paste("Equipment created :", input$new_eq_name, "\nRefresh page!"))
         
         #disable buttons
@@ -1166,7 +1166,7 @@ shinyServer(function(input, output) {
                                                                            input$eq_to_modify, " by ", input$user_login, " on ", toString(Sys.time()))
         eq_table$Equipment[eq_table$Equipment==input$eq_to_modify] <- input$new_eq_name
         
-        write.csv(eq_table, paste0(mainDir, "\\equipmentList.csv"), row.names = F)
+        write.csv(eq_table, paste0(mainDir, "/equipmentList.csv"), row.names = F)
         output$confMessage_admin <- renderText(paste(input$eq_to_modify, "successfully renamed to", input$new_eq_name, "\nRefresh page!"))
         
         #rename in schedule table
@@ -1194,7 +1194,7 @@ shinyServer(function(input, output) {
       # if remove
       eq_table$Comment[eq_table$Equipment==input$eq_to_modify] <- paste0(eq_table$Comment[eq_table$Equipment==input$eq_to_modify], "|| Removed by ",
                                                                          input$user_login, " on ", toString(Sys.time()))
-      write.csv(eq_table, paste0(mainDir, "\\equipmentList.csv"), row.names = F)
+      write.csv(eq_table, paste0(mainDir, "/equipmentList.csv"), row.names = F)
       output$confMessage_admin <- renderText(paste(input$eq_to_modify, " removed!\nRefresh page!"))
       
       #remove in schedule table

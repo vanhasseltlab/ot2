@@ -24,7 +24,7 @@ source(paste0(mainDir2, "/CalendarSetup.R"))
 scheduleTable <- read_excel(paste0(mainDir, "/", scheduleTable_dir), sheet=1)
 
 #PRE - SETUP-----------------
-eq_list <- read.csv(paste0(mainDir, "\\equipmentList.csv"), header=T, as.is=T) %>%
+eq_list <- read.csv(paste0(mainDir, "/equipmentList.csv"), header=T, as.is=T) %>%
   mutate(Active = sapply(Comment, function(x) !grepl("Removed", x))) %>% filter(Active) %>%
   dplyr::select(Equipment) %>% unlist()
 names(eq_list) <- eq_list
