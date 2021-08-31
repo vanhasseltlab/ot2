@@ -1,6 +1,6 @@
 #INPUT-------------
-#mainDir <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator"
-#mainDir2 <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Incubator\\EqBooking_sample"
+#mainDir <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\EquipmentBook_CvH\\local_incubator"
+#mainDir2 <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\EquipmentBook_CvH\\local_incubator\\main"
 
 #webserver inputs
 mainDir <- "/srv/shiny-server/files/EqBooking"
@@ -18,16 +18,12 @@ library(chron)
 library(reshape2)
 library(shinyjs)
 library(scrypt, lib.loc="/home/sebastian/R/x86_64-pc-linux-gnu-library/4.1/")
+library(stringi)
+#library(scrypt)
 source(paste0(mainDir2, "/CalendarSetup.R"))
 scheduleTable <- read_excel(paste0(mainDir, "/", scheduleTable_dir), sheet=1)
 
 #PRE - SETUP-----------------
-eq_list <- c("Hood 3 (03.14)", "Hood 4 (03.14)", "Hood 1 (03.18)",
-             "Hood 2 (03.18)", "Hood 5 (03.04)", "Autoclave",
-             "Bench 3", "Bench 4", "KX-2 Fluostar3", "KX-2 Fluostar4",
-             "OT2 L", "OT2 R", "Plate pourer")
-names(eq_list) <- eq_list
-
 timeSlots <- paste0(seq(8, 18, 1), ":00")
 timeSlots <- sapply(timeSlots, function(x) if(nchar(x)<5){paste0("0", x)}else{x})
 names(timeSlots) <- timeSlots
@@ -93,7 +89,7 @@ shinyUI(fluidPage(
                         sidebarLayout(
                           sidebarPanel(
                             #Select Equipment
-                            selectInput("eqName", "Select Equipment", eq_list, selected=eq_list[1]),
+                            uiOutput("eqName_ui"),
                             
                             #from
                             uiOutput("start_date_ui"),
@@ -156,6 +152,65 @@ shinyUI(fluidPage(
                         )
                       ),
                       tableOutput("time_availability")
+             ),
+             #ADMIN------------
+             tabPanel("Admin", id = "tab_four",
+                      verticalLayout(
+                        sidebarLayout(
+                          sidebarPanel(
+                            tabsetPanel(
+                              tabPanel(title='Manage Accounts',
+                                       radioButtons("acc_manage_menu", label="Selection", 
+                                                    choices=c("Reset Password", "Make Admin", "Create New Account"), inline=T),
+                                       textInput("account_name", label="Username"),
+                                       uiOutput("activation_email_ui"),
+                                       actionButton("confirm_acc_manage", "Confirm"),
+                                       actionLink("refresh_account_admin", "Back")
+                              ),
+                              tabPanel(title="Manage Bookings",
+                                       checkboxInput("show_removed", "Show Removed Bookings", value=F),
+                                       checkboxInput("show_old", "Show Old Bookings", value=F),
+                                       uiOutput("user_booking_ui"),
+                                       uiOutput("eq_list_admin_ui"),
+                                       uiOutput("booking_selection"),
+                                       radioButtons("admin_modify_booking_options", label="", choices=c("Remove", "Modify"), inline=T, selected="Remove"),
+                                       
+                                       #modify time inputs
+                                       #from
+                                       uiOutput("admin_start_date_ui_modify"), #selecting start date; reactive to old booking
+                                       uiOutput("admin_start_time_ui_modify"), #selecting start time; reactive to old booking
+                                       
+                                       #to
+                                       uiOutput("admin_end_date_ui_modify"), #selecting end date; reactive to starting date
+                                       uiOutput("admin_end_time_ui_modify"), #selecting end time; reactive to starting time
+                                       
+                                       #confirm button
+                                       actionButton("admin_modify_confirm", "Confirm"),
+                                       actionLink("admin_back", "Back"),
+                                       textOutput("error_message_admin"),
+                                       textOutput("conf_message_admin_2"),
+                                       tags$head(tags$style("#error_message_admin{color:red; font-style:italic;}")),
+                                       tags$head(tags$style("#conf_message_admin2{color:blue; font-style:italic;}"))
+                              ),
+                              tabPanel(title="Manage Equipments",
+                                       radioButtons("eq_menu", label="", choices=c("Add", "Rename", "Remove"), inline=T),
+                                       uiOutput("equipment_selection_menu"),
+                                       textInput("new_eq_name", "Equipment Name"),
+                                       actionButton("eq_modify_confirm", "Confirm")
+                              )
+                            )
+                          ),
+                          mainPanel(
+                            verbatimTextOutput("confMessage_admin"),
+                            tags$head(tags$style(HTML("#confMessage_admin {font-size: 20px;}"))),
+                            
+                            #booking list
+                            dataTableOutput("user_booking_table_admin"),
+                            tableOutput("check")
+                          )
+                        )
+                      ),
+                      tableOutput("time_avail_admin")
              )
   )
 ))

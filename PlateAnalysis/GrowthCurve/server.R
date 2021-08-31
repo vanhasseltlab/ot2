@@ -20,6 +20,10 @@ shinyServer(function(input, output) {
     #mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\PlateAnalysis\\GrowthCurve"
     #sourcewd <- paste(mainwd, "/srcPlateAnalyzer.R", sep='')
     #templatewd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\PlateAnalysis\\GrowthCurve\\ControlMap.csv"
+    #mainwd <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\ot2\\PlateAnalysis\\GrowthCurve"
+    #sourcewd <- paste0(mainwd, "/srcPlateAnalyzer.R")
+    #templatewd <- paste0(mainwd, "/ControlMap.csv")
+    
     
     if(!("Analysis" %in% list.files(mainwd))){
         setwd(mainwd)
@@ -69,8 +73,6 @@ shinyServer(function(input, output) {
             
             ########
             #COPY FILES TO MAIN DIRECTORY
-                #copying plate map
-                    
             #copy and rename
             #plate map - main measurement
             pmaps <- input$pmap$datapath
@@ -143,7 +145,6 @@ shinyServer(function(input, output) {
                 grandRes <- mainFun(paste(mainwd, "/plateMap.xlsx", sep=""), meas_path, 
                                     control_selection=input$control_selection)
             }
-            
             
             return(grandRes)
         }
