@@ -1,7 +1,7 @@
 shinyServer(function(input, output) {
   #setup directories
   robotGuideDir <- "/srv/shiny-server/ot2/home/2021-03-05_OT2 General Guideline and Maintenance.pdf" 
-  robotQuickGuideDir <- "/srv/shiny-server/ot2/home/2021-07-23_OT2QuickGuide.pdf"
+  robotQuickGuideDir <- "/srv/shiny-server/ot2/home/2021-08-31_OT2QuickGuide.pdf"
   webserverGuideDir <- "/srv/shiny-server/ot2/home/2021-07-23_WebserverGuide.pdf" 
   
   output$downloadRobotGuide <- downloadHandler(
@@ -12,7 +12,7 @@ shinyServer(function(input, output) {
   )
   
   output$downloadRobotQuickGuide <- downloadHandler(
-    filename="2021-07-23_OT2QuickGuide.pdf",
+    filename="2021-08-31_OT2QuickGuide.pdf",
     content = function(file) {
       file.copy(robotQuickGuideDir, file)
     }
