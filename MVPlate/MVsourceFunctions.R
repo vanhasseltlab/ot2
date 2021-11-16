@@ -289,10 +289,10 @@ CreateDilMap <- function(sol_list, deckMap, stock_list){
   } 
   
   #iterate through all items in solution list
-  for(i in c(1:length(sol_list[,1]))){
+  for(i in c(1:nrow(sol_list))){
     if(as.numeric(sol_list$solAmt[i])<=1300){
       #check if the main rack is full
-      if(small_coords[1]<5){
+      if(small_coords[1]<3){
         #if the main rack is still available
         nexItem <- c(paste(LETTERS[small_coords[1]], toString(small_coords[2]), sep=''),
                      toString(sol_list$SolID[i]))
@@ -301,7 +301,7 @@ CreateDilMap <- function(sol_list, deckMap, stock_list){
         
         #update coordinates
         small_coords[2] <- small_coords[2]+1
-        if(small_coords[2]>6){
+        if(small_coords[2]>5){
           small_coords[2] <- 1
           small_coords[1] <- small_coords[1] + 1
         }
@@ -1110,7 +1110,6 @@ main <- function(file_path, file_name=""){
 
 #TROUBLESHOOTING---------
 #errMessage <<- ""
-#fpath <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\MVPlate"
-#dataName <- "20210412_IM_P001_E025_Ciprofloxacin_IC90_InputTemplate.xlsx"
-#dataName <- "MV_InputTemplate.xlsx"
-#main(paste(fpath, dataName, sep="//"))
+#fpath <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\Incubator"
+#dataName <- "20211115_EvolutionMIC_GEN_CIP_AZT.xlsx"
+#dqs <- main(paste(fpath, dataName, sep="//"))
