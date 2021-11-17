@@ -20,6 +20,10 @@ shinyUI(fluidPage(
                                 onclick ="window.open('https://vanhasseltlab.lacdr.leidenuniv.nl/ot2/CQ_Plate')"),
                    "OT2 protocol processor for MIC with combination drugs (applicable for multiple plates)", placement='right', trigger='hover'),
             
+            tipify(actionButton("384WellPlateMIC", "MIC : \tMultiplate | 384-well", width='300px',
+                                onclick ="window.open('https://vanhasseltlab.lacdr.leidenuniv.nl/ot2/Plate384')"),
+                   "OT2 protocol processor for MIC using 384-well plates (applicable for multiple plates)", placement='right', trigger='hover'),
+            
             tipify(actionButton("M9Mixer", "Medium Mixer", width='300px',
                                 onclick ="window.open('https://vanhasseltlab.lacdr.leidenuniv.nl/ot2/M9MixR')"),
                    "OT2 protocol processor for medium/solution mixing", placement='right', trigger='hover'),
