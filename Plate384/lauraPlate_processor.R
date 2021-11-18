@@ -2,7 +2,7 @@
 library(readxl)
 library(writexl)
 library(dplyr)
-library(rlist)
+#library(rlist)
 
 #GENERAL PREPARATION-------
 wellOrder <- sapply(c(1:24), function(x) paste0(LETTERS[1:16], x)) %>% as.vector()
