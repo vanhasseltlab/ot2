@@ -180,9 +180,66 @@ calculate_emptyTubes <- function(all_list, current_deck_ware){
            slot_names,
            current_name, n))
 }
+distribute_outerWells <- function(plate_info, cmd_list_checkpoint, solvent_map, deck_map, general_info){
+  # subset
+  fill_wells <- subset(plate_info, is.na(Concentration))
+  
+  # create command; separate per-solvent
+  current_command <- lapply(unique(fill_wells$Solvent), function(x){
+    #subset wells to fill
+    current_fill_wells <- subset(fill_wells, Solvent==x)
+    #create commands; separate for each aspirate group
+    command_current_solvent <- data.frame()
+    well_targets <- current_fill_wells$Well
+    n_well_perAspirate <- floor(300 / general_info["Vtotal"]) #use p300 only!
+    n_aspirate <- floor(length(well_targets)/n_well_perAspirate) + ceiling((length(well_targets)%%n_well_perAspirate)/n_well_perAspirate)
+    for(i in c(1:n_aspirate)){
+      start_index <- ((i-1)*n_well_perAspirate) + 1
+      end_index <- (start_index+n_well_perAspirate-1)
+      if(end_index > length(well_targets)){end_index <- length(well_targets)}
+      
+      # assign current commands to current wells
+      command_current_solvent <- rbind.data.frame(command_current_solvent,
+                                                  c(from_deck = deck_map$deck[which(deck_map$fill=="solvent")],
+                                                    from_slot = solvent_map$slot[which(solvent_map$fill==x)],
+                                                    to_deck = 1, 
+                                                    to_slot = paste(well_targets[start_index:end_index], collapse=", "),
+                                                    amt = general_info["Vtotal"], mix=0, tip_n=1, asp_set = i, pipette="p300", comment="Filling outer wells"))
+    }
+    
+    #add column name
+    colnames(command_current_solvent) <- colnames(cmd_list_checkpoint)
+    
+    #replicate for each plates included
+    command_current_solvent <- lapply(c(1:general_info["nPlates"]), function(x){
+      add_current <- command_current_solvent
+      add_current[,colnames(cmd_list_checkpoint)=="to_deck"] <- deck_map$deck[which(deck_map$fill==paste0("384_", x))]
+      return(add_current)
+    }) %>% list.rbind()
+    
+    return(command_current_solvent)}) %>% list.rbind()
+  
+  
+  #fix aspirate set counter
+  current_command$asp_set <- max(cmd_list_checkpoint$asp_set) + c(1:nrow(current_command))
+  
+  #fix tip counter
+  tip_counter_matrix <- data.frame(Solvent = unique(fill_wells$Solvent),
+                                   from_slot = sapply(unique(fill_wells$Solvent), function(xi) solvent_map$slot[which(solvent_map$fill==xi)]))
+  tip_counter_matrix$tip_n_true <- c(1:nrow(tip_counter_matrix)) + max(cmd_list_checkpoint$tip_n)
+  tip_counter_matrix <- dplyr::select(tip_counter_matrix, from_slot, tip_n_true)
+  
+  
+  current_command <- left_join(current_command, tip_counter_matrix, by="from_slot") %>%
+    mutate(tip_n = tip_n_true) %>% dplyr::select(-tip_n_true)
+  
+  #combine to cmd list
+  cmd_list_checkpoint <- rbind.data.frame(cmd_list_checkpoint, current_command)
+  return(cmd_list_checkpoint)
+}
 
 #MAIN EXEC----------
-mainExec <- function(input_file_name){
+mainExec <- function(input_file_name, fill_outer){
   # A | Read input files; re-parse
   inputFiles <- read_InputFile(input_file_name)
   stockInfo <- inputFiles[[1]]
@@ -217,7 +274,13 @@ mainExec <- function(input_file_name){
   solventMap <- data.frame(slot= as.vector(sapply(c(1:2), function(x) paste0(LETTERS[x], c(1:3)))),
                            deck = which(grepl("solvent", deckMap$fill)),
                            fill = "")
-  solventMap$fill[1:length(unique(solList$Solvent))] <- unique(solList$Solvent) # max. 6 different solvents
+ 
+  # Filling solvent rack; max. 5 different solvents (6 if no outer fill)
+  if(fill_outer){
+    solventMap$fill[1:length(unique(plateInfo$Solvent))] <- unique(plateInfo$Solvent)
+  }else{
+    solventMap$fill[1:length(unique(solList$Solvent))] <- unique(solList$Solvent) 
+  }
   
   # D | Create dilution scheme
   solList <- lapply(unique(solList$dilutionID), create_dilScheme, 
@@ -253,6 +316,11 @@ mainExec <- function(input_file_name){
   
   cmdList <- rbind.data.frame(cmdList_solventDistribution, cmdList_serialDilution,
                               cmdList_finalDistribution)
+  
+  #   Filling outer wells
+  if(fill_outer){
+    cmdList <- distribute_outerWells(plateInfo, cmdList, solventMap, deckMap, generalInfo)
+  }
   
   # G | Calculate required solvent amounts
   solvent_map_prep <- dplyr::select(solventMap, slot, fill) %>% rename(from_slot=slot)
@@ -379,10 +447,11 @@ mainExec <- function(input_file_name){
 
 #TEST--------------
 # input 
-#mainwd <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\Incubator\\LauraPlate"
-#fileName <- "20211111_Smurf experiment MIC 384 plate.xlsx"
+#mainwd <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\ot2\\Plate384"
+#fileName <- "20211111_384TemplateInput.xlsx"
+#input_file_name <- paste0(mainwd, "\\", fileName)
 
-#output <- mainExec(mainwd, fileName)
+#output <- mainExec(input_file_name, T)
 
 #write output
 #write.csv(output[[1]], paste0(mainwd, "/SMURF_CommandList.csv"), row.names=F)

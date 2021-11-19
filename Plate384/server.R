@@ -11,10 +11,10 @@ options(stringsAsFactors = F)
 #SERVER MAIN------------
 shinyServer(function(input, output) {
   #defining directory-------
-  #sourceDir <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\Incubator\\LauraPlate\\Plate384\\lauraPlate_processor.R"
-  #outputDir_cmdline <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\Incubator\\LauraPlate\\Plate384"
-  #outputDir_usrGuide <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\Incubator\\LauraPlate\\Plate384"
-  #inputTemplate <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\Incubator\\LauraPlate\\Plate384\\20211111_384TemplateInput.xlsx"
+  #sourceDir <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\ot2\\Plate384\\lauraPlate_processor.R"
+  #utputDir_cmdline <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\ot2\\Plate384"
+  #outputDir_usrGuide <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\ot2\\Plate384"
+  #inputTemplate <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\ot2\\Plate384\\20211111_384TemplateInput.xlsx"
   
   outputDir_cmdline <- "/srv/shiny-server/files/Output_CmdList"
   outputDir_usrGuide <- "/srv/shiny-server/files/Output_UsrGuide"
@@ -51,7 +51,7 @@ shinyServer(function(input, output) {
       # for show
       res <- read_xlsx(infile$datapath, sheet=2, range = "A59:Y75")
     }else{
-      res <- mainExec(infile$datapath)
+      res <- mainExec(infile$datapath, input$fillOuter)
       cmdList_output <<- res[[1]]
       usrGuide_output <<- res[[2]]
       
