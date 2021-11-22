@@ -325,14 +325,54 @@ mainExec <- function(input_file_name, fill_outer){
   
   # G | Calculate required solvent amounts
   solvent_map_prep <- dplyr::select(solventMap, slot, fill) %>% rename(from_slot=slot)
-  solvent_operations <- subset(cmdList, from_deck==deckMap$deck[deckMap$fill=='solvent']) %>%
+  solvent_commands <- subset(cmdList, from_deck==deckMap$deck[deckMap$fill=='solvent']) %>%
     left_join(solvent_map_prep, by="from_slot")
-  solvent_operations <- data.frame(fill = unique(solvent_operations$fill),
-                                   volume = sapply(unique(solvent_operations$fill), 
-                                                   function(x) sum(as.numeric(solvent_operations$amt[solvent_operations$fill==x])))) %>%
-    left_join(solventMap, by="fill")
+  solvent_operations <- data.frame(slot = unique(solvent_commands$from_slot),
+                                   volume = sapply(unique(solvent_commands$from_slot), 
+                                                   function(x) sum(as.numeric(solvent_commands$amt[solvent_commands$from_slot==x])))) %>%
+    left_join(solventMap, by="slot")
+  
   solvent_operations$volume <- round(solvent_operations$volume / 500) * 500 + 3000 #excess
   
+  # manage solvent tube overfill
+  overFilled <- solvent_operations$volume > 50000
+  if(sum(overFilled)>0){
+    cmdList$operationRowIndex <- c(1:nrow(cmdList))
+    overFilled <- solvent_operations[overFilled,]
+    for(i in c(1:nrow(overFilled))){
+      #iterate through all over-filled tubes
+      current_operations <- subset(cmdList, from_deck==deckMap$deck[deckMap$fill=="solvent"] & from_slot==overFilled$slot[i])
+      
+      #calculate cumulative amount
+      current_operations$actualAmt <- apply(current_operations, 1, function(x) as.numeric(x['amt']) * length(strsplit(x["target_slot"], split=", ")[[1]]))
+      current_operations$cumulativeAmount <- sapply(c(1:nrow(current_operations)), function(x) sum(current_operations$actualAmt[1:x]))
+      current_operations$effectiveCumulativeAmount <- round(current_operations$cumulativeAmount / 500) * 500 + 3000
+      
+      #separate to a different tube
+      available_slot <- which(solventMap$fill=="") %>% min()
+      solventMap$fill[available_slot] <- overFilled$fill[i]
+      current_operations$from_slot[current_operations$effectiveCumulativeAmount > 49000] <- solventMap$slot[available_slot]
+      
+      #push back to command list
+      cmdList$from_slot[cmdList$operationRowIndex %in% current_operations$operationRowIndex] <- current_operations$from_slot
+    }
+    
+    # re-fix command list
+    cmdList <- dplyr::select(cmdList, -operationRowIndex)
+    
+    # re-calculate required solvent amounts
+    solvent_map_prep <- dplyr::select(solventMap, slot, fill) %>% rename(from_slot=slot)
+    solvent_commands <- subset(cmdList, from_deck==deckMap$deck[deckMap$fill=='solvent']) %>%
+      left_join(solvent_map_prep, by="from_slot")
+    solvent_commands$actualAmt <- apply(solvent_commands, 1, function(x) as.numeric(x["amt"]) * length(strsplit(x["to_slot"], split=", ")[[1]]))
+    solvent_operations <- data.frame(slot = unique(solvent_commands$from_slot),
+                                     volume = sapply(unique(solvent_commands$from_slot), 
+                                                     function(x) sum(as.numeric(solvent_commands$amt[solvent_commands$from_slot==x])))) %>%
+      left_join(solventMap, by="slot")
+    
+    solvent_operations$volume <- round(solvent_operations$volume / 500) * 500 + 3000 #excess
+  }
+
   solvent_operations <- cbind.data.frame(solvent_operations[c("deck", "slot", "fill")], 
                                          rep("", nrow(solvent_operations)),
                                          rep("", nrow(solvent_operations)),
@@ -448,11 +488,11 @@ mainExec <- function(input_file_name, fill_outer){
 
 #TEST--------------
 # input 
-#mainwd <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\Incubator"
-#fileName <- "20211123_MIC384_DOX_MIN_TOB_GEN_STR_TET_CIP.xlsx"
-#input_file_name <- paste0(mainwd, "\\", fileName)
+mainwd <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\Incubator"
+fileName <- "20211123_MIC384_DOX_MIN_TOB_GEN_STR_TET_CIP.xlsx"
+input_file_name <- paste0(mainwd, "\\", fileName)
 
-#output <- mainExec(input_file_name, T)
+output <- mainExec(input_file_name, T)
 
 #write output
 #write.csv(output[[1]], paste0(mainwd, "/SMURF_CommandList.csv"), row.names=F)
