@@ -274,7 +274,7 @@ mainExec <- function(input_file_name, fill_outer){
   solventMap <- data.frame(slot= as.vector(sapply(c(1:2), function(x) paste0(LETTERS[x], c(1:3)))),
                            deck = which(grepl("solvent", deckMap$fill)),
                            fill = "")
- 
+  
   # Filling solvent rack; max. 5 different solvents (6 if no outer fill)
   if(fill_outer){
     solventMap$fill[1:length(unique(plateInfo$Solvent))] <- unique(plateInfo$Solvent)
@@ -287,12 +287,13 @@ mainExec <- function(input_file_name, fill_outer){
                     sol_list=solList, stock_info=stockInfo) %>% list.rbind()
   
   # E | Assign dilution slot
-  if(nrow(subset(solList, V_total <= 1750))>0){
-    solutionMap_96$solutionID[1:nrow(subset(solList, V_total <= 1750))] <- subset(solList, V_total <= 1750)$solutionID
+  V_limit_DeepWell <- 1800
+  if(nrow(subset(solList, V_total <= V_limit_DeepWell))>0){
+    solutionMap_96$solutionID[1:nrow(subset(solList, V_total <= V_limit_DeepWell))] <- subset(solList, V_total <= V_limit_DeepWell)$solutionID
   }
   
-  if(nrow(subset(solList, V_total > 1750))>0){
-    solutionMap_15$solutionID[1:nrow(subset(solList, V_total > 1750))] <- subset(solList, V_total > 1750)$solutionID
+  if(nrow(subset(solList, V_total > V_limit_DeepWell))>0){
+    solutionMap_15$solutionID[1:nrow(subset(solList, V_total > V_limit_DeepWell))] <- subset(solList, V_total > V_limit_DeepWell)$solutionID
   }
   
   solutionMap <- rbind.data.frame(solutionMap_96, solutionMap_15)
@@ -447,8 +448,8 @@ mainExec <- function(input_file_name, fill_outer){
 
 #TEST--------------
 # input 
-#mainwd <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\ot2\\Plate384"
-#fileName <- "20211111_384TemplateInput.xlsx"
+#mainwd <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\Incubator"
+#fileName <- "20211123_MIC384_DOX_MIN_TOB_GEN_STR_TET_CIP.xlsx"
 #input_file_name <- paste0(mainwd, "\\", fileName)
 
 #output <- mainExec(input_file_name, T)
