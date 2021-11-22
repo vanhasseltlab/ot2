@@ -488,11 +488,11 @@ mainExec <- function(input_file_name, fill_outer){
 
 #TEST--------------
 # input 
-mainwd <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\Incubator"
-fileName <- "20211123_MIC384_DOX_MIN_TOB_GEN_STR_TET_CIP.xlsx"
-input_file_name <- paste0(mainwd, "\\", fileName)
+#mainwd <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\Incubator"
+#fileName <- "20211123_MIC384_DOX_MIN_TOB_GEN_STR_TET_CIP.xlsx"
+#input_file_name <- paste0(mainwd, "\\", fileName)
 
-output <- mainExec(input_file_name, T)
+#output <- mainExec(input_file_name, T)
 
 #write output
 #write.csv(output[[1]], paste0(mainwd, "/SMURF_CommandList.csv"), row.names=F)
