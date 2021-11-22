@@ -92,7 +92,6 @@ GetPlateMap <- function(file_name){
 
 #preparation
 CreateSolList <- function(plate_map, total_vol_well, inoc_vol, stock_list, n_plate){
-  
   plate_map$solID <- gsub(",", ".", plate_map$solID)
   
   #get occurence
@@ -135,8 +134,9 @@ CalculateDilVolume <- function(sol_list, total_vol_well, inoc_vol, stock_list){
   drugs <- unique(sol_list$DrugType)
   
   for(i in c(1:length(solvents))){
+    print(paste0("i = ", i))
     for(j in c(1:length(drugs))){
-      
+      print(paste0("j = ", j))
       #subset the current drug type
       curList <- subset(sol_list, DrugType==drugs[j] & Solvent==solvents[i])
       
@@ -149,6 +149,7 @@ CalculateDilVolume <- function(sol_list, total_vol_well, inoc_vol, stock_list){
         #add items if additional pre-dilutions is required
         new_curList <- c()
         for(q in c(1:length(curList[,1]))){
+          print(q)
           new_curList <- rbind.data.frame(new_curList, curList[q,])
           
           #get the current dilution factor
@@ -1112,5 +1113,5 @@ main <- function(file_path, file_name=""){
 #TROUBLESHOOTING---------
 #errMessage <<- ""
 #fpath <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\Incubator"
-#dataName <- "20211122_MIC_96_TOB_GEN_CIP.xlsx"
+#dataName <- "20211122_MIC_96_DOX_MIN_CIP_.xlsx"
 #dqs <- main(paste(fpath, dataName, sep="//"))
