@@ -14,11 +14,11 @@ shinyServer(function(input, output) {
   #sourceDir <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\ot2\\Plate384\\lauraPlate_processor.R"
   #utputDir_cmdline <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\ot2\\Plate384"
   #outputDir_usrGuide <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\ot2\\Plate384"
-  #inputTemplate <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\ot2\\Plate384\\20211111_384TemplateInput.xlsx"
+  #inputTemplate <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\ot2\\Plate384\\20211122_384TemplateInput.xlsx"
   
   outputDir_cmdline <- "/srv/shiny-server/files/Output_CmdList"
   outputDir_usrGuide <- "/srv/shiny-server/files/Output_UsrGuide"
-  inputTemplate <- "/srv/shiny-server/ot2/Plate384/20211111_384TemplateInput.xlsx" 
+  inputTemplate <- "/srv/shiny-server/ot2/Plate384/20211122_384TemplateInput.xlsx" 
   sourceDir <- "/srv/shiny-server/ot2/Plate384/lauraPlate_processor.R" 
   
   #loading functions--------
@@ -49,7 +49,7 @@ shinyServer(function(input, output) {
     
     if(input$do==0){
       # for show
-      res <- read_xlsx(infile$datapath, sheet=2, range = "A59:Y75")
+      res <- read_xlsx(infile$datapath, sheet=2, range = "A78:Y94")
     }else{
       res <- mainExec(infile$datapath, input$fillOuter)
       cmdList_output <<- res[[1]]
