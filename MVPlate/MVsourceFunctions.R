@@ -4,6 +4,7 @@ options(stringsAsFactors = F)
 GetStockList <- function(file_name){
   res <- read_xlsx(file_name, range="C1:M2") %>% data.frame() %>%
     select_if(function(x) any(!is.na(x)))
+  
   sl_res <- unlist(res)
   if(is.character(sl_res[1])){
     sl_res <- gsub(",", ".", sl_res) %>% as.numeric()
@@ -1111,5 +1112,5 @@ main <- function(file_path, file_name=""){
 #TROUBLESHOOTING---------
 #errMessage <<- ""
 #fpath <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\Incubator"
-#dataName <- "20211115_EvolutionMIC_GEN_CIP_AZT.xlsx"
+#dataName <- "20211122_MIC_96_TOB_GEN_CIP.xlsx"
 #dqs <- main(paste(fpath, dataName, sep="//"))
