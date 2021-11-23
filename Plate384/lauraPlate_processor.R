@@ -118,15 +118,19 @@ create_commandList_solventDistribution <- function(solution_list, solvent_map){
   
   return(cmd_list)
 }
-create_commandList_serialDilution <- function(command_list, current_id, sol_list){
+create_commandList_serialDilution <- function(command_list, current_id, sol_list, deck_map){
   current_set <- subset(sol_list, dilutionID == current_id) %>% arrange(desc(Concentration))
   
   current_cmd <- sapply(c(2:nrow(current_set)), function(x){
     c(current_set$deck[x-1], current_set$slot[x-1], 
       current_set$deck[x], current_set$slot[x],
       current_set$V_forDilution[x-1], current_set$V_total[x]/2,
-      1, -1, if(current_set$V_forDilution[x-1]<=300){"p300"}else{"p1000"},
-      "Serial dilution")}) %>% t() %>% data.frame()
+      1, -1, 
+      if((current_set$V_forDilution[x-1]>300) & 
+         !grepl("96", deck_map$fill[deck_map$deck==current_set$deck[x-1]])){"p1000"}else{"p300"}, #tip type
+      "Serial dilution")
+  }) %>% t() %>% data.frame()
+  
   colnames(current_cmd) <- colnames(command_list)
   
   current_cmd$asp_set <- c((max(command_list$asp_set)+1):(max(command_list$asp_set)+nrow(current_cmd)))
@@ -259,18 +263,19 @@ mainExec <- function(input_file_name, fill_outer){
   # C | Setup deck and dilution maps
   deckMap <- data.frame(deck=c(1:12),
                         fill = c("solvent", "p300", "p1000", "dilution_96_A", "dilution_96_B", "dilution_15falcon_C",
-                                 "384_3", "384_4", "dilution_15falcon_D", "384_1", "384_2", "trash"))
+                                 "384_3", "dilution_15falcon_D", "dilution_15falcon_E", "384_1", "384_2", "trash"))
   solutionMap_96 <-data.frame(slot = rep(sapply(c(1:8), function(x) paste0(LETTERS[x], c(1:12))), 
                                            length(which(grepl("dilution_96", deckMap$fill)))),
                               deck = as.vector(sapply(which(grepl("dilution_96", deckMap$fill)), 
                                                         function(x) rep(x, 96))),
                               solutionID = replicate((96*length(which(grepl("dilution_96", deckMap$fill)))), ""))
+  
   solutionMap_15 <-data.frame(slot = rep(sapply(c(1:3), function(x) paste0(LETTERS[x], c(1:5))), 
                                          length(which(grepl("dilution_15", deckMap$fill)))),
                               deck = as.vector(sapply(which(grepl("dilution_15", deckMap$fill)), 
                                                       function(x) rep(x, 15))),
                               solutionID = replicate((15*length(which(grepl("dilution_15", deckMap$fill)))), ""))
-
+  
   solventMap <- data.frame(slot= as.vector(sapply(c(1:2), function(x) paste0(LETTERS[x], c(1:3)))),
                            deck = which(grepl("solvent", deckMap$fill)),
                            fill = "")
@@ -287,7 +292,7 @@ mainExec <- function(input_file_name, fill_outer){
                     sol_list=solList, stock_info=stockInfo) %>% list.rbind()
   
   # E | Assign dilution slot
-  V_limit_DeepWell <- 1800
+  V_limit_DeepWell <- 1750
   if(nrow(subset(solList, V_total <= V_limit_DeepWell))>0){
     solutionMap_96$solutionID[1:nrow(subset(solList, V_total <= V_limit_DeepWell))] <- subset(solList, V_total <= V_limit_DeepWell)$solutionID
   }
@@ -306,7 +311,7 @@ mainExec <- function(input_file_name, fill_outer){
   
   #   Serial Dilution
   cmdList_serialDilution <- lapply(unique(solList$dilutionID), function(x)
-    create_commandList_serialDilution(cmdList_solventDistribution, x, solList)) %>% list.rbind()
+    create_commandList_serialDilution(cmdList_solventDistribution, x, solList, deckMap)) %>% list.rbind()
   cmdList_serialDilution$tip_n <- c((max(cmdList_solventDistribution$tip_n)+1):
                                       (max(cmdList_solventDistribution$tip_n)+nrow(cmdList_serialDilution)))
   cmdList_serialDilution$asp_set <- c((max(cmdList_solventDistribution$asp_set)+1):
