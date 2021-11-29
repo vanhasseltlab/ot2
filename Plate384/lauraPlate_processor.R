@@ -262,7 +262,7 @@ mainExec <- function(input_file_name, fill_outer){
   
   # C | Setup deck and dilution maps
   deckMap <- data.frame(deck=c(1:12),
-                        fill = c("solvent", "p300", "p1000", "dilution_96_A", "dilution_96_B", "dilution_15falcon_C",
+                        fill = c("solvent", "p1000", "p300", "dilution_96_A", "dilution_96_B", "dilution_15falcon_C",
                                  "384_3", "dilution_15falcon_D", "dilution_15falcon_E", "384_1", "384_2", "trash"))
   solutionMap_96 <-data.frame(slot = rep(sapply(c(1:8), function(x) paste0(LETTERS[x], c(1:12))), 
                                            length(which(grepl("dilution_96", deckMap$fill)))),
