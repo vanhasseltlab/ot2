@@ -249,7 +249,7 @@ mainExec <- function(input_file_name, fill_outer){
   stockInfo <- inputFiles[[1]]
   generalInfo <- inputFiles[[2]]
   plateInfo <- inputFiles[[3]]
-  
+ 
   # B | Parse out solution list\
   plateInfo$solutionID <- paste(plateInfo$Fill, plateInfo$Concentration, plateInfo$Solvent, sep="_")
   solList <- dplyr::select(plateInfo, -Well) %>% 
@@ -259,7 +259,7 @@ mainExec <- function(input_file_name, fill_outer){
   solList$nWell <- sapply(solList$solutionID, function(x) length(which(plateInfo$solutionID==x)))
   solList$volNeeded <- solList$nWell * generalInfo["nPlates"] * 
     (generalInfo["Vtotal"] - generalInfo["Vinoc"])
-  
+ 
   # C | Setup deck and dilution maps
   deckMap <- data.frame(deck=c(1:12),
                         fill = c("solvent", "p1000", "p300", "dilution_96_A", "dilution_96_B", "dilution_15falcon_C",
@@ -279,7 +279,7 @@ mainExec <- function(input_file_name, fill_outer){
   solventMap <- data.frame(slot= as.vector(sapply(c(1:2), function(x) paste0(LETTERS[x], c(1:3)))),
                            deck = which(grepl("solvent", deckMap$fill)),
                            fill = "")
-  
+
   # Filling solvent rack; max. 5 different solvents (6 if no outer fill)
   if(fill_outer){
     solventMap$fill[1:length(unique(plateInfo$Solvent))] <- unique(plateInfo$Solvent)
@@ -290,7 +290,7 @@ mainExec <- function(input_file_name, fill_outer){
   # D | Create dilution scheme
   solList <- lapply(unique(solList$dilutionID), create_dilScheme, 
                     sol_list=solList, stock_info=stockInfo) %>% list.rbind()
-  
+ 
   # E | Assign dilution slot
   V_limit_DeepWell <- 1750
   if(nrow(subset(solList, V_total <= V_limit_DeepWell))>0){
@@ -304,7 +304,7 @@ mainExec <- function(input_file_name, fill_outer){
   solutionMap <- rbind.data.frame(solutionMap_96, solutionMap_15)
   
   solList <- left_join(solList, solutionMap, by="solutionID")
- 
+  
   # F | Command list
   #   Solvent Distribution
   cmdList_solventDistribution <- create_commandList_solventDistribution(solList, solventMap)
@@ -493,8 +493,8 @@ mainExec <- function(input_file_name, fill_outer){
 
 #TEST--------------
 # input 
+#fileName <- "20220103_MIC384_DOX_MIN_TOB_GEN_STR_TET_CIP_FAEC_FAEM.xlsx"
 #mainwd <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\Incubator"
-#fileName <- "20211123_MIC384_DOX_MIN_TOB_GEN_STR_TET_CIP.xlsx"
 #input_file_name <- paste0(mainwd, "\\", fileName)
 
 #output <- mainExec(input_file_name, T)
