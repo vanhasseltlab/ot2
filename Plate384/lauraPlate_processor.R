@@ -47,7 +47,7 @@ create_dilScheme <- function(current_dilID, sol_list, stock_info){
         current_dil$Concentration[i-1] / current_dil$Concentration[i]
     }
     
-    current_dil$V_total[i] <- current_dil$volNeeded[i] + current_dil$V_forDilution[i] + 300 #add excess
+    current_dil$V_total[i] <- current_dil$volNeeded[i] + current_dil$V_forDilution[i] + 300 #add excess; reduce to 150
   }
   
   #round initial dilution for manual handling

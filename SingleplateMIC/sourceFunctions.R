@@ -882,6 +882,10 @@ Int_CreateCmdList <- function(deck_map, sol_list, solvent_map, inoc_map,
   
   #removing factors
   cmdlist[] <- lapply(cmdlist, as.character)
+  
+  #replace tip every iteration
+  cmdList$TipID <- c(1:nrow(cmdList))
+  
   return(cmdlist)
 }
 
