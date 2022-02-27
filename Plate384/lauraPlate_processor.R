@@ -47,11 +47,11 @@ create_dilScheme <- function(current_dilID, sol_list, stock_info){
         current_dil$Concentration[i-1] / current_dil$Concentration[i]
     }
     
-    current_dil$V_total[i] <- current_dil$volNeeded[i] + current_dil$V_forDilution[i] + 300 #add excess; reduce to 150
+    current_dil$V_total[i] <- current_dil$volNeeded[i] + current_dil$V_forDilution[i] + 100 #add excess; reduce to 100
   }
   
   #round initial dilution for manual handling
-  current_dil$V_total[nrow(current_dil)] <- round(current_dil$V_total[nrow(current_dil)]/100, 0) * 100
+  current_dil$V_total[nrow(current_dil)] <- round(current_dil$V_total[nrow(current_dil)]/10, 0) * 10
   
   #additional info for row-wise dilution
   current_dil$V_fromStock <- c(rep(0, nrow(current_dil)-1), 
@@ -253,7 +253,7 @@ mainExec <- function(input_file_name, fill_outer){
   # B | Parse out solution list\
   plateInfo$solutionID <- paste(plateInfo$Fill, plateInfo$Concentration, plateInfo$Solvent, sep="_")
   solList <- dplyr::select(plateInfo, -Well) %>% 
-    distinct() %>% filter(!is.na(Fill)) %>%
+    distinct() %>% filter(!is.na(Fill)) %>% filter(!is.na(Solvent)) %>%
     arrange(Concentration) %>% arrange(Fill) %>% arrange(Solvent) 
   solList$dilutionID <- paste(solList$Fill, solList$Solvent, sep="_")
   solList$nWell <- sapply(solList$solutionID, function(x) length(which(plateInfo$solutionID==x)))
@@ -281,11 +281,13 @@ mainExec <- function(input_file_name, fill_outer){
                            fill = "")
 
   # Filling solvent rack; max. 5 different solvents (6 if no outer fill)
-  if(fill_outer){
-    solventMap$fill[1:length(unique(plateInfo$Solvent))] <- unique(plateInfo$Solvent)
-  }else{
-    solventMap$fill[1:length(unique(solList$Solvent))] <- unique(solList$Solvent) 
-  }
+  solvents <- unique(subset(plateInfo, !is.na(Solvent))$Solvent)
+  solventMap$fill[1:length(solvents)] <- solvents
+  #if(fill_outer){
+  #  solventMap$fill[1:length(solvents)] <- solvents
+  #}else{
+  #  solventMap$fill[1:length(unique(solList$Solvent))] <- unique(subset(plateInfo, !is.na(Solvent))$Solvent)
+  #}
   
   # D | Create dilution scheme
   solList <- lapply(unique(solList$dilutionID), create_dilScheme, 
@@ -334,7 +336,11 @@ mainExec <- function(input_file_name, fill_outer){
     left_join(solvent_map_prep, by="from_slot")
   solvent_operations <- data.frame(slot = unique(solvent_commands$from_slot),
                                    volume = sapply(unique(solvent_commands$from_slot), 
-                                                   function(x) sum(as.numeric(solvent_commands$amt[solvent_commands$from_slot==x])))) %>%
+                                                   function(x){
+                                                     current_set <- subset(solvent_commands, from_slot==x)
+                                                     current_set$n_targets <- vapply(current_set$to_slot, FUN.VALUE=1, function(q) length(strsplit(q, split=", ")[[1]]))
+                                                     current_set$volumes <- current_set$n_targets * as.numeric(current_set$amt)
+                                                     return(sum(current_set$volumes))})) %>%
     left_join(solventMap, by="slot")
   
   solvent_operations$volume <- round(solvent_operations$volume / 500) * 500 + 3000 #excess
@@ -493,12 +499,12 @@ mainExec <- function(input_file_name, fill_outer){
 
 #TEST--------------
 # input 
-#fileName <- "20220103_MIC384_DOX_MIN_TOB_GEN_STR_TET_CIP_FAEC_FAEM.xlsx"
-#mainwd <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\Incubator"
+#fileName <- "plateMap.xlsx"
+#mainwd <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\Incubator\\Laura_384"
 #input_file_name <- paste0(mainwd, "\\", fileName)
 
 #output <- mainExec(input_file_name, T)
 
 #write output
-#write.csv(output[[1]], paste0(mainwd, "/SMURF_CommandList.csv"), row.names=F)
-#write_xlsx(output[[2]], paste0(mainwd, "/SMURF_UserGuide.xlsx"))
+#write.csv(output[[1]], paste0(mainwd, "/Halving_CommandList.csv"), row.names=F)
+#write_xlsx(output[[2]], paste0(mainwd, "/Halving_UserGuide.xlsx"))
