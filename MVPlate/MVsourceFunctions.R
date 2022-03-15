@@ -134,9 +134,9 @@ CalculateDilVolume <- function(sol_list, total_vol_well, inoc_vol, stock_list){
   drugs <- unique(sol_list$DrugType)
   
   for(i in c(1:length(solvents))){
-    print(paste0("i = ", i))
+   
     for(j in c(1:length(drugs))){
-      print(paste0("j = ", j))
+      
       #subset the current drug type
       curList <- subset(sol_list, DrugType==drugs[j] & Solvent==solvents[i])
       
@@ -149,7 +149,6 @@ CalculateDilVolume <- function(sol_list, total_vol_well, inoc_vol, stock_list){
         #add items if additional pre-dilutions is required
         new_curList <- c()
         for(q in c(1:length(curList[,1]))){
-          print(q)
           new_curList <- rbind.data.frame(new_curList, curList[q,])
           
           #get the current dilution factor
@@ -850,14 +849,16 @@ cal_amtList_Excess <- function(amt_list, cmd_list, deck_map){
           #if volume exceeded limit
           #place new tube
           if(cmd_list$SourceLabware[i] == 'labware_11'){
-            sol_or_stock <- 'tock'
-          }else{
             sol_or_stock <- 'olvent'
+          }else{
+            sol_or_stock <- 'tock'
           }
           
-          solvent_map <- subset(tubes, Labware==toString(deck_map[grepl(sol_or_stock, deck_map[,2]),1]))
           #get last filled tube
+          solvent_map <- subset(tubes, Labware==toString(deck_map[grepl(sol_or_stock, deck_map[,2]),1]))
           last_filled <- solvent_map$Slot[length(solvent_map[,1])]
+          
+          #assign new slot
           new_slot <- c(substring(last_filled, 1, 1), substring(last_filled, 2, 2))
           new_slot[2] <- as.numeric(new_slot[2])+1
           if(as.numeric(new_slot[2])>3){
@@ -865,7 +866,8 @@ cal_amtList_Excess <- function(amt_list, cmd_list, deck_map){
             new_slot[2] <- 1
           }
           new_slot <- paste(new_slot, collapse='')
-          #assign new tube in 'tubes'
+          
+          #assign new tube in 'tubes' and 'solvent_map'
           nexDat <- cbind.data.frame(cmd_list$SourceLabware[i], 
                                      new_slot,
                                      tubes$Fill[tubes$Labware==cmd_list$SourceLabware[i] & tubes$Slot==cmd_list$SourceSlot[i]],
@@ -873,6 +875,7 @@ cal_amtList_Excess <- function(amt_list, cmd_list, deck_map){
                                      deltaV, stringsAsFactors=F)
           colnames(nexDat) <- colnames(tubes)
           tubes <- rbind.data.frame(tubes, nexDat, stringsAsFactors=F)
+          
           #update command lines
           old_slots <- cmd_list[c(i:length(cmd_list[,1])),]
           
@@ -1110,8 +1113,8 @@ main <- function(file_path, file_name=""){
   return(allAmt)
 }
 
-#TROUBLESHOOTING---------
-#errMessage <<- ""
-#fpath <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\Incubator"
-#dataName <- "20211122_MIC_96_DOX_MIN_CIP_.xlsx"
-#dqs <- main(paste(fpath, dataName, sep="//"))
+# #TROUBLESHOOTING---------
+# errMessage <<- ""
+# fpath <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\ot2\\MVPlate"
+# dataName <- "20220307_EvolutionMIC_TOB_6.xlsx"
+# dqs <- main(paste(fpath, dataName, sep="//"))
