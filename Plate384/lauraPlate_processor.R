@@ -10,7 +10,7 @@ wellOrder <- sapply(c(1:24), function(x) paste0(LETTERS[1:16], x)) %>% as.vector
 #FUNCTIONS-----------
 read_InputFile <- function(file_name){
   #Stock concentration
-  stockInfo <- read_xlsx(file_name, sheet=1)[,1:3]
+  stockInfo <- read_xlsx(file_name, sheet=1)[,1:3] %>% na.omit()
   
   #general information
   generalInfo <- read_xlsx(file_name, sheet=1, range="F2:F4", col_names=F) %>% unlist()
@@ -192,6 +192,7 @@ distribute_outerWells <- function(plate_info, cmd_list_checkpoint, solvent_map, 
   current_command <- lapply(unique(fill_wells$Solvent), function(x){
     #subset wells to fill
     current_fill_wells <- subset(fill_wells, Solvent==x)
+    
     #create commands; separate for each aspirate group
     command_current_solvent <- data.frame()
     well_targets <- current_fill_wells$Well
@@ -259,7 +260,7 @@ mainExec <- function(input_file_name, fill_outer){
   solList$nWell <- sapply(solList$solutionID, function(x) length(which(plateInfo$solutionID==x)))
   solList$volNeeded <- solList$nWell * generalInfo["nPlates"] * 
     (generalInfo["Vtotal"] - generalInfo["Vinoc"])
- 
+  
   # C | Setup deck and dilution maps
   deckMap <- data.frame(deck=c(1:12),
                         fill = c("solvent", "p1000", "p300", "dilution_96_A", "dilution_96_B", "dilution_15falcon_C",
@@ -279,7 +280,7 @@ mainExec <- function(input_file_name, fill_outer){
   solventMap <- data.frame(slot= as.vector(sapply(c(1:2), function(x) paste0(LETTERS[x], c(1:3)))),
                            deck = which(grepl("solvent", deckMap$fill)),
                            fill = "")
-
+  
   # Filling solvent rack; max. 5 different solvents (6 if no outer fill)
   solvents <- unique(subset(plateInfo, !is.na(Solvent))$Solvent)
   solventMap$fill[1:length(solvents)] <- solvents
@@ -292,7 +293,7 @@ mainExec <- function(input_file_name, fill_outer){
   # D | Create dilution scheme
   solList <- lapply(unique(solList$dilutionID), create_dilScheme, 
                     sol_list=solList, stock_info=stockInfo) %>% list.rbind()
- 
+  
   # E | Assign dilution slot
   V_limit_DeepWell <- 1750
   if(nrow(subset(solList, V_total <= V_limit_DeepWell))>0){
@@ -499,8 +500,8 @@ mainExec <- function(input_file_name, fill_outer){
 
 #TEST--------------
 # input 
-#fileName <- "plateMap.xlsx"
-#mainwd <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\Incubator\\Laura_384"
+#fileName <- "20220328_MIC384_LUG_CIP_Duplo.xlsx"
+#mainwd <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\Incubator"
 #input_file_name <- paste0(mainwd, "\\", fileName)
 
 #output <- mainExec(input_file_name, T)
