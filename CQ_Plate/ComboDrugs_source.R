@@ -88,6 +88,84 @@ GetSolutionInfo <- function(drug_map){
   return(sol_list)
 }
 
+## DEPRECATED
+CalculateRequired_ConcVol <- function(drug_map, vol_info, sol_list, n_plate){
+  well_totalVol <- vol_info["Total"] - vol_info["Inoculum"]
+  sol_separate <- max(sapply(drug_map$DrugName, function(x) length(strsplit(x, split="_")[[1]])))
+  vol_per_drugSol <- well_totalVol / sol_separate
+  
+  sol_list$ReqVolume <- sol_list$nWell * vol_per_drugSol * n_plate
+  sol_list$ReqConc <- sol_list$Conc * vol_info["Total"] / vol_per_drugSol
+  
+  return(sol_list)
+}
+CalculateSerialDilution <- function(solution_list, stock_info){
+  solution_list$medDrugID <- paste(solution_list$DrugName, solution_list$Medium, sep="_")
+  #initiate result list
+  reslist <- c()
+  #iterate through all medium-drug combinations
+  medIDs <- unique(solution_list$medDrugID)
+  for(q in c(1:length(medIDs))){
+    #subset
+    cur_data <- subset(solution_list, medDrugID==medIDs[q] & ReqConc>0)
+    
+    if(length(cur_data[,1])>0){
+      #preliminary dilution if required
+      upper_conc <- as.numeric(stock_info[1, unlist(cur_data$DrugName[1])])
+      cur_maxConc <- max(cur_data$ReqConc)
+      while(upper_conc/cur_maxConc > 10){
+        #create next data for dilution
+        nexData <- cur_data[1,]
+        
+        #update information
+        nexData$ReqConc <- upper_conc/10
+        nexData$nWell <- 0
+        nexData$ReqVolume <- 0
+        nexData$Conc <- upper_conc/10
+        nexData$Slot <- "(none)"
+        nexData$solID <- paste(nexData$DrugName, nexData$Conc, nexData$Medium, sep="_")
+        nexData$medDrugID <- paste(nexData$DrugName, nexData$Medium, sep="_")
+        
+        #concatenate result
+        cur_data <- rbind.data.frame(cur_data, nexData)
+        
+        #update current dilution rate
+        cur_maxConc <- max(cur_data$ReqConc)
+        upper_conc <- upper_conc/10
+      }
+      
+      #order
+      cur_data <- cur_data[order(cur_data$ReqConc, decreasing=F), ]
+      
+      #calculate required volume from above
+      finVolumes <- c(max(cur_data$ReqVolume[1] + 150, 300)) #excess 150 uL; place a minimum of 300 uL
+      volAbove <- c()
+      
+      for(j in c(2:length(cur_data[,1]))){
+        #calculate required volume for next dilution
+        pass_vol <- finVolumes[j-1]*cur_data$ReqConc[j-1]/cur_data$ReqConc[j]
+        
+        #calculate actual required volume
+        finVolumes <- c(finVolumes, max((pass_vol + cur_data$ReqVolume[j] + 150), 300))
+        
+        #calculate amount required from above
+        volAbove <- c(volAbove, finVolumes[j-1]*cur_data$ReqConc[j-1]/cur_data$ReqConc[j])
+      }
+      volAbove <- c(volAbove, 
+                    finVolumes[length(finVolumes)]*cur_data$ReqConc[length(finVolumes)]/as.numeric(stock_info[1, unlist(cur_data$DrugName[1])]))
+      
+      #adjust excess and final volumes for higher amounts
+      finVolumes[finVolumes>1200] <- max(2000, finVolumes[finVolumes>1200] - 150 + 1000) #set a minimum of 2 mL; excess of 1 mL for falcon tubes
+      
+      #concatenate results
+      nex_item <- cbind.data.frame(cur_data, finVolumes, volAbove)
+      if(length(reslist)>0){reslist <- rbind.data.frame(reslist, nex_item)}else{reslist <- data.frame(nex_item)}
+    }
+  }
+  return(reslist)
+}
+##
+
 ## NEW
 cal_dilScheme_MedID <- function(current_set_id, solution_list, stock_info){
   # subset
