@@ -500,11 +500,11 @@ mainExec <- function(input_file_name, fill_outer){
 
 #TEST--------------
 # input 
-#fileName <- "20220328_MIC384_LUG_CIP_Duplo.xlsx"
-#mainwd <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\Incubator"
-#input_file_name <- paste0(mainwd, "\\", fileName)
-
-#output <- mainExec(input_file_name, T)
+# fileName <- "20220328_MIC384_LUG_CIP_Duplo.xlsx"
+# mainwd <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\Incubator"
+# input_file_name <- paste0(mainwd, "\\", fileName)
+# 
+# output <- mainExec(input_file_name, T)
 
 #write output
 #write.csv(output[[1]], paste0(mainwd, "/Halving_CommandList.csv"), row.names=F)
