@@ -1,7 +1,7 @@
 library(shiny)
 shinyUI(
     pageWithSidebar(
-        headerPanel("Growth Curve for 96-Well Plate"),
+        headerPanel("Output Preprocessor for Checkerboard 96-Well Plate"),
         
         sidebarPanel(
             #link to home

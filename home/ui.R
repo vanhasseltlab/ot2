@@ -33,10 +33,13 @@ shinyUI(fluidPage(
                    "OT2 protocol processor for medium/solution mixing", placement='right', trigger='hover'),
             
             #plate analysis
-            titlePanel("Output Analysis"),
-            tipify(actionButton("growthCurve", "Growth Data", width='300px',
+            titlePanel("Output Preprocessor"),
+            tipify(actionButton("growthCurve", "Regular Growth Data", width='300px',
                                 onclick ="window.open('https://vanhasseltlab.lacdr.leidenuniv.nl/ot2/PlateAnalysis/GrowthCurve')"),
                    "Integrates plate reader outputs into a long-format table", placement='right', trigger='hover'),
+            tipify(actionButton("growthCurve", "Checkerboard Growth Data", width='300px',
+                                onclick ="window.open('https://vanhasseltlab.lacdr.leidenuniv.nl/ot2/PlateAnalysis/Checkerboard_DataReader')"),
+                   "Integrates checkerboard plate reader outputs into a long-format table", placement='right', trigger='hover'),
             
             #User Guide download buttons
             titlePanel("Guides"),
