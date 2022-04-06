@@ -89,6 +89,16 @@ GetSolutionInfo <- function(drug_map){
 }
 
 ## NEW DIL SCHEME
+CalculateRequired_ConcVol <- function(drug_map, vol_info, sol_list, n_plate){
+  well_totalVol <- vol_info["Total"] - vol_info["Inoculum"]
+  sol_separate <- max(sapply(drug_map$DrugName, function(x) length(strsplit(x, split="_")[[1]])))
+  vol_per_drugSol <- well_totalVol / sol_separate
+  
+  sol_list$ReqVolume <- sol_list$nWell * vol_per_drugSol * n_plate
+  sol_list$ReqConc <- sol_list$Conc * vol_info["Total"] / vol_per_drugSol
+  
+  return(sol_list)
+}
 cal_dilScheme_MedID <- function(current_set_id, solution_list, stock_info){
   # subset
   current_set <- subset(solution_list, medDrugID==current_set_id) %>% filter(Conc>0) %>%
@@ -713,7 +723,7 @@ mainExec <- function(file_name){
 
 #TROUBLESHOOTING--------------
 # mainwd <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\ot2\\CQ_Plate"
-# inputFile <- "20220309_MK_E05_PMAPID.xlsx"
+# inputFile <- "20220406_MK_E07_PMAPID.xlsx"
 # dqs <- mainExec(paste(mainwd, inputFile, sep="\\"))
 # 
 # write.csv(robotCommands, paste0(mainwd, "/CommandList_test.csv"), row.names=F)
