@@ -110,7 +110,7 @@ cal_dilScheme_MedID <- function(current_set_id, solution_list, stock_info){
   # main dilutions
   for(i in c(1:nrow(current_set))){
     # assign required volume
-    current_set$finVolumes[i] <- current_set$ReqVolume[i]
+    current_set$finVolumes[i] <- current_set$ReqVolume[i] + 200 # excess
     
     if(i>1){
       current_set$finVolumes[i] <- current_set$ReqVolume[i] + current_set$volAbove[i-1]
@@ -722,8 +722,8 @@ mainExec <- function(file_name){
 }
 
 #TROUBLESHOOTING--------------
-# mainwd <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\ot2\\CQ_Plate"
-# inputFile <- "20220406_MK_E07_PMAPID.xlsx"
-# dqs <- mainExec(paste(mainwd, inputFile, sep="\\"))
-# 
-# write.csv(robotCommands, paste0(mainwd, "/CommandList_test.csv"), row.names=F)
+mainwd <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\ot2\\CQ_Plate"
+inputFile <- "20220406_MK_E07_PMAPID.xlsx"
+dqs <- mainExec(paste(mainwd, inputFile, sep="\\"))
+
+write.csv(robotCommands, paste0(mainwd, "/CommandList_test.csv"), row.names=F)
