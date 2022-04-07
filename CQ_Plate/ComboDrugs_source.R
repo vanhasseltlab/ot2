@@ -722,8 +722,8 @@ mainExec <- function(file_name){
 }
 
 #TROUBLESHOOTING--------------
-mainwd <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\ot2\\CQ_Plate"
-inputFile <- "20220406_MK_E07_PMAPID.xlsx"
-dqs <- mainExec(paste(mainwd, inputFile, sep="\\"))
-
-write.csv(robotCommands, paste0(mainwd, "/CommandList_test.csv"), row.names=F)
+# mainwd <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\ot2\\CQ_Plate"
+# inputFile <- "20220406_MK_E07_PMAPID.xlsx"
+# dqs <- mainExec(paste(mainwd, inputFile, sep="\\"))
+# 
+# write.csv(robotCommands, paste0(mainwd, "/CommandList_test.csv"), row.names=F)
