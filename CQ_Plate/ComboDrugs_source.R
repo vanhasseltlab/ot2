@@ -1,6 +1,9 @@
 #### META ####
 # S. T. Tandar - 2021-1-1
 # Universal CQ processor
+#LIBRARIES------
+library(dplyr)
+library(readxl)
 
 # ---------- SECTION A - Read and Preparation -------------
 ReadInput <- function(data_path){
@@ -83,7 +86,8 @@ GetSolutionInfo <- function(drug_map){
   sol_list$Conc <- as.numeric(sol_list$Conc)
   
   sol_list <- sol_list[order(sol_list$Conc),]
-  sol_list <- sol_list[order(as.character(sol_list$DrugName)),]
+  sol_list <- sol_list[order(as.character(sol_list$DrugName)),] %>%
+    dplyr::select(Medium, DrugName, Conc, solID, nWell) # remove column slot
   
   return(sol_list)
 }
@@ -113,7 +117,7 @@ cal_dilScheme_MedID <- function(current_set_id, solution_list, stock_info){
     current_set$finVolumes[i] <- current_set$ReqVolume[i] + 200 # excess
     
     if(i>1){
-      current_set$finVolumes[i] <- current_set$ReqVolume[i] + current_set$volAbove[i-1]
+      current_set$finVolumes[i] <- current_set$ReqVolume[i] + current_set$volAbove[i-1] + 200 # excess
     }
     
     # calculate amount required from above
@@ -129,16 +133,15 @@ cal_dilScheme_MedID <- function(current_set_id, solution_list, stock_info){
     }
     
     # calculate required medium
-    current_set$volMedium[i] <- current_set$finVolumes[i] - sum(current_set$volStock[i] + current_set$volAbove[i])
-    
+    current_set$volMedium[i] <- current_set$finVolumes[i] - current_set$volAbove[i]
   }
   
   # if pre-dilution if required
   if(stock_conc >= 10*max(current_set$ReqConc)){
     #pre-dilute stock
     predilution_conc <- 10*max(current_set$ReqConc)
-    req_volume <- max(current_set$ReqVolume[nrow(current_set)]/10 + 150, 300)
-    stock_predilution <- c(NA, current_set_id,
+    req_volume <- max(current_set$ReqVolume[nrow(current_set)]/10 + 200, 300)
+    stock_predilution <- c(current_set_id,
                            unique(current_set$Medium), unique(current_set$DrugName),
                            10*max(current_set$Conc), 
                            paste(unique(current_set$DrugName), 10*max(current_set$Conc), unique(current_set$Medium), sep="-"),
@@ -165,11 +168,10 @@ CalculateStockAmt <- function(sol_list, stock_info){
   amounts <- sapply(unique(drugnames), function(x) max(ceiling(sum(reqStockAmt[drugnames==x])/100)*100, 300))
   
   #concatenate results; create new stock list
-  new_stock_info <- cbind.data.frame(colnames(stock_info), unlist(stock_info[1,]), amounts)
-  colnames(new_stock_info) <- c("DrugName", "StockConc", "AmtRequired")
-  rownames(new_stock_info) <- c()
+  stock_info <- data.frame(DrugName = colnames(stock_info), StockConc=unlist(stock_info[1,]))
+  stock_info$AmtRequired <- sapply(stock_info$DrugName, function(x) amounts[names(amounts)==x])
   
-  return(new_stock_info)
+  return(stock_info)
 }
 
 # ---------- SECTION B - Deck Preparation -------------
@@ -314,6 +316,7 @@ InitSolventDist <- function(sol_list, deck_map, rack_map){
 InitialStockDilution <- function(cmd_list, sol_list, rack_map){
   #get tip id
   last_tip <- max(as.numeric(cmd_list[,"TipID"])) + 1
+  
   #iterate through all drug-medium ID
   medDrugIDs <- unique(sol_list$medDrugID)
   for(q in c(1:length(medDrugIDs))){
@@ -613,12 +616,12 @@ mainExec <- function(file_name){
     mutate(Conc=as.numeric(Conc), nWell=as.numeric(nWell), ReqVolume=as.numeric(ReqVolume),
            ReqConc = as.numeric(ReqConc), finVolumes=as.numeric(finVolumes), 
            volAbove=as.numeric(volAbove)) %>% 
-    dplyr::select(Slot, Medium, DrugName, Conc, solID, nWell, ReqVolume, 
+    dplyr::select(Medium, DrugName, Conc, solID, nWell, ReqVolume, 
                   ReqConc, medDrugID, finVolumes, volAbove)
   
   #D. Calculate required stock amounts
   stockInfo <- CalculateStockAmt(solList, stockInfo)
-  
+    
   # ---------- SECTION B - Deck Preparation -------------
   #E. Initiate Deck Map
   deckMap <- c("96-well_D", "96-well_E", "96-well_F",
@@ -647,7 +650,7 @@ mainExec <- function(file_name){
   cmdList <- InitialStockDilution(cmdList, solList, rackMap)
   
   #x3. Serial Dilutions
-  cmdList <- MainDilution(cmdList, solList, rackMap)
+  cmdList <- MainDilution(cmdList, solList, rackMap) # here
   
   #x4. Distribution
   cmdList <- MainDistribution(volInfo, solList, rackMap, 
@@ -723,7 +726,7 @@ mainExec <- function(file_name){
 
 #TROUBLESHOOTING--------------
 # mainwd <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\ot2\\CQ_Plate"
-# inputFile <- "20220406_MK_E07_PMAPID.xlsx"
+# inputFile <- "Input_File2.xlsx"
 # dqs <- mainExec(paste(mainwd, inputFile, sep="\\"))
 # 
 # write.csv(robotCommands, paste0(mainwd, "/CommandList_test.csv"), row.names=F)

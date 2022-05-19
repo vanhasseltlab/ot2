@@ -319,6 +319,7 @@ mainExec <- function(input_file_name, fill_outer){
                                       (max(cmdList_solventDistribution$tip_n)+nrow(cmdList_serialDilution)))
   cmdList_serialDilution$asp_set <- c((max(cmdList_solventDistribution$asp_set)+1):
                                         (max(cmdList_solventDistribution$asp_set)+nrow(cmdList_serialDilution)))
+  
   #   Final Distribution
   cmdList_finalDistribution <- create_commandList_finalDistribution(solList, generalInfo, solutionMap,
                                                                     plateInfo, cmdList_serialDilution, deckMap)
@@ -500,8 +501,8 @@ mainExec <- function(input_file_name, fill_outer){
 
 #TEST--------------
 # input 
-# fileName <- "20220328_MIC384_LUG_CIP_Duplo.xlsx"
-# mainwd <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\Incubator"
+# fileName <- "20220301_MIC384_NM2_NM3_NM4_NM5_NM6_NM7_CIP (1).xlsx"
+# mainwd <- "C:\\Users\\sebas\\OneDrive\\Desktop\\Freelance\\Laura\\Conc_calc"
 # input_file_name <- paste0(mainwd, "\\", fileName)
 # 
 # output <- mainExec(input_file_name, T)
