@@ -4,6 +4,7 @@
 #LIBRARIES------
 library(dplyr)
 library(readxl)
+library(rlist)
 
 # ---------- SECTION A - Read and Preparation -------------
 ReadInput <- function(data_path){
@@ -211,27 +212,49 @@ InitiateRacks <- function(deck_map){
 DistributeStock <- function(rack_map, stock_info){
   #separate stock rack from rack map
   stock_rack <- rack_map[grepl("Stock", rack_map$Item, ignore.case=T),]
-  rack_map <- rack_map[!(grepl("Stock", rack_map$Item, ignore.case=T)),]
+  spare_15 <- rack_map[grepl("15", rack_map$Item),]
+  remaining_racks <- rack_map[(!(grepl("Stock", rack_map$Item, ignore.case=T)) & !grepl("15", rack_map$Item)),]
+  
+  #rack_map <- rack_map[!(grepl("Stock", rack_map$Item, ignore.case=T)),]
   
   #distributing stock solutions to racks; iterate through all drugs
   for(i in c(1:length(stock_info[,1]))){
-    #fill rack with each tube of max 1200 uL
-    remaining_fill <- stock_info$AmtRequired[i]
-    while(remaining_fill>0){
-      #calculate current fill volume
-      current_fill <- min(remaining_fill, 1200)
-      
-      #update remaining fill volume
-      remaining_fill <- remaining_fill - current_fill
-      
-      #fill the stock rack
+    # check fill amount
+    current_fill_amount <- stock_info$AmtRequired[i]
+    if(current_fill_amount <= 1000){
+      # fill to eppendorf if volume is less than or equal to 1000
       fill_loc <- which(stock_rack$FillSolution=="(empty)")[1]
       stock_rack$FillSolution[fill_loc] <- stock_info$DrugName[i]
-      stock_rack$FillVolume[fill_loc] <- current_fill
+      stock_rack$FillVolume[fill_loc] <- current_fill_amount + 200 # 200 uL excess
+    }else{
+      if(current_fill_amount <= 13700){
+        # fill to a single 15 mL Falcon tube if amount <= 13700
+        fill_loc <- which(spare_15$FillSolution=="(empty)")[1]
+        spare_15$FillSolution[fill_loc] <- stock_info$DrugName[i]
+        spare_15$FillVolume[fill_loc] <- current_fill_amount + 300 # 300 uL excess for falcon tubes
+      }else{
+        # otherwise, distribute to multiple falcon tubes
+        remaining_fill <- current_fill_amount
+        while(remaining_fill>0){
+          #calculate current fill volume
+          current_fill <- min(remaining_fill, 13700)
+          
+          #update remaining fill volume
+          remaining_fill <- remaining_fill - current_fill
+          
+          #fill the stock rack
+          fill_loc <- which(spare_15$FillSolution=="(empty)")[1]
+          spare_15$FillSolution[fill_loc] <- stock_info$DrugName[i]
+          spare_15$FillVolume[fill_loc] <- current_fill + 300 # 300 uL excess for falcon tubes
+        }
+      }
+      
     }
+    
   }
+  
   #append back to rack map
-  rack_map <- rbind.data.frame(rack_map, stock_rack)
+  rack_map <- rbind.data.frame(remaining_racks, stock_rack, spare_15)
   
   return(rack_map)
 }
@@ -593,14 +616,15 @@ AdjustDeck <- function(deck_map, rack_map, n_plate){
   
   return(deck_map)
 }
+
 #MAIN--------
 mainExec <- function(file_name){
   # ---------- SECTION A - Read and Preparation -------------
   allInput <- ReadInput(file_name)
-  stockInfo <- allInput[[1]]
-  volInfo <- allInput[[2]]
-  drugMap <- allInput[[3]]
-  nPlate <- allInput[[4]]
+  stockInfo <<- allInput[[1]]
+  volInfo <<- allInput[[2]]
+  drugMap <<- allInput[[3]]
+  nPlate <<- allInput[[4]]
   
   #A. Parsing solutions map
   solList <- GetSolutionInfo(drugMap)
@@ -725,8 +749,8 @@ mainExec <- function(file_name){
 }
 
 #TROUBLESHOOTING--------------
-# mainwd <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\ot2\\CQ_Plate"
-# inputFile <- "Input_File2.xlsx"
-# dqs <- mainExec(paste(mainwd, inputFile, sep="\\"))
-# 
-# write.csv(robotCommands, paste0(mainwd, "/CommandList_test.csv"), row.names=F)
+mainwd <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\ot2\\CQ_Plate"
+inputFile <- "Input_File2.xlsx"
+dqs <- mainExec(paste(mainwd, inputFile, sep="\\"))
+
+#write.csv(robotCommands, paste0(mainwd, "/CommandList_test.csv"), row.names=F)

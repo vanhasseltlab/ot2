@@ -1,3 +1,7 @@
+#LIBRARIES-----
+library(dplyr)
+library(readxl)
+
 #FUNCTIONS LIBRARY------------
 GetStockList <- function(file_name){
   res <- read_xlsx(file_name, range="C1:M2") %>% data.frame() %>%
@@ -1047,8 +1051,9 @@ main <- function(file_path, file_name=""){
     #################
     
     #Command List-------
-    dis <- replicate(length(allAmt[,1]), "NA")
-    all_amt <- cbind.data.frame(allAmt[,c(2, 4, 5)], dis, allAmt[,6], dis, dis, dis, stringsAsFactors=F)
+    filler <- replicate(length(allAmt[,1]), "NA")
+    all_amt <- cbind.data.frame(allAmt[,c(2, 4, 5)], filler, allAmt[,6], 
+                                filler, filler, filler, stringsAsFactors=F)
     colnames(all_amt) <- colnames(cmdList)
     
     ware_num <- unlist(finDeck[c(1, 3, 5, 7),])
@@ -1057,7 +1062,7 @@ main <- function(file_path, file_name=""){
     ware_num <- ware_num[order(as.numeric(ware_num))]
     ware_num <- sapply(ware_num, function(x) paste('labware_', toString(x), sep=''))
     fin_deck <- cbind.data.frame(ware_num, ware_fil, 
-                                 dis, dis, dis, dis, dis, dis)
+                                 filler, filler, filler, filler, filler, filler)
     cmdList_output <<- list(c(">Amount List"), all_amt,
                             c('>CommandLines'), cmdList,
                             c(">PlateMap"), fin_deck)
@@ -1074,6 +1079,6 @@ main <- function(file_path, file_name=""){
 }
 
 #TROUBLESHOOTING---------------------
-#errMessage <- ""
-#fpath <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\ot2\\SingleplateMIC\\MIC_InputTemplate.xlsx"
-#main(fpath)
+# errMessage <- ""
+# fpath <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\ot2\\SingleplateMIC\\MIC_InputTemplate_Kelly_MER_CEF.xlsx"
+# main(fpath)
