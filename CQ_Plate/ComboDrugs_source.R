@@ -5,6 +5,7 @@
 library(dplyr)
 library(readxl)
 library(rlist)
+library(tidyr)
 
 # ---------- SECTION A - Read and Preparation -------------
 ReadInput <- function(data_path){
@@ -558,6 +559,7 @@ Output_PrepSolutions <- function(stock_info, rack_map, deck_map, sol_list){
   #extract original solutions
   original_solutions <- c(stock_info$DrugName, unique(sol_list$Medium))
   prep_items <- subset(rack_map, FillSolution %in% original_solutions)
+  
   #get solvent location
   solvent_loc <- deck_map$Labware[grepl("solvent", deck_map$Item, ignore.case=T)]
   
@@ -566,7 +568,11 @@ Output_PrepSolutions <- function(stock_info, rack_map, deck_map, sol_list){
     "SOLVENT"}else{"STOCK"})
   prep_items$FillVolume[prep_items$Category=="SOLVENT"] <- prep_items$FillVolume[prep_items$Category=="SOLVENT"]/1000
   prep_items$Unit <- sapply(prep_items$Category, function(x) if(x=="SOLVENT"){"mL"}else{"uL"})
-  prep_items$TubeType <- sapply(prep_items$Category, function(x) if(x=="SOLVENT"){"50 mL Falcon"}else{"1.5 mL Eppendorf"})
+  prep_items$TubeType <- sapply(prep_items$Labware, function(x){
+    labware_item <- deck_map$Item[deck_map$Labware==x]
+    tubeType <- if(grepl("50", labware_item)){"50 mL Falcon"}else if(grepl("15", labware_item)){"15 mL Falcon"}else{"1.5 mL Eppendorf"}
+    return(tubeType)
+  })
   prep_items <- prep_items[,c("Category", "Labware", "Slot", "TubeType", "FillSolution", "FillVolume", "Unit")]
   
   return(prep_items)
@@ -621,10 +627,10 @@ AdjustDeck <- function(deck_map, rack_map, n_plate){
 mainExec <- function(file_name){
   # ---------- SECTION A - Read and Preparation -------------
   allInput <- ReadInput(file_name)
-  stockInfo <<- allInput[[1]]
-  volInfo <<- allInput[[2]]
-  drugMap <<- allInput[[3]]
-  nPlate <<- allInput[[4]]
+  stockInfo <- allInput[[1]]
+  volInfo <- allInput[[2]]
+  drugMap <- allInput[[3]]
+  nPlate <- allInput[[4]]
   
   #A. Parsing solutions map
   solList <- GetSolutionInfo(drugMap)
@@ -750,7 +756,7 @@ mainExec <- function(file_name){
 
 #TROUBLESHOOTING--------------
 # mainwd <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\ot2\\CQ_Plate"
-# inputFile <- "Input_File2.xlsx"
+# inputFile <- "Test CQ plate_jorn_muc_AZT.xlsx"
 # dqs <- mainExec(paste(mainwd, inputFile, sep="\\"))
 
 #write.csv(robotCommands, paste0(mainwd, "/CommandList_test.csv"), row.names=F)
