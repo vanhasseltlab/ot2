@@ -35,6 +35,7 @@ ReadInput <- function(data_path){
   
   ## read drug concentration on plate
   drug_conc <- unlist(input_file[c(19:26), c(2:13)])
+  drug_conc <- gsub(",", ".", drug_conc)
   
   ## read solution map
   medium_map <- unlist(input_file[c(29:36), c(2:13)])
@@ -756,7 +757,7 @@ mainExec <- function(file_name){
 
 #TROUBLESHOOTING--------------
 # mainwd <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\ot2\\CQ_Plate"
-# inputFile <- "Test CQ plate_jorn_muc_AZT.xlsx"
+# inputFile <- "KJ_MER_MUC.xlsx"
 # dqs <- mainExec(paste(mainwd, inputFile, sep="\\"))
 
 #write.csv(robotCommands, paste0(mainwd, "/CommandList_test.csv"), row.names=F)
