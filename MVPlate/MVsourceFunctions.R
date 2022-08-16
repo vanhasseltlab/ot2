@@ -521,13 +521,6 @@ Cmd_DrugSolDist <- function(cmd_list, dil_map, plate_map, deck_map, well_info, n
   return(cmd_list)
 }
 Cmd_FillOuter <- function(plate_map, deck_map, solvent_map, well_info, cmd_list, n_plates){
-  plate_map <<- plate_map
-  deck_map <<- deck_map
-  solvent_map <<- solvent_map
-  well_info <<- well_info
-  cmd_list <<- cmd_list
-  n_plates <<- n_plates
-  
   tipID <- max(as.numeric(cmd_list[,7]), na.rm=T) + 1
   
   #rename water if needed

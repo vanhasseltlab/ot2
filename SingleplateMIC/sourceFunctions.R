@@ -546,7 +546,9 @@ Cmd_FillOuter <- function(plate_map, deck_map, solvent_map, well_info, cmd_list)
   solvent_map[(solvent_map[,2]=='water' | solvent_map[,2]=='Water'),2] <- 'WATER'
   
   #subset current plate map
-  cur_plate_map <- subset(plate_map, solID=='FILL')
+  cur_plate_map <- subset(plate_map, solID=='FILL') %>%
+    mutate(Solvent = sapply(Solvent, function(x) if(tolower(x)=="water"){"WATER"}else{x}))
+  
   #iterate through all solvent types
   solvents <- unique(solvent_map[,2])
   for(i in c(1:length(solvents))){
@@ -922,7 +924,7 @@ main <- function(file_path, file_name=""){
     }
     return(NA)
   })
-    
+  
   inocBool <- tryCatch({
     GetInocBool(file_path)
   },
@@ -1079,6 +1081,6 @@ main <- function(file_path, file_name=""){
 }
 
 #TROUBLESHOOTING---------------------
-# errMessage <- ""
-# fpath <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\ot2\\SingleplateMIC\\MIC_InputTemplate_Kelly_MER_CEF.xlsx"
-# main(fpath)
+errMessage <- ""
+fpath <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\ot2\\SingleplateMIC\\20220811_MK03_E01_PMAPID1_AZT_CEF.xlsx"
+main(fpath)
