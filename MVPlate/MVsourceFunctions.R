@@ -1,4 +1,7 @@
 options(stringsAsFactors = F)
+library(dplyr)
+library(rlist)
+library(readxl)
 #FUNCTIONS LIBRARY------------
 # read input
 GetStockList <- function(file_name){
@@ -518,6 +521,13 @@ Cmd_DrugSolDist <- function(cmd_list, dil_map, plate_map, deck_map, well_info, n
   return(cmd_list)
 }
 Cmd_FillOuter <- function(plate_map, deck_map, solvent_map, well_info, cmd_list, n_plates){
+  plate_map <<- plate_map
+  deck_map <<- deck_map
+  solvent_map <<- solvent_map
+  well_info <<- well_info
+  cmd_list <<- cmd_list
+  n_plates <<- n_plates
+  
   tipID <- max(as.numeric(cmd_list[,7]), na.rm=T) + 1
   
   #rename water if needed
@@ -952,7 +962,7 @@ main <- function(file_path, file_name=""){
     }
     return(NA)
   })
-  
+ 
   plateNum <- tryCatch({
     Get_nPlate(file_path)
   },
@@ -973,7 +983,7 @@ main <- function(file_path, file_name=""){
     }
     return(NA)
   })
-  
+ 
   #-1. LOADING DECK MAP-----------
   ## error not expected
   if(errMessage==""){
@@ -1024,7 +1034,7 @@ main <- function(file_path, file_name=""){
   }
   
   #assign slots for diluted solutions
-  dilMap <<- tryCatch({
+  dilMap <- tryCatch({
     CreateDilMap(solList, deckMap, stockList)
   },
   error = function(cond){
@@ -1033,6 +1043,7 @@ main <- function(file_path, file_name=""){
     }
     return(NA)
   })
+  
   # 1. CREATE COMMAND LIST-----------
   if(errMessage==""){
     #initiate map
@@ -1058,6 +1069,7 @@ main <- function(file_path, file_name=""){
     cmdList <- Cmd_SeparateLong(cmdList)
     cmdList[] <- lapply(cmdList, as.character)
   }
+  
   # 2. BUNDLING OUTPUT-------
   if(errMessage==""){
     allAmt <- rbind.data.frame(Cal_SolAmt(deckMap, solventMap, cmdList),
@@ -1116,5 +1128,5 @@ main <- function(file_path, file_name=""){
 # #TROUBLESHOOTING---------
 # errMessage <<- ""
 # fpath <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\ot2\\MVPlate"
-# dataName <- "20220307_EvolutionMIC_TOB_6.xlsx"
+# dataName <- "MV_Wasser.xlsx"
 # dqs <- main(paste(fpath, dataName, sep="//"))
