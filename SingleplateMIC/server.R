@@ -11,8 +11,8 @@ shinyServer(function(input, output) {
   #defining directory-------
   outputDir_cmdline <- "/home/shiny-ot2/ShinyApps/outputs_cmdlist"
   outputDir_usrGuide <- "/home/shiny-ot2/ShinyApps/outputs_usrguide"
-  inputTemplate <- "/home/shiny-ot2/ot2/SingleplateMIC/MIC_InputTemplate.xlsx"  
-  sourceDir <- "/home/shiny-ot2/ot2/SingleplateMIC"
+  inputTemplate <- "/home/shiny-ot2/ShinyApps/ot2/SingleplateMIC/MIC_InputTemplate.xlsx"  
+  sourceDir <- "/home/shiny-ot2/ShinyApps/ot2/SingleplateMIC"
   
   #outputDir_cmdline <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\SingleplateMIC"
   #outputDir_usrGuide <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\SingleplateMIC"
