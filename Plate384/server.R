@@ -18,7 +18,7 @@ shinyServer(function(input, output) {
 
   outputDir_cmdline <- "/home/shiny-ot2/ShinyApps/outputs_cmdlist"
   outputDir_usrGuide <- "/home/shiny-ot2/ShinyApps/outputs_usrguide"
-  inputTemplate <- "/home/shiny-ot2/ot2/Plate384/20211122_384TemplateInput.xlsx"
+  inputTemplate <- "/home/shiny-ot2/ot2/Plate384/Template384_PlateMap.xlsx"
   sourceDir <- "/home/shiny-ot2/ot2/Plate384/lauraPlate_processor.R"
   
   #loading functions--------
