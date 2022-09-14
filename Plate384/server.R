@@ -16,10 +16,10 @@ shinyServer(function(input, output) {
   # outputDir_usrGuide <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\ot2\\Plate384"
   # inputTemplate <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\ot2\\Plate384\\20211122_384TemplateInput.xlsx"
 
-  outputDir_cmdline <- "/srv/shiny-server/files/Output_CmdList"
-  outputDir_usrGuide <- "/srv/shiny-server/files/Output_UsrGuide"
-  inputTemplate <- "/srv/shiny-server/ot2/Plate384/20211122_384TemplateInput.xlsx"
-  sourceDir <- "/srv/shiny-server/ot2/Plate384/lauraPlate_processor.R"
+  outputDir_cmdline <- "/home/shiny-ot2/ShinyApps/outputs_cmdlist"
+  outputDir_usrGuide <- "/home/shiny-ot2/ShinyApps/outputs_usrguide"
+  inputTemplate <- "/home/shiny-ot2/ot2/Plate384/20211122_384TemplateInput.xlsx"
+  sourceDir <- "/home/shiny-ot2/ot2/Plate384/lauraPlate_processor.R"
   
   #loading functions--------
   source(sourceDir)

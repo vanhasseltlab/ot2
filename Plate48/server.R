@@ -11,10 +11,10 @@ options(stringsAsFactors = F)
 #SERVER MAIN------------
 shinyServer(function(input, output) {
   #defining directory-------
-  outputDir_cmdline <- "/srv/shiny-server/files/Output_CmdList"
-  outputDir_usrGuide <- "/srv/shiny-server/files/Output_UsrGuide"
-  inputTemplate <- "/srv/shiny-server/ot2/Plate48/48Well_InputTemplate.xlsx" 
-  sourceDir <- "/srv/shiny-server/ot2/Plate48/48WellParse.R" 
+  outputDir_cmdline <- "/home/shiny-ot2/ShinyApps/outputs_cmdlist"
+  outputDir_usrGuide <- "/home/shiny-ot2/ShinyApps/outputs_usrguide"
+  inputTemplate <- "/home/shiny-ot2/ShinyApps/ot2/Plate48/48Well_InputTemplate.xlsx" 
+  sourceDir <- "/home/shiny-ot2/ShinyApps/ot2/Plate48/48WellParse.R" 
   
   #outputDir_cmdline <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\Incubator\\48WellPlate"
   #outputDir_usrGuide <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\Incubator\\48WellPlate"

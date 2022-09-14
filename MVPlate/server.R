@@ -18,7 +18,6 @@ shinyServer(function(input, output) {
   inputTemplate <- "/home/shiny-ot2/ShinyApps/ot2/MVPlate/MV_InputTemplate.xlsx" 
   sourceDir <- "/home/shiny-ot2/ShinyApps/ot2/MVPlate/MVsourceFunctions.R" 
   
-  
   #outputDir_cmdline <- "/home/sebastian/MVplate"
   #outputDir_usrGuide <- "/home/sebastian/MVplate"
   #inputTemplate <- "/home/sebastian/MVplate/MV_InputTemplate.xlsx" 

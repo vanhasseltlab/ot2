@@ -9,10 +9,10 @@ options(stringsAsFactors = F)
 #SERVER MAIN------------
 shinyServer(function(input, output) {
   #defining directory-------
-  outputDir_cmdline <- "/srv/shiny-server/files/Output_CmdList"
-  outputDir_usrGuide <- "/srv/shiny-server/files/Output_UsrGuide"
-  inputTemplate <- "/srv/shiny-server/ot2/SingleplateMIC/MIC_InputTemplate.xlsx"  
-  sourceDir <- "/srv/shiny-server/ot2/SingleplateMIC"
+  outputDir_cmdline <- "/home/shiny-ot2/ShinyApps/outputs_cmdlist"
+  outputDir_usrGuide <- "/home/shiny-ot2/ShinyApps/outputs_usrguide"
+  inputTemplate <- "/home/shiny-ot2/ot2/SingleplateMIC/MIC_InputTemplate.xlsx"  
+  sourceDir <- "/home/shiny-ot2/ot2/SingleplateMIC"
   
   #outputDir_cmdline <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\SingleplateMIC"
   #outputDir_usrGuide <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\SingleplateMIC"
