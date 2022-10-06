@@ -6,7 +6,7 @@ shinyUI(
     sidebarPanel(
       #link to home
       actionButton("Home", "Home", width='300px',
-                   onclick ="window.open('https://vanhasseltlab.lacdr.leidenuniv.nl/ot2/home')"),
+                   onclick ="window.open('https://ot2.lacdr.leidenuniv.nl/ot2/home')"),
       
       #main
       fileInput("file", "Upload Plate Map", accept=".xlsx"),
