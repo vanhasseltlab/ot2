@@ -15,13 +15,13 @@ shinyServer(function(input, output) {
   #defining directory-------
   outputDir_cmdline <- "/home/shiny-ot2/ShinyApps/outputs_cmdlist"
   outputDir_usrGuide <- "/home/shiny-ot2/ShinyApps/outputs_usrguide"
-  inputTemplate <- "/home/shiny-ot2/ShinyApps/ot2/MVPlate/MV_InputTemplate.xlsx" 
-  sourceDir <- "/home/shiny-ot2/ShinyApps/ot2/MVPlate/MVsourceFunctions.R" 
-  
-  #outputDir_cmdline <- "/home/sebastian/MVplate"
-  #outputDir_usrGuide <- "/home/sebastian/MVplate"
-  #inputTemplate <- "/home/sebastian/MVplate/MV_InputTemplate.xlsx" 
-  #sourceDir <- "/home/sebastian/MVplate/MVsourceFunctions.R" 
+  inputTemplate <- "/home/shiny-ot2/ShinyApps/ot2/MVPlate/MV_InputTemplate.xlsx"
+  sourceDir <- "/home/shiny-ot2/ShinyApps/ot2/MVPlate/MVsourceFunctions.R"
+
+  # outputDir_cmdline <- "C:\\Users\\sebas\\Documents\\GitHub\\ot2\\MVPlate"
+  # outputDir_usrGuide <- "C:\\Users\\sebas\\Documents\\GitHub\\ot2\\MVPlate"
+  # inputTemplate <- "C:\\Users\\sebas\\Documents\\GitHub\\ot2\\MVPlate/MV_InputTemplate.xlsx"
+  # sourceDir <- "C:\\Users\\sebas\\Documents\\GitHub\\ot2\\MVPlate/MVsourceFunctions.R"
   
   #loading functions--------
   source(sourceDir)
