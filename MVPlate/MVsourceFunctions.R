@@ -118,6 +118,11 @@ CreateSolList <- function(plate_map, total_vol_well, inoc_vol, stock_list, n_pla
   return(fin_list)
 }
 CalculateDilVolume <- function(sol_list, total_vol_well, inoc_vol, stock_list){
+  sol_list <<- sol_list
+  total_vol_well <<- total_vol_well
+  inoc_vol <<- inoc_vol
+  stock_list <<- stock_list
+  
   #calculate initially required amount
   drugSol_well <- total_vol_well - inoc_vol
   solAmt <- sol_list$Occurence * drugSol_well + 150 #adds 10 uL excess
@@ -132,12 +137,13 @@ CalculateDilVolume <- function(sol_list, total_vol_well, inoc_vol, stock_list){
   
   #initiate new list
   new_solList <- c()
+  
   #iterate through all drug and solvent types
   solvents <- unique(sol_list$Solvent)
   drugs <- unique(sol_list$DrugType)
   
   for(i in c(1:length(solvents))){
-   
+    
     for(j in c(1:length(drugs))){
       
       #subset the current drug type
@@ -274,119 +280,35 @@ CalculateDilVolume <- function(sol_list, total_vol_well, inoc_vol, stock_list){
   return(new_solList)
 }
 CreateDilMap <- function(sol_list, deckMap, stock_list){
-  #initiate map
-  small_coords <- c(1, 1)
-  large_coords <- c(1, 1)
-  spare_coords <- c(1, 1)
-  
-  small_dilMap <- cbind()
-  large_dilMap <- cbind()
-  spare_dilMap <- cbind()
-  
-  #pre-filling small coordinates
-  for(i in c(1:length(stock_list))){
-    small_coords[2] <- small_coords[2] + 1
-    if(small_coords[2]>5){ #is a falcon tube rack (15 mL)
-      small_coords[1] <- small_coords[1] + 1
-      small_coords[2] <- 1
-    }
-  } 
-  
-  #iterate through all items in solution list
-  for(i in c(1:nrow(sol_list))){
-    if(as.numeric(sol_list$solAmt[i])<=1300){
-      #check if the main rack is full
-      if(small_coords[1]<3){
-        #if the main rack is still available
-        nexItem <- c(paste(LETTERS[small_coords[1]], toString(small_coords[2]), sep=''),
-                     toString(sol_list$SolID[i]))
-        #concatenate item
-        small_dilMap <- rbind(small_dilMap, nexItem)
-        
-        #update coordinates
-        small_coords[2] <- small_coords[2]+1
-        if(small_coords[2]>5){
-          small_coords[2] <- 1
-          small_coords[1] <- small_coords[1] + 1
-        }
-      }else{
-        #if the main rack is full
-        nexItem <- c(paste(LETTERS[spare_coords[1]], toString(spare_coords[2]), sep=''),
-                     toString(sol_list$SolID[i]))
-        
-        #concatenate item
-        spare_dilMap <- rbind(spare_dilMap, nexItem)
-        
-        #update coordinates
-        spare_coords[2] <- spare_coords[2]+1
-        if(spare_coords[2]>5){
-          spare_coords[2] <- 1
-          spare_coords[1] <- spare_coords[1] + 1
-        }
-      }
+  # create empty solution map
+  solution_map <- lapply(c(1:length(deckMap)), function(x){
+    if(grepl("Falcon", deckMap[x])){
+      current_map <- data.frame(Slot = as.vector(sapply(c(1:3), function(i) paste0(LETTERS[i], c(1:5)))),
+                                Fill = "",
+                                Labware = names(deckMap)[x],
+                                solutionType = "")
     }else{
-      #if solution amount is larger
-      if(large_coords[1]<4){
-        #if the main rack is available
-        nexItem <- c(paste(LETTERS[large_coords[1]], toString(large_coords[2]), sep=''),
-                     toString(sol_list$SolID[i]))
-        
-        #concatenate item
-        large_dilMap <- rbind(large_dilMap, nexItem)
-        
-        #update coordinates
-        large_coords[2] <- large_coords[2]+1
-        if(large_coords[2]>5){
-          large_coords[2] <- 1
-          large_coords[1] <- large_coords[1] + 1
-        }
-      }else{
-        #if the main rack is full
-        nexItem <- c(paste(LETTERS[spare_coords[1]], toString(spare_coords[2]), sep=''),
-                     toString(sol_list$SolID[i]))
-        
-        #concatenate item
-        spare_dilMap <- rbind(spare_dilMap, nexItem)
-        
-        #update coordinates
-        spare_coords[2] <- spare_coords[2]+1
-        if(spare_coords[2]>5){
-          spare_coords[2] <- 1
-          spare_coords[1] <- spare_coords[1] + 1
-        }
-      }
+      current_map <- NULL
     }
+    return(current_map)
+  }) %>% list.rbind()
+  
+  # assign slots to stock solutions
+  stockIndices <- which(solution_map$Labware == names(deckMap)[grepl("stock", deckMap)])
+  solution_map$Fill[stockIndices[1:length(stock_list)]] <- names(stock_list)
+  solution_map$solutionType[stockIndices[1:length(stock_list)]] <- "Stock"
+  solution_map <- subset(solution_map, solutionType!="Stock")
+  
+  # add address to solutions list
+  if(nrow(sol_list)>nrow(solution_map)){
+    errMessage <<- "Too many solution types!"
+    return(NULL)
+  }else{
+    solution_map$Fill[1:nrow(sol_list)] <- sol_list$SolID
+    solution_map <- dplyr::select(solution_map, Slot, Fill, Labware) %>% 
+      filter(Fill!="")
+    return(solution_map)
   }
-  
-  #get labware locations
-  small_dilMap <- cbind(small_dilMap, replicate(length(small_dilMap[,1]),
-                                                names(deckMap)[match("15ml_Falcon_stock", deckMap)]))
-  spare_dilMap <- cbind(spare_dilMap, replicate(length(spare_dilMap[,1]),
-                                                names(deckMap)[match("15_Falcon_spare", deckMap)]))
-  large_dilMap <- cbind(large_dilMap, replicate(length(large_dilMap[,1]),
-                                                names(deckMap)[match("15_Falcon_main", deckMap)]))
-  
-  #check if racks are empty
-  if(length(small_dilMap[,1])==0){
-    small_dilMap <- cbind(c('m'), c('m'), c('m'))
-  }
-  if(length(large_dilMap[,1])==0){
-    large_dilMap <- cbind(c('m'), c('m'), c('m'))
-  }
-  if(length(spare_dilMap[,1])==0){
-    spare_dilMap <- cbind(c('m'), c('m'), c('m'))
-  }
-  
-  #re-assign names
-  dil_map <- rbind(small_dilMap, large_dilMap, spare_dilMap)
-  colnames(dil_map) <- c('Slot', 'Fill', 'Labware')
-  dil_map <- data.frame(dil_map)
-  dil_map <- dil_map[(dil_map$Slot != 'm'),]
-  
-  #dropping factor
-  dil_map[] <- lapply(dil_map, as.character)
-  
-  return(dil_map)
 }
 
 #commands
@@ -955,7 +877,7 @@ main <- function(file_path, file_name=""){
     }
     return(NA)
   })
- 
+  
   plateNum <- tryCatch({
     Get_nPlate(file_path)
   },
@@ -976,7 +898,7 @@ main <- function(file_path, file_name=""){
     }
     return(NA)
   })
- 
+  
   #-1. LOADING DECK MAP-----------
   ## error not expected
   if(errMessage==""){
@@ -1057,7 +979,7 @@ main <- function(file_path, file_name=""){
     }
     
     cmdList <- Int_CreateCmdList(deckMap, solList, solventMap, inocMap,
-                                  dilMap, stockMap, wellInfo, plateMap, plateNum)
+                                 dilMap, stockMap, wellInfo, plateMap, plateNum)
     
     cmdList <- Cmd_SeparateLong(cmdList)
     cmdList[] <- lapply(cmdList, as.character)
@@ -1118,8 +1040,8 @@ main <- function(file_path, file_name=""){
   return(allAmt)
 }
 
-# #TROUBLESHOOTING---------
+#TROUBLESHOOTING---------
 # errMessage <<- ""
-# fpath <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\ot2\\MVPlate"
-# dataName <- "MV_Wasser.xlsx"
+# fpath <- "C:\\Users\\sebas\\Documents\\GitHub\\ot2\\MVPlate\\"
+# dataName <- "MVPlate_ABs_interest_top.xlsx"
 # dqs <- main(paste(fpath, dataName, sep="//"))
