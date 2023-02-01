@@ -756,8 +756,8 @@ mainExec <- function(file_name){
 }
 
 #TROUBLESHOOTING--------------
-# mainwd <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\ot2\\CQ_Plate"
-# inputFile <- "KJ_MER_MUC.xlsx"
+# mainwd <- "C:\\Users\\jornb\\Documents\\GitHub\\ot2\\CQ_Plate"
+# inputFile <- "CQ_InputTemplate.xlsx"
 # dqs <- mainExec(paste(mainwd, inputFile, sep="\\"))
-
-#write.csv(robotCommands, paste0(mainwd, "/CommandList_test.csv"), row.names=F)
+# 
+# write.csv(robotCommands, paste0(mainwd, "/CommandList_test.csv"), row.names=F)

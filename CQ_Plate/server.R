@@ -10,10 +10,10 @@ options(stringsAsFactors = F)
 #SERVER MAIN------------
 shinyServer(function(input, output) {
   #defining directory-------
-  # outputDir_cmdline <- "C:\\Users\\sebas\\Documents\\GitHub\\ot2\\CQ_Plate"
-  # outputDir_usrGuide <- "C:\\Users\\sebas\\Documents\\GitHub\\ot2\\CQ_Plate"
-  # inputTemplate <- "C:\\Users\\sebas\\Documents\\GitHub\\ot2\\CQ_Plate\\CQ_InputTemplate.xlsx"
-  # sourceDir <- "C:\\Users\\sebas\\Documents\\GitHub\\ot2\\CQ_Plate\\ComboDrugs_source.R"
+  # outputDir_cmdline <- "C:\\Users\\jornb\\Documents\\GitHub\\ot2\\CQ_Plate"
+  # outputDir_usrGuide <- "C:\\Users\\jornb\\Documents\\GitHub\\ot2\\CQ_Plate"
+  # inputTemplate <- "C:\\Users\\jornb\\Documents\\GitHub\\ot2\\CQ_Plate\\CQ_InputTemplate.xlsx"
+  # sourceDir <- "C:\\Users\\jornb\\Documents\\GitHub\\ot2\\CQ_Plate\\ComboDrugs_source.R"
   
   outputDir_cmdline <- "/home/shiny-ot2/ShinyApps/outputs_cmdlist"
   outputDir_usrGuide <- "/home/shiny-ot2/ShinyApps/outputs_usrguide"
