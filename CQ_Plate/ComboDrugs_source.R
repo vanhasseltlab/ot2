@@ -652,7 +652,7 @@ mainExec <- function(file_name){
   
   #D. Calculate required stock amounts
   stockInfo <- CalculateStockAmt(solList, stockInfo)
-    
+  
   # ---------- SECTION B - Deck Preparation -------------
   #E. Initiate Deck Map
   deckMap <- c("96-well_D", "96-well_E", "96-well_F",
@@ -728,12 +728,12 @@ mainExec <- function(file_name){
   
   #q6. Prepare deck map for robot input
   robot_deckMap <- cbind(deckMap,
-                          replicate(length(deckMap[,1]), ""),
-                          replicate(length(deckMap[,1]), ""),
-                          replicate(length(deckMap[,1]), ""),
-                          replicate(length(deckMap[,1]), ""),
-                          replicate(length(deckMap[,1]), ""),
-                          replicate(length(deckMap[,1]), ""))
+                         replicate(length(deckMap[,1]), ""),
+                         replicate(length(deckMap[,1]), ""),
+                         replicate(length(deckMap[,1]), ""),
+                         replicate(length(deckMap[,1]), ""),
+                         replicate(length(deckMap[,1]), ""),
+                         replicate(length(deckMap[,1]), ""))
   robot_deckMap <- rbind(c(">PlateMap", replicate(length(cmdList[1,])-1, "")),
                          robot_deckMap)
   colnames(robot_deckMap) <- colnames(cmdList)
@@ -756,8 +756,8 @@ mainExec <- function(file_name){
 }
 
 #TROUBLESHOOTING--------------
-# mainwd <- "C:\\Users\\jornb\\Documents\\GitHub\\ot2\\CQ_Plate"
-# inputFile <- "CQ_InputTemplate.xlsx"
+# mainwd <- "C:\\Users\\sebas\\Desktop\\Freelance\\2023_Laura\\"
+# inputFile <- "20230203_Checkerboard_SYT_PI_Full .xlsx"
 # dqs <- mainExec(paste(mainwd, inputFile, sep="\\"))
 # 
 # write.csv(robotCommands, paste0(mainwd, "/CommandList_test.csv"), row.names=F)
