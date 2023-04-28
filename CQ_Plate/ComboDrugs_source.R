@@ -7,6 +7,11 @@ library(readxl)
 library(rlist)
 library(tidyr)
 
+#SUPPORTING------------
+removeNonNumeric <- function(x) {
+  gsub("[^[:digit:].]+", "", x)
+}
+
 # ---------- SECTION A - Read and Preparation -------------
 ReadInput <- function(data_path){
   #initial read
@@ -112,8 +117,9 @@ cal_dilScheme_MedID <- function(current_set_id, solution_list, stock_info){
     mutate(finVolumes=0, volAbove=0, volMedium=0, vol_forBelow=0)
   
   # get stock concentration
-  stock_conc <- stock_info[1,which(colnames(stock_info)==current_set$DrugName[1])] %>% as.numeric()
-  
+  stock_conc <- toString(stock_info[1,which(colnames(stock_info)==current_set$DrugName[1])]) %>% 
+    removeNonNumeric() %>% as.numeric()
+
   # main dilutions
   for(i in c(1:nrow(current_set))){
     # assign required volume
@@ -756,8 +762,8 @@ mainExec <- function(file_name){
 }
 
 #TROUBLESHOOTING--------------
-# mainwd <- "C:\\Users\\sebas\\Desktop\\Freelance\\2023_Laura\\"
-# inputFile <- "20230203_Checkerboard_SYT_PI_Full .xlsx"
+# mainwd <- "C:\\Users\\sebas\\Desktop\\New folder\\"
+# inputFile <- "20230501-SHA-E01-CIP-TOB-SA-R1.xlsx"
 # dqs <- mainExec(paste(mainwd, inputFile, sep="\\"))
-# 
+
 # write.csv(robotCommands, paste0(mainwd, "/CommandList_test.csv"), row.names=F)
