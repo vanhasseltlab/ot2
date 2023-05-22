@@ -1,6 +1,10 @@
 #LIBRARIES---------
 library(readxl)
 library(dplyr)
+library(tidyr)
+library(reshape2)
+library(ggplot2)
+
 #CALLED FUNCTIONS-------------
 #data reads
 ReadPlateMap <- function(plate_map_address){
@@ -163,6 +167,11 @@ assignControl <- function(x, ctrlList){
   return(select_ctrl)
 }
 normalize_to_Control <- function(raw_data, ctrl_data, separate_control=F, control_selection=0){
+  # raw_data <<- raw_data
+  # ctrl_data <<- ctrl_data
+  # separate_control <<- separate_control
+  # control_selection <<- control_selection
+  
   # STEP 0 - Expand WellID
   raw_data <- cbind.data.frame(raw_data, do.call(rbind, strsplit(raw_data$WellId, split="-")))
   colnames(raw_data)[5:8] <- c("Drug", "DrugConc", "Medium", "Strain")
@@ -276,6 +285,10 @@ assignReplicateID_oneID <- function(x, all_data){
 #MAIN FUNCTION------------
 mainFun <- function(platemap_address, inputwd, control_selection, 
                     control_map_address=NULL, control_meas_wd=NULL, separate_control=F){
+  # platemap_address <<- platemap_address
+  # inputwd <<- inputwd
+  # control_selection <<- control_selection
+  
   #EXTRACTION---------------------------
   #read platemap and measurement results
   plateMap <- ReadPlateMap(platemap_address)
@@ -345,22 +358,39 @@ mainFun <- function(platemap_address, inputwd, control_selection,
   #blank correction well assignment
   prc_NM$correction_wells[prc_NM$correction_value=="-"] <- "-"
   
+  # final processing
+  prc_NM <- dplyr::select(prc_NM, drug_name, media_name, strain_name, time, drug_concentration, well_row, well_column, replicate_ID, raw_measurement) %>% 
+    na.omit(prc_NM) %>% filter(drug_name!="NA" & strain_name != "NA" & media_name != "NA") %>% 
+    unite("well", well_row, well_column, remove=T) %>% 
+    unite("setID", drug_name, media_name, strain_name, remove=F) %>% 
+    unite("repID", setID, drug_concentration, well, replicate_ID, remove=F)
+  
   #pass to global
   prc_NM <<- prc_NM
   rawData_NM <<- prc_NM
   controlData_NM <<- controlData_NM
   
-  return(prc_NM)
+  # draw plot
+  plot_item <- createPlot(prc_NM)
+  
+  return(list(prc_NM, plot_item))
 }
 
+createPlot <- function(meas_data){
+  plt <- ggplot(meas_data, aes(x=time, y=raw_measurement))+
+    geom_point(shape=1)+theme_bw()+facet_grid(drug_name~drug_concentration)+
+    scale_y_continuous(trans='log10')+
+    scale_x_continuous(breaks=seq(0, max(meas_data$time), 12))+
+    xlab("Time (hours)")+ylab("Luminesence (a.u.)")+
+    theme(axis.text=element_text(size=12),
+          axis.title=element_text(size=14, face='bold'),
+          strip.text=element_text(size=13, face='bold'))
+  return(plt)
+}
+  
 #TROUBLESHOOTING-----------------
-#measurement
-#platemapAddress <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Analysis_studentTrials\\New CSV data + platemap\\20210506_JN_P001_E036_Cef_Mutants1947_imputtemplate.xlsx"
-
-#measurement_wd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Analysis_studentTrials\\New CSV data + platemap\\inputs"
-
-#controls
-#controlMap_address <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\Analysis_studentTrials\\New CSV data + platemap\\b_test.csv"
-
-#dis <- mainFun(platemapAddress, measurement_wd, 1, 
+# platemapAddress <- "C:\\Users\\sebas\\Desktop\\BOOExpData\\testmb\\20230515_MB_MIC-CEF-PA-R1.xlsx"
+# measurement_wd <- "C:\\Users\\sebas\\Desktop\\BOOExpData\\testmb\\testmb_data"
+# 
+# dis <- mainFun(platemapAddress, measurement_wd, 0,
 #               NULL, NULL, separate_control=F)
