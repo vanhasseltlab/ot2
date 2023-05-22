@@ -12,9 +12,9 @@ errMessage <- ""
 shinyServer(function(input, output) {
     #### PREPARATION-------------
     #set directories, take source analyzer
-    mainwd <- "/srv/shiny-server/files"
-    sourcewd <- "/srv/shiny-server/ot2/PlateAnalysis/GrowthCurve/srcPlateAnalyzer.R"
-    templatewd <- "/srv/shiny-server/ot2/PlateAnalysis/GrowthCurve/ControlMap.csv"
+    mainwd <- "/home/shiny-ot2/ShinyApps/ot2/files"
+    sourcewd <- "/home/shiny-ot2/ShinyApps/ot2/PlateAnalysis/GrowthCurve/srcPlateAnalyzer.R"
+    templatewd <- "/home/shiny-ot2/ShinyApps/ot2/PlateAnalysis/GrowthCurve/ControlMap.csv"
     
     #for troubleshooting
     #mainwd <- "C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\PlateAnalysis\\GrowthCurve"
