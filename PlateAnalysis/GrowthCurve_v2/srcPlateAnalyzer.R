@@ -377,6 +377,7 @@ mainFun <- function(platemap_address, inputwd, control_selection,
 }
 
 createPlot <- function(meas_data){
+  meas_data <- mutate(meas_data, drug_concentration = as.numeric(drug_concentration))
   plt <- ggplot(meas_data, aes(x=time, y=raw_measurement))+
     geom_point(shape=1)+theme_bw()+facet_grid(drug_name~drug_concentration)+
     scale_y_continuous(trans='log10')+
