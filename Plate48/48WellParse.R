@@ -19,7 +19,7 @@ readInputFile <- function(file_name){
     parsed <- strsplit(x, split="_")[[1]]
     if(length(parsed)==4){parsed <- c(parsed[1:2], "", parsed[3:4])}
     return(parsed)}) %>% t() %>% data.frame()
-  colnames(parsedInfo) <- c("Drug", "Concentration", "Strain", "Rep", "Medium")
+  colnames(parsedInfo) <- c("Drug", "Concentration", "Rep", "Strain", "Medium")
   parsedInfo <- unite(parsedInfo, "StrainRep", Strain, Rep)
   wellFill <- cbind.data.frame(wellFill, parsedInfo)
   
@@ -55,6 +55,10 @@ calculate_dilutionSet <- function(current_drug_type, solution_required, stock_in
   }
 }
 calculate_dilutionScheme <- function(plate_map, stock_information, run_info){
+  # plate_map <<- plate_map
+  # stock_information <<- stock_information
+  # run_info <<- run_info
+  
   # calculate required amount (volume)
   plate_map <- plate_map %>% unite("solType", Drug, Concentration, Medium, remove=F)
   solutionRequired <- select(plate_map, Drug, Concentration, Medium, solType) %>% 
@@ -103,6 +107,10 @@ createSolventMap <- function(tube_type, deck_map){
   }) %>% list.rbind()
 }
 initiateSolutionMap <- function(dil_scheme, deck_map, stock_info){
+  # dil_scheme <<- dil_scheme
+  # deck_map <<- deck_map
+  # stock_info <<- stock_info
+  
   # initiate empty solution map
   solution_map <- lapply(c("Falcon15", "Falcon50", "Epp_1_5"), 
                          function(x) createSolventMap(x, deck_map=deck_map)) %>% 
@@ -113,7 +121,8 @@ initiateSolutionMap <- function(dil_scheme, deck_map, stock_info){
     tube_type <- if(dil_scheme$Volume[i] <= 13500){"15"}else{"50"}
     
     # get empty slot
-    current_available <- subset(solution_map, grepl(tube_type, DeckID) & Fill=="")
+    current_available <- subset(solution_map, grepl(tube_type, DeckID) & Fill=="" &
+                                  !grepl("Medium", DeckID))
     
     # assign location
     if(nrow(current_available)>0){
@@ -157,6 +166,10 @@ correct_deckMap <- function(deck_map, run_info){
 
 # Command List Generation
 cmd_oneSolventDistribution <- function(current_set, last_cmd_list, solution_map){
+  # current_set <<- current_set
+  # last_cmd_list <<- last_cmd_list
+  # solution_map <<- solution_map
+  
   # commands: distributing solvent
   current_tip_id <- if(nrow(last_cmd_list)==0){0}else{max(as.numeric(last_cmd_list[,7]))}
   current_asp_id <- if(nrow(last_cmd_list)==0){0}else{max(as.numeric(last_cmd_list[,8]))}
@@ -180,6 +193,9 @@ cmd_oneSolventDistribution <- function(current_set, last_cmd_list, solution_map)
   return(current_operation)
 }
 cmd_solventDistribution <- function(dil_scheme, solution_map){
+  # dil_scheme <<- dil_scheme
+  # solution_map <<- solution_map
+  
   cmd_solventPreDistribution <- data.frame()
   mediums <- unique(dil_scheme$Medium)
   for(j in c(1:length(mediums))){
@@ -576,9 +592,13 @@ mainExec <- function(file_address){
 }
 
 #TROUBLESHOOTING---------
-#mainwd <- "C:\\Users\\sebas\\OneDrive\\Documents\\WebServer\\Incubator\\48WellPlate"
+#mainwd <- "C:\Users\sebas\Documents\GitHub\ot2\Plate48\48WellPlate"
 #plateInput <- "48Well_InputTemplate.xlsx"
 #dqs <- mainExec(paste0(mainwd, "/", plateInput))
 
 #write.csv(dqs[[1]], paste0(mainwd, "/48WellTrialCMDList_exp2.csv"), row.names = F)
 #write.csv(dqs[[2]], paste0(mainwd, "/48WellTrialUSRGuide_exp2.csv"), row.names = F)
+
+# mainwd <- "C:\\Users\\sebas\\Documents\\GitHub\\ot2\\Plate48"
+# plateInput <- "InputTest.xlsx"
+# dqs <- mainExec(paste0(mainwd, "/", plateInput))
