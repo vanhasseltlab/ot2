@@ -299,6 +299,7 @@ cmd_MediumDistributionPlate <- function(last_cmdList, plate_map, solution_map, d
   }
   
   colnames(cmd_mediumDist) <- colnames(last_cmdList)
+  cmd_listhere <<- cmd_mediumDist
   return(cmd_mediumDist)
 }
 cmd_SolutionDistributionPlate <- function(last_cmdList, plate_map, dil_scheme, solution_map, deck_map, run_info){
@@ -335,10 +336,10 @@ cmd_SolutionDistributionPlate <- function(last_cmdList, plate_map, dil_scheme, s
       current_set <- c(from_deck, from_slot, to_deck, to_slot, as.numeric(run_info[2,2]), 0,
                        tipN, aspN, 'p1000', 
                        paste0('Distributing ', dil_scheme$solType[i], ' to ', to_deck))
+      
       cmd_list <- rbind.data.frame(cmd_list, current_set)
     }
   }
-  
   colnames(cmd_list) <- colnames(last_cmdList)
   return(cmd_list)
 }
@@ -544,11 +545,14 @@ mainExec <- function(file_address){
   cmdList_mediumDist <- cmd_MediumDistributionPlate(cmdList_serialDilution, plateMap, solutionMap, deckMap, runInfo)
   
   # CMD - Main Solution Distribution
-  cmdList_solutionDistribution <- cmd_SolutionDistributionPlate(cmdList_mediumDist, plateMap, dilScheme, solutionMap, deckMap, runInfo)
+  cmdList_solutionDistribution <- cmd_SolutionDistributionPlate(cmdList_mediumDist, plateMap, dilScheme, solutionMap, deckMap, runInfo) 
   
   # CMD - Combine
-  cmdList <- rbind.data.frame(cmdList_solventDistribution, cmdList_serialDilution, cmdList_mediumDist, cmdList_solutionDistribution)
-  
+  if(cmdList_mediumDist$to_slot == ""){
+    cmdList <- rbind.data.frame(cmdList_solventDistribution, cmdList_serialDilution, cmdList_solutionDistribution)
+  }else{
+    cmdList <- rbind.data.frame(cmdList_solventDistribution, cmdList_serialDilution, cmdList_mediumDist, cmdList_solutionDistribution)
+  }
   # POST-CALCULATIONS AND OUTPUT GENERATION-------------
   # separate multi-dispense aspirate set
   cmdList <- correct_cmd_list_Aspirate(cmdList)
@@ -592,11 +596,11 @@ mainExec <- function(file_address){
 }
 
 #TROUBLESHOOTING---------
-#mainwd <- "C:\Users\sebas\Documents\GitHub\ot2\Plate48\48WellPlate"
+#mainwd <- "C:/Users/jornb/Documents/GitHub/ot2new/Execution code for OT2/Incubator/Test User inputs"
 #plateInput <- "48Well_InputTemplate.xlsx"
 #dqs <- mainExec(paste0(mainwd, "/", plateInput))
 
-#write.csv(dqs[[1]], paste0(mainwd, "/48WellTrialCMDList_exp2.csv"), row.names = F)
+write.csv(dqs[[1]], paste0(mainwd, "/48WellTrialCMDList_exp2.csv"), row.names = F)
 #write.csv(dqs[[2]], paste0(mainwd, "/48WellTrialUSRGuide_exp2.csv"), row.names = F)
 
 # mainwd <- "C:\\Users\\sebas\\Documents\\GitHub\\ot2\\Plate48"
