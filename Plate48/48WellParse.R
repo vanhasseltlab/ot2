@@ -600,7 +600,7 @@ mainExec <- function(file_address){
 #plateInput <- "48Well_InputTemplate.xlsx"
 #dqs <- mainExec(paste0(mainwd, "/", plateInput))
 
-write.csv(dqs[[1]], paste0(mainwd, "/48WellTrialCMDList_exp2.csv"), row.names = F)
+#write.csv(dqs[[1]], paste0(mainwd, "/48WellTrialCMDList_exp2.csv"), row.names = F)
 #write.csv(dqs[[2]], paste0(mainwd, "/48WellTrialUSRGuide_exp2.csv"), row.names = F)
 
 # mainwd <- "C:\\Users\\sebas\\Documents\\GitHub\\ot2\\Plate48"
