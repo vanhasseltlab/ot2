@@ -401,11 +401,12 @@ def run(protocol: protocol_api.ProtocolContext):
                 c_pipette.blow_out(labwareCaller[get_LabwareCaller(c_target_deck[0])].wells_by_name()[c_target_slot[0]].bottom(current_dspH+3))
                 
 	        	# touch tip only if target is a deep-well plate
-                if("384" not in str(labwareCaller[get_LabwareCaller(c_target_deck[0])])):
-                    c_pipette.touch_tip(labwareCaller[get_LabwareCaller(c_target_deck[0])].wells_by_name()[c_target_slot[0]], radius=0.8)
-                else:
-                    c_pipette.touch_tip(labwareCaller[get_LabwareCaller(c_target_deck[0])].wells_by_name()[c_target_slot[0]],
-                                        radius=0.45, speed=15)
+                if(touch_tips == 'Yes'):
+                    if("384" not in str(labwareCaller[get_LabwareCaller(c_target_deck[0])])):
+                        c_pipette.touch_tip(labwareCaller[get_LabwareCaller(c_target_deck[0])].wells_by_name()[c_target_slot[0]], radius=0.8)
+                    else:
+                        c_pipette.touch_tip(labwareCaller[get_LabwareCaller(c_target_deck[0])].wells_by_name()[c_target_slot[0]],
+                                            radius=0.45, speed=15)
                 
                 # update amount list
                 amtList = update_amtList(amtList, c_source_deck, c_source_slot, current_transfer, "aspirate")
@@ -454,12 +455,13 @@ def run(protocol: protocol_api.ProtocolContext):
                                    labwareCaller[get_LabwareCaller(int(c_target_deck[j]))].wells_by_name()[c_target_slot[j]].bottom(current_dspH))
                 
                 # touch tip
-                if(j < (len(c_target_deck)-1)):
-                    if("384" not in str(labwareCaller[get_LabwareCaller(c_target_deck[j])])):
-                        c_pipette.touch_tip(labwareCaller[get_LabwareCaller(c_target_deck[j])].wells_by_name()[c_target_slot[j]], radius=0.8)
-                    else:
-                        c_pipette.touch_tip(labwareCaller[get_LabwareCaller(c_target_deck[j])].wells_by_name()[c_target_slot[j]],
-                                            radius=0.45, speed=15)
+                if(touch_tips == 'Yes'):
+                    if(j < (len(c_target_deck)-1)):
+                        if("384" not in str(labwareCaller[get_LabwareCaller(c_target_deck[j])])):
+                            c_pipette.touch_tip(labwareCaller[get_LabwareCaller(c_target_deck[j])].wells_by_name()[c_target_slot[j]], radius=0.8)
+                        else:
+                            c_pipette.touch_tip(labwareCaller[get_LabwareCaller(c_target_deck[j])].wells_by_name()[c_target_slot[j]],
+                                                radius=0.45, speed=15)
                         
                 #   update target amount list
                 amtList = update_amtList(amtList, c_target_deck[j], c_target_slot[j], float(c_amt[j]), 'dispense')

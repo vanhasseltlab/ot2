@@ -53,11 +53,11 @@ def Mainwindow(simulation, x):
             [sg.T('Which OT2 do you want to use?')],
             [sg.R('OT2L', 'group2', key= 'OT2L'), sg.R('OT2R', 'group2', key= 'OT2R'), sg.R('Both', 'group2', key = 'BothOT2')],
             [sg.T("What PC is it running on?")],
-            [sg.R('Jorn', 'group3', key = 'PCJ', disabled = True), sg.R('Sebastian', 'group3', key= 'PCS', disabled = True), sg.R('OT', 'group3', key= 'PCOT', default = True, disabled = True)],
+            [sg.R('Jorn', 'group3', key = 'PCJ', disabled = True), sg.R('Sebastian', 'group3', key= 'PCS', disabled = True), sg.R('OT', 'group3', key= 'PCOT',  disabled = True, default = True)],
             [sg.T("Do you want to use touchtip? (run will take longer)")],
             [sg.R('Yes', 'group4', key = 'TTy', disabled = True), sg.R('No', 'group4', key = 'TTn', disabled = True, default = True)],
             [sg.T('384 wells / 48 wells?')],
-            [sg.R('Yes', 'group5', key = '384wy', disabled = True), sg.R('No', 'group5', key='384wn', disabled = True, default = True)],
+            [sg.R('Yes', 'group5', key = '384wy'), sg.R('No', 'group5', key='384wn')],
             [sg.B('Save', s= 16, button_color = 'black on yellow'), sg.B('Send', disabled = True, s= 16), sg.P(), sg.B('Close', s=16, button_color = 'tomato')],
             ]
     
@@ -459,7 +459,7 @@ while True:
             # For the metadata of the script added
             with open(Truename, 'w+') as file:
                     file.write("#" + 'This protocol is made for'+ " " + activeOT2 + "\n")
-                    file.write('fileName =' + "\'" + file_name_meta + "\'" "\n" + "\n")
+                    file.write('fileName =' + "\'" + file_name_meta  + '.csv'+ "\'" "\n" + "\n")
                     file.write('pc =' + "\'" +active_pc + "\'" + "\n" + "\n")
                     file.write('touch_tips =' + "\'" + touch_tips + "\'" + "\n" + "\n")
                     file.write('#METADATA----------' "\n" +
