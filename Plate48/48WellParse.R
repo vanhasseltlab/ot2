@@ -548,7 +548,7 @@ mainExec <- function(file_address){
   cmdList_solutionDistribution <- cmd_SolutionDistributionPlate(cmdList_mediumDist, plateMap, dilScheme, solutionMap, deckMap, runInfo) 
   
   # CMD - Combine
-  cmdList <- rbind.data.frame(cmdList_solventDistribution, cmdList_serialDilution, cmdList_solutionDistribution)
+  cmdList <- rbind.data.frame(cmdList_solventDistribution, cmdList_serialDilution, cmdList_solutionDistribution) #note that the Cmdlist meddist is removed here
   # POST-CALCULATIONS AND OUTPUT GENERATION-------------
   # separate multi-dispense aspirate set
   cmdList <- correct_cmd_list_Aspirate(cmdList)
