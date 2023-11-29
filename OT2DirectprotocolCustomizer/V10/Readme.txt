@@ -1,1 +1,0 @@
-This version is to streamline and improve documentation. Therefore, v9 is depreciated

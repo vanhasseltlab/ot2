@@ -1,17 +1,3 @@
-#This protocol is made for OT2R
-fileName ='CommandList_PMID-test_EXPID-48w.csv.csv'
-
-pc ='Jorn'
-
-touch_tips ='No'
-
-#METADATA----------
-metadata = {
-	'protocolName':'newtesttesttesttest OT2R',
-	'author':'Sebastian <sebastian.tandar@gmail.com>''Jorn <jornbrink@kpnmail.nl>',
-	'description':'96 wells plate MIC with p300 possibility''User customized',
-	'apiLevel':'2.12'
-}
 
 #IMPORTS---------
 import csv
@@ -47,13 +33,17 @@ def ReadCSV_input(file_name):
         
     return(solution_list, command_list, deck_map)
 
-def translate_labwareLibrary(string_identifier):
+def translate_labwareLibrary(string_identifier, brand):
     if("384" in string_identifier):
         labware_name = "greiner_384_wellplate_115ul"
         #labware_name = "corning_384_wellplate_112ul_flat"
 
     elif("48" in string_identifier):
-        labware_name = "greinerbioone677102_48_wellplate_1000ul"
+        if(brand == 'Sarstedt'):
+            labware_name = "sarstedt_48_wellplate_1270ul"
+        else:
+            labware_name = "greinerbioone677102_48_wellplate_1000ul"
+            #labware_name = "corning_48_wellplate_1.6ml_flat"
         
     elif("96" in string_identifier):
         if("dilution" in string_identifier or "deep" in string_identifier):
@@ -254,7 +244,7 @@ def run(protocol: protocol_api.ProtocolContext):
         #perform only if name not null
         if(deckMap[i][1]!="" and deckMap[i][1]!="trash"):
             #find labware name
-            current_labware_name = translate_labwareLibrary(deckMap[i][1])
+            current_labware_name = translate_labwareLibrary(deckMap[i][1], brand)
             caller_id = 'labware_' + str(i+1)
             labwareCaller[caller_id] = protocol.load_labware(current_labware_name, i+1)
 
@@ -414,11 +404,12 @@ def run(protocol: protocol_api.ProtocolContext):
                 c_pipette.blow_out(labwareCaller[get_LabwareCaller(c_target_deck[0])].wells_by_name()[c_target_slot[0]].bottom(current_dspH+3))
                 
 	        	# touch tip only if target is a deep-well plate
-                if("384" not in str(labwareCaller[get_LabwareCaller(c_target_deck[0])])):
-                    c_pipette.touch_tip(labwareCaller[get_LabwareCaller(c_target_deck[0])].wells_by_name()[c_target_slot[0]], radius=0.8)
-                else:
-                    c_pipette.touch_tip(labwareCaller[get_LabwareCaller(c_target_deck[0])].wells_by_name()[c_target_slot[0]],
-                                        radius=0.45, speed=15)
+                if(touch_tips == 'Yes'):
+                    if("384" not in str(labwareCaller[get_LabwareCaller(c_target_deck[0])])):
+                        c_pipette.touch_tip(labwareCaller[get_LabwareCaller(c_target_deck[0])].wells_by_name()[c_target_slot[0]], radius=0.8)
+                    else:
+                        c_pipette.touch_tip(labwareCaller[get_LabwareCaller(c_target_deck[0])].wells_by_name()[c_target_slot[0]],
+                                            radius=0.45, speed=15)
                 
                 # update amount list
                 amtList = update_amtList(amtList, c_source_deck, c_source_slot, current_transfer, "aspirate")
@@ -467,12 +458,13 @@ def run(protocol: protocol_api.ProtocolContext):
                                    labwareCaller[get_LabwareCaller(int(c_target_deck[j]))].wells_by_name()[c_target_slot[j]].bottom(current_dspH))
                 
                 # touch tip
-                if(j < (len(c_target_deck)-1)):
-                    if("384" not in str(labwareCaller[get_LabwareCaller(c_target_deck[j])])):
-                        c_pipette.touch_tip(labwareCaller[get_LabwareCaller(c_target_deck[j])].wells_by_name()[c_target_slot[j]], radius=0.8)
-                    else:
-                        c_pipette.touch_tip(labwareCaller[get_LabwareCaller(c_target_deck[j])].wells_by_name()[c_target_slot[j]],
-                                            radius=0.45, speed=15)
+                if(touch_tips == 'Yes'):
+                    if(j < (len(c_target_deck)-1)):
+                        if("384" not in str(labwareCaller[get_LabwareCaller(c_target_deck[j])])):
+                            c_pipette.touch_tip(labwareCaller[get_LabwareCaller(c_target_deck[j])].wells_by_name()[c_target_slot[j]], radius=0.8)
+                        else:
+                            c_pipette.touch_tip(labwareCaller[get_LabwareCaller(c_target_deck[j])].wells_by_name()[c_target_slot[j]],
+                                                radius=0.45, speed=15)
                         
                 #   update target amount list
                 amtList = update_amtList(amtList, c_target_deck[j], c_target_slot[j], float(c_amt[j]), 'dispense')
@@ -497,12 +489,3 @@ def run(protocol: protocol_api.ProtocolContext):
         #drop tip decision
         if(int(tip_next) != int(current_tip) or (i == len(aspirate_groups2)-1)):
             c_pipette.drop_tip(protocol.fixed_trash['A1'].top().move(types.Point(10, 5, 12)))
-
-##########Simulation##########
-from opentrons import simulate
-bep = simulate.get_protocol_api('2.12')
-bep.home()
-run(bep)
-amtList, cmdList, deckMap = ReadCSV_input(fileName)
-for line in bep.commands():
-    print(line)

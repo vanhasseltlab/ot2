@@ -1,0 +1,3 @@
+V11 brings Sarstedt compatibility and update to the API form 12 to 15. Further changes are to comply with opentrons 7.0.2.
+
+Still needs to bedone: Try to get Touchtip working for the Normal direct script...
