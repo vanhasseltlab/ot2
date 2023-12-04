@@ -440,9 +440,9 @@ def run(protocol: protocol_api.ProtocolContext):
                     
                     if(touch_tips == "Yes"):
                         if("384" not in str(target_ware)):
-                            right_pipette.touch_tip(globals()[target_ware].well_by_name()[target_well[j]], radius=0.8)
+                            right_pipette.touch_tip(globals()[target_ware].wells_by_name()[target_well[j]], radius=0.8)
                         else:
-                            right_pipette.touch_tip(globals()[target_ware].well_by_name()[target_well[j]], radius=0.5, speed = 15)
+                            right_pipette.touch_tip(globals()[target_ware].wells_by_name()[target_well[j]], radius=0.5, speed = 15)
                     else:
                         print("not using touch tips")
                 
