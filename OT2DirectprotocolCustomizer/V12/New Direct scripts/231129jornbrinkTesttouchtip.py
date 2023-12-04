@@ -1,16 +1,16 @@
-#This protocol is made for both OT2s
-fileName ='CommandList_PMID-01_EXPID-testtest-test12_test.test.csv'
+#This protocol is made for OT2L
+fileName ='MV_InputTemplate(3).xlsx.csv'
 
 pc ='Jorn'
 
-touch_tips ='No'
+touch_tips ='Yes'
 
 #METADATA----------
 metadata = {
-	'protocolName':'230501testtesttesttest-test12both OT2s',
+	'protocolName':'231129jornbrinkTesttouchtip OT2L',
 	'author':'Sebastian <sebastian.tandar@gmail.com>''Jorn <jornbrink@kpnmail.nl>',
 	'description':'96 wells plate MIC with p300 possibility''User customized',
-	'apiLevel':'2.12'
+	'apiLevel':'2.15'
 }
 
 #IMPORTS---------
@@ -469,7 +469,8 @@ def run(protocol: protocol_api.ProtocolContext):
                 right_pipette.drop_tip()
                 
 ##########Simulation##########
-from opentrons import simulatebep = simulate.get_protocol_api('2.12')
+from opentrons import simulate
+bep = simulate.get_protocol_api('2.15')
 bep.home()
 run(bep)
 amtList, cmdList, deckMap = ReadCSV_dat(filename)

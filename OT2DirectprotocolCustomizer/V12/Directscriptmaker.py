@@ -12,7 +12,7 @@ from pathlib import Path
 from urllib.request import urlopen
 
 #Troubleshooting paths/ development path        
-simpath = 'C://Users//jornb//Documents//GitHub//ot2new//Execution code for OT2//Incubator//OT2DirectprotocolCustomizer'
+simpath = 'C://Users//jornb//OneDrive//Documenten//GitHub//ot2new//Execution code for OT2//Incubator//OT2DirectprotocolCustomizer'
 livepath = 'C://Users//cvhLa//OneDrive//Desktop'
 
 
@@ -101,9 +101,9 @@ def Filesending(fullpath, pmid_plate, Firstname, Lastname, Experiment_name, Expe
     driver.find_element(By.ID, "exp_num").send_keys(Experiment_num)
     
     #Sleep timers to not try to click the download button before server is ready
-    time.sleep(0.5)
+    time.sleep(3)
     driver.find_element(By.ID, "do").click()
-    time.sleep(0.5)
+    time.sleep(3)
     textFromDiv = driver.find_element(By.XPATH, "//div[@class='shiny-text-output shiny-bound-output']").text
     file_name = "CommandList_" + textFromDiv + ".csv"
     
@@ -123,11 +123,11 @@ def Filesending(fullpath, pmid_plate, Firstname, Lastname, Experiment_name, Expe
     else:
         #if not it will download the files
         driver.find_element(By.ID, "d_OT2").click()
-        time.sleep(1)
+        time.sleep(3)
         driver.find_element(By.ID, "guide").click()
         
         #checks another time if the command file exists.
-        time.sleep(1)
+        time.sleep(3)
         checkdownload = os.path.isfile(path_to_cmd)
         oldpath = "C://Users//cvhLa//Downloads" + '//' + file_name
         if (checkdownload == False):
@@ -182,21 +182,20 @@ def Filesending384(fullpath, fillingrobot, notfillingrobot, pmid_plate, Firstnam
     x = 'NA'
     fileinput = driver.find_element(By.ID, "file").send_keys(fullpath)
     if (fillingrobot == True):
-        element = driver.find_element(By.ID, "fillOuter")
-        element.click()
+        driver.find_element(By.ID, "fillOuter").click()
     else:
         print("no outerwell will be filled by OT") 
     
-    fileinput = driver.find_element(By.ID, "file").send_keys(fullpath)
-    Plate_Map_ID = driver.find_element(By.ID, "pmid").send_keys(pmid_plate)
-    Firstname_file = driver.find_element(By.ID, "f_name").send_keys(Firstname)
-    Lastname_file = driver.find_element(By.ID, "l_name").send_keys(Lastname)
-    Experiment_name_file = driver.find_element(By.ID, "exp_name").send_keys(Experiment_name)
-    Experiment_num_file = driver.find_element(By.ID, "exp_num").send_keys(Experiment_num)
+    driver.find_element(By.ID, "file").send_keys(fullpath)
+    driver.find_element(By.ID, "pmid").send_keys(pmid_plate)
+    driver.find_element(By.ID, "f_name").send_keys(Firstname)
+    driver.find_element(By.ID, "l_name").send_keys(Lastname)
+    driver.find_element(By.ID, "exp_name").send_keys(Experiment_name)
+    driver.find_element(By.ID, "exp_num").send_keys(Experiment_num)
     
     #these sleeptimers are so it doesnt just try to download or click something while this is not possible or might give some problems
     time.sleep(2)
-    confirmupload = driver.find_element(By.ID, "do").click()
+    driver.find_element(By.ID, "do").click()
     time.sleep(3)
     textFromDiv = driver.find_element(By.XPATH, "//div[@class='shiny-text-output shiny-bound-output']").text
     file_name = "CommandList_" + textFromDiv + ".csv"
@@ -216,9 +215,9 @@ def Filesending384(fullpath, fillingrobot, notfillingrobot, pmid_plate, Firstnam
     
     else:
         #if not it will download the files
-        DownloadRobot = driver.find_element(By.ID, "d_OT2").click()
+        driver.find_element(By.ID, "d_OT2").click()
         time.sleep(3)
-        DownloadSetup = driver.find_element(By.ID, "guide").click()
+        driver.find_element(By.ID, "guide").click()
         #checks another time if the command file exists.
         time.sleep(3)
         checkdownload = os.path.isfile(path_to_cmd)
@@ -237,9 +236,9 @@ def Filesending384(fullpath, fillingrobot, notfillingrobot, pmid_plate, Firstnam
         checkdownloadrsp = os.path.isfile(path_to_RSP)
         
         if(checkdownload == False):
-            DownloadRobot = driver.find_element(By.ID, "d_OT2").click()
+            driver.find_element(By.ID, "d_OT2").click()
         elif(checkdownloadrsp == False):
-            DownloadSetup = driver.find_element(By.ID, "guide").click()
+            driver.find_element(By.ID, "guide").click()
         else:
             if(simulation == "1"):
                 new_pathRSP = "C://Users//jornb//Downloads//" + RSP
@@ -390,7 +389,7 @@ while True:
         
         #Needs to store the Directscript into memory for later use
         if(simulation == "1"):    
-            os.chdir(simpath + '//V10')
+            os.chdir(simpath + '//V11')
         else:
             os.chdir(livepath + '//Directscriptmaker')
         lines = []
@@ -407,9 +406,9 @@ while True:
             
         #put filename = into the script
         if(simulation == "1"):
-            os.chdir(simpath + '//V11' + '//New Direct scripts')
+            os.chdir(simpath + '//V12' + '//New Direct scripts')
         elif(simulation == "1" and values['PCS'] == True): #change This @sebastian
-            os.chdir(simpath + '//V11' + '//New Direct scripts')
+            os.chdir(simpath + '//V12' + '//New Direct scripts')
         else:
             os.chdir(livepath + "//New Direct scripts")
         
@@ -621,7 +620,7 @@ while True:
                     options.set_preference("browser.download.dir", r"C:\Users\cvhLa\OneDrive\Desktop\User input (for direct)")
                     service = Service(executable_path= livepath +'//DO NOT TOUCH THIS FOLDER (webdriver)//geckodriver')
                 options.set_preference("browser.helperApps.neverAsk.saveToDisk", "application/x-gzip")
-                options.headless = True
+                #options.headless = True
                 
                 if(values['384p'] == True or values['48w'] == True and values['Fill'] == False and values['nFill'] == False):
                     sg.Popup("Please make sure you select if you want to have the robot fill the wells for you")
