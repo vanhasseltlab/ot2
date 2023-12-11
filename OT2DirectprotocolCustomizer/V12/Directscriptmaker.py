@@ -1,3 +1,4 @@
+#IMPORTS
 import PySimpleGUI as sg
 import os
 import shutil
@@ -11,61 +12,46 @@ import time
 from pathlib import Path
 from urllib.request import urlopen
 
+#PATH SETUP
 #Troubleshooting paths/ development path        
 simpath = 'C://Users//jornb//Documents//GitHub//ot2new//Execution code for OT2//Incubator//OT2DirectprotocolCustomizer'
 livepath = 'C://Users//cvhLa//OneDrive//Desktop'
 
-
-#Window
+#TKINTER WINDOWS
+# Main
 def Mainwindow(simulation, x):
-    if (simulation == "1"):
-        layout = [
-            [sg.B("Make commandlist"), sg.B("Refresh")],
-            [sg.T("Please provide information about the OT2 run you want to do")],
-            [sg.T('Select a file', s=(10,1)), sg.FileBrowse(file_types=(('CSV Files', '*.csv'),), key='Browse')],
-            [sg.T('Or use the one you just made'), sg.T(str(x), key='importfilename')],
-            [sg.R("Selected", "group1", key="Selected", default = True), sg.R("Made", "group1", key="Made")],
-            [sg.T("Experiment Name", s = (15,1)), sg.I(key='ExpName')],
-            [sg.T("Your Name", s = (15,1)), sg.I(key = 'Name')],
-            [sg.T('Date (yymmdd)', s = (15,1)),sg.I(key = 'date')],
-            [sg.T('Which OT2 do you want to use?')],
-            [sg.R('OT2L', 'group2', key= 'OT2L'), sg.R('OT2R', 'group2', key= 'OT2R'), sg.R('Both', 'group2', key = 'BothOT2')],
-            [sg.T("What PC is it running on?")],
-            [sg.R('Jorn', 'group3', key = 'PCJ'), sg.R('Sebastian', 'group3', key= 'PCS'), sg.R('OT', 'group3', key= 'PCOT')],
-            [sg.T("Do you want to use touchtip? (run will take longer)")],
-            [sg.R('Yes', 'group4', key = 'TTy'), sg.R('No', 'group4', key = 'TTn')],
-            [sg.T('384 wells / 48 wells?')],
-            [sg.R('Yes', 'group5', key = '384wy'), sg.R('No', 'group5', key='384wn', default = True)],
-            [sg.T('Sarstedt or Greiner (only 48 wellplates)')],
-            [sg.R('Sarstedt', 'group6', key = 'brands'), sg.R('Greiner', 'group6', key ='brandg')],
-            [sg.B('Save', s= 16, button_color = 'black on yellow'), sg.B('Send', disabled = True, s= 16), sg.P(), sg.B('Close', s=16, button_color = 'tomato')],
+    if(simulation == '1'):
+        computer_selection = [sg.R('Jorn', 'group3', key = 'PCJ'), sg.R('Sebastian', 'group3', key= 'PCS'), sg.R('OT', 'group3', key= 'PCOT')]
+        touchtip_selection = [sg.R('Yes', 'group4', key = 'TTy'), sg.R('No', 'group4', key = 'TTn')]
+    else:                
+        computer_selection = [sg.R('Jorn', 'group3', key = 'PCJ', disabled = True), sg.R('Sebastian', 'group3', key= 'PCS', disabled = True), sg.R('OT', 'group3', key= 'PCOT',  disabled = True, default = True)]
+        touchtip_selection = [sg.R('Yes', 'group4', key = 'TTy', disabled = True), sg.R('No', 'group4', key = 'TTn', disabled = True, default = True)]
+    
+    layout = [
+        [sg.B("Make commandlist"), sg.B("Refresh")],
+        [sg.T("Please provide information about the OT2 run you want to do")],
+        [sg.T('Select a file', s=(10,1)), sg.FileBrowse(file_types=(('CSV Files', '*.csv'),), key='Browse')],
+        [sg.T('Or use the one you just made'), sg.T(str(x), key='importfilename')],
+        [sg.R("Selected", "group1", key="Selected", default = True), sg.R("Made", "group1", key="Made")],
+        [sg.T("Experiment Name", s = (15,1)), sg.I(key='ExpName')],
+        [sg.T("Your Name", s = (15,1)), sg.I(key = 'Name')],
+        [sg.T('Date (yymmdd)', s = (15,1)),sg.I(key = 'date')],
+        [sg.T('Which OT2 do you want to use?')],
+        [sg.R('OT2L', 'group2', key= 'OT2L'), sg.R('OT2R', 'group2', key= 'OT2R'), sg.R('Both', 'group2', key = 'BothOT2')],
+        [sg.T("What PC is it running on?")],
+        computer_selection,
+        [sg.T("Do you want to use touchtip? (run will take longer)")],
+        touchtip_selection,
+        [sg.T('384 wells / 48 wells?')],
+        [sg.R('Yes', 'group5', key = '384wy'), sg.R('No', 'group5', key='384wn', default = True)],
+        [sg.T('Sarstedt or Greiner (only 48 wellplates)')],
+        [sg.R('Sarstedt', 'group6', key = 'brands'), sg.R('Greiner', 'group6', key ='brandg')],
+        [sg.B('Save', s= 16, button_color = 'black on yellow'), sg.B('Send', disabled = True, s= 16), sg.P(), sg.B('Close', s=16, button_color = 'tomato')],
         ]
-    else:
-        layout = [
-            [sg.B("Make commandlist"), sg.B("Refresh")],
-            [sg.T("Please provide information about the OT2 run you want to do")],
-            [sg.T('Select a file', s=(10,1)), sg.FileBrowse(file_types=(('CSV Files', '*.csv'),), key='Browse')],
-            [sg.T('Or use the one you just made'), sg.T(str(x), key='importfilename')],
-            [sg.R("Selected", "group1", key="Selected", default = True), sg.R("Made", "group1", key="Made")],
-            [sg.T("Experiment Name", s = (15,1)), sg.I(key='ExpName')],
-            [sg.T("Your Name", s = (15,1)), sg.I(key = 'Name')],
-            [sg.T('Date (yymmdd)', s = (15,1)),sg.I(key = 'date')],
-            [sg.T('Which OT2 do you want to use?')],
-            [sg.R('OT2L', 'group2', key= 'OT2L'), sg.R('OT2R', 'group2', key= 'OT2R'), sg.R('Both', 'group2', key = 'BothOT2')],
-            [sg.T("What PC is it running on?")],
-            [sg.R('Jorn', 'group3', key = 'PCJ', disabled = True), sg.R('Sebastian', 'group3', key= 'PCS', disabled = True), sg.R('OT', 'group3', key= 'PCOT',  disabled = True, default = True)],
-            [sg.T("Do you want to use touchtip? (run will take longer)")],
-            [sg.R('Yes', 'group4', key = 'TTy', disabled = True), sg.R('No', 'group4', key = 'TTn', disabled = True, default = True)],
-            [sg.T('384 wells / 48 wells?')],
-            [sg.R('Yes', 'group5', key = '384wy'), sg.R('No', 'group5', key='384wn', default = True)],
-            [sg.T('Sarstedt or Greiner (only 48 wellplates)')],
-            [sg.R('Sarstedt', 'group6', key = 'brands'), sg.R('Greiner', 'group6', key ='brandg')],
-            [sg.B('Save', s= 16, button_color = 'black on yellow'), sg.B('Send', disabled = True, s= 16), sg.P(), sg.B('Close', s=16, button_color = 'tomato')],
-            ]
     
     return sg.Window('Directscript maker', layout, finalize = True)
 
-#Window2
+# Web driver
 def Webdriver():
     layout = [
         [sg.Text("Please provide all information below")],
