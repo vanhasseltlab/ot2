@@ -22,7 +22,7 @@ shinyServer(function(input, output) {
   #for troubleshooting
   # mainwd <- "C:\\Users\\sebas\\Documents\\GitHub\\ot2\\PlateAnalysis\\GrowthCurve_v2"
   # sourcewd <- paste0(mainwd, "/srcPlateAnalyzer.R")
-  
+
   if(!("Analysis" %in% list.files(mainwd))){
     setwd(mainwd)
     dir.create("Analysis", recursive=T)
