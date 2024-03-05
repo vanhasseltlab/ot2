@@ -35,7 +35,7 @@ shinyUI(fluidPage(
             #plate analysis
             titlePanel("Output Preprocessor"),
             tipify(actionButton("growthCurve", "Regular Growth Data", width='300px',
-                                onclick ="window.open('https://ot2.lacdr.leidenuniv.nl/ot2/PlateAnalysis/GrowthCurve')"),
+                                onclick ="window.open('https://ot2.lacdr.leidenuniv.nl/ot2/PlateAnalysis/GrowthCurve_v2/')"),
                    "Integrates plate reader outputs into a long-format table", placement='right', trigger='hover'),
             tipify(actionButton("growthCurve", "Checkerboard Growth Data", width='300px',
                                 onclick ="window.open('https://ot2.lacdr.leidenuniv.nl/ot2/PlateAnalysis/Checkerboard_DataReader')"),
