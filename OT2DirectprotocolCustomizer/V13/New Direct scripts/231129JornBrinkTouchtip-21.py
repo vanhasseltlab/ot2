@@ -1,3 +1,17 @@
+#This protocol is made for OT2L
+fileName ='CommandList_PMID-testtouchtip_EXPID-Touchtip-21_Brink.Jorn.csv'
+
+pc ='Jorn'
+
+touch_tips ='Yes'
+
+#METADATA----------
+metadata = {
+	'protocolName':'231129JornBrinkTouchtip-21 OT2L',
+	'author':'Sebastian <sebastian.tandar@gmail.com>''Jorn <jornbrink@kpnmail.nl>',
+	'description':'96 wells plate MIC with p300 possibility''User customized',
+	'apiLevel':'2.15'
+}
 
 #IMPORTS---------
 import csv
@@ -144,7 +158,7 @@ def CalTip_Aspirate(solutions_map, cmd_line, source_well):
                 h_tip = h_bot + (src_amt - Vmax_bot)/(pi*r**2)
         else:
             if("1.5" in tube_type):
-                h_tip = 0.2 # hard-code location for eppendorfs
+                h_tip = 0.1 # hard-code location for eppendorfs
             else:
                 h_tip = ((3*src_amt*h_bot**2)/(pi*r**2))**(1/3)
     
@@ -454,3 +468,11 @@ def run(protocol: protocol_api.ProtocolContext):
                 #drop if different tip id is detected
                 right_pipette.drop_tip()
                 
+##########Simulation##########
+from opentrons import simulate
+bep = simulate.get_protocol_api('2.15')
+bep.home()
+run(bep)
+amtList, cmdList, deckMap = ReadCSV_Dat(fileName)
+for line in bep.commands():
+    print(line)
