@@ -11,11 +11,6 @@ import time
 from pathlib import Path
 from urllib.request import urlopen
 
-#Troubleshooting paths/ development path        
-simpath = 'C://Users//jornb//OneDrive//Documenten//GitHub//ot2new//Execution code for OT2//Incubator//OT2DirectprotocolCustomizer'
-livepath = 'C://Users//User//Desktop'
-
-
 #Window
 def Mainwindow(simulation, x):
     if (simulation == "1"):
@@ -89,7 +84,7 @@ def Webdriver():
     return sg.Window("Webdriver", layout, finalize= True)
 
 #File sending function Both this one and the other 384: there be dragons
-def Filesending(fullpath, pmid_plate, Firstname, Lastname, Experiment_name, Experiment_num, simulation):
+def Filesending(fullpath, pmid_plate, Firstname, Lastname, Experiment_name, Experiment_num, simulation, path):
     x = 'NA'
     
     #This part searches ID of the HTML and adds the variables to it
@@ -108,9 +103,9 @@ def Filesending(fullpath, pmid_plate, Firstname, Lastname, Experiment_name, Expe
     file_name = "CommandList_" + textFromDiv + ".csv"
     
     if(simulation== "1"):
-        path_to_cmd = "C://Users//jornb//Documents//GitHub//ot2new//Execution code for OT2//Incubator//OT2DirectprotocolCustomizer//Webdriver//Firefox download test" + '//' + file_name
+        path_to_cmd = path + "//Webdriver//Firefox download test" + '//' + file_name
     else:
-        path_to_cmd = "C://Users//User//Desktop//User input (for direct)" + '//' + file_name
+        path_to_cmd = path + "//Desktop//User input (for direct)" + '//' + file_name
     
     checkfilepresent=os.path.isfile(path_to_cmd)
     
@@ -129,7 +124,7 @@ def Filesending(fullpath, pmid_plate, Firstname, Lastname, Experiment_name, Expe
         #checks another time if the command file exists.
         time.sleep(3)
         checkdownload = os.path.isfile(path_to_cmd)
-        oldpath = "C://Users//User//Downloads" + '//' + file_name
+        oldpath = path + "//Downloads//" + file_name
         if (checkdownload == False):
             try:
                 os.replace(oldpath, path_to_cmd)
@@ -141,7 +136,7 @@ def Filesending(fullpath, pmid_plate, Firstname, Lastname, Experiment_name, Expe
         if(simulation == "1"):
             path_to_RSP = "C://Users//jornb//Documents//GitHub//ot2new//Execution code for OT2//Incubator//OT2DirectprotocolCustomizer//Webdriver//Firefox download test" + '//' + RSP
         else:
-            path_to_RSP = "C://Users//User//Desktop//User input (for direct)" + '//' + RSP
+            path_to_RSP = path + "//User input (for direct)//" + RSP
         
         checkdownloadrsp = os.path.isfile(path_to_RSP)
         
@@ -150,20 +145,20 @@ def Filesending(fullpath, pmid_plate, Firstname, Lastname, Experiment_name, Expe
             if(simulation == "1"):
                 new_pathRSP = "C://Users//jornb//Downloads//" + RSP
             else:
-                new_pathRSP = "C://Users//User//Downloads//" + RSP
+                new_pathRSP = path + "//Downloads//" + RSP
 
         elif(checkdownloadrsp == False):
             driver.find_element(By.ID, "guide").click()
             if(simulation == "1"):
                 new_pathRSP = "C://Users//jornb//Downloads//" + RSP
             else:
-                new_pathRSP = "C://Users//User//Downloads//" + RSP
+                new_pathRSP = path + "//Downloads//" + RSP
         
         else:
             if(simulation == "1"):
                 new_pathRSP = "C://Users//jornb//Downloads//" + RSP
             else:
-                new_pathRSP = "C://Users//User//Downloads//" + RSP
+                new_pathRSP = path + "//Downloads//" + RSP
         
         try:
             os.replace(path_to_RSP, new_pathRSP)
@@ -178,7 +173,7 @@ def Filesending(fullpath, pmid_plate, Firstname, Lastname, Experiment_name, Expe
     return x
 
 #completely the same as the previous file sending with only minor changes
-def Filesending384(fullpath, fillingrobot, notfillingrobot, pmid_plate, Firstname, Lastname, Experiment_name, Experiment_num, simulation):
+def Filesending384(fullpath, fillingrobot, notfillingrobot, pmid_plate, Firstname, Lastname, Experiment_name, Experiment_num, simulation, path):
     x = 'NA'
     fileinput = driver.find_element(By.ID, "file").send_keys(fullpath)
     if (fillingrobot == True):
@@ -203,7 +198,7 @@ def Filesending384(fullpath, fillingrobot, notfillingrobot, pmid_plate, Firstnam
     if(simulation == "1"):
         path_to_cmd = "C://Users//jornb//Documents//GitHub//ot2new//Execution code for OT2//Incubator//OT2DirectprotocolCustomizer//Webdriver//Firefox download test" + '//' + file_name
     else:
-        path_to_cmd = "C://Users//User//Desktop//User input (for direct)" + '//' + file_name
+        path_to_cmd = path + "//Desktop//User input (for direct)//" + file_name
     
     checkfilepresent=os.path.isfile(path_to_cmd)
     
@@ -232,7 +227,7 @@ def Filesending384(fullpath, fillingrobot, notfillingrobot, pmid_plate, Firstnam
         if(simulation == "1"):
             path_to_RSP = "C://Users//jornb//Documents//GitHub//ot2new//Execution code for OT2//Incubator//OT2DirectprotocolCustomizer//Webdriver//Firefox download test" + '//' + RSP
         else:
-            path_to_RSP = "C://Users//User//Desktop//User input (for direct)" + '//' + RSP
+            path_to_RSP = path + "//Desktop//User input (for direct)" + '//' + RSP
         checkdownloadrsp = os.path.isfile(path_to_RSP)
         
         if(checkdownload == False):
@@ -243,7 +238,7 @@ def Filesending384(fullpath, fillingrobot, notfillingrobot, pmid_plate, Firstnam
             if(simulation == "1"):
                 new_pathRSP = "C://Users//jornb//Downloads//" + RSP
             else:
-                new_pathRSP = "C://Users//User//Downloads//" + RSP
+                new_pathRSP = path + "//Downloads//" + RSP
             
         try:
             os.replace(path_to_RSP, new_pathRSP)
@@ -261,7 +256,10 @@ def robotgetIPs(simulation):
     if (simulation == "1"):
         f = open('C://Users//jornb//AppData//Roaming//Opentrons//discovery.json')
     else:
-        f = open('C://Users//User//AppData//Roaming//Opentrons//discovery.json')
+        try:
+            f = open(path + "//AppData//Roaming//Opentrons//discovery.json")
+        except: 
+            f = open("C://Users//cvhLa//AppData//Roaming//Opentrons//discovery.json")
     json_data = json.load(f)['robots']
     
     # initiate loop
@@ -281,15 +279,24 @@ def robotgetIPs(simulation):
     
     return robot_ip_list
 
-def prepare():
+def prepare():   
+    #Troubleshooting paths/ development path        
+    simpath = 'C://Users//jornb//OneDrive//Documenten//GitHub//ot2new//Execution code for OT2//Incubator//OT2DirectprotocolCustomizer'
+    livepathR = 'C://Users//User'
+    livepathL = 'C://Users//cvhLa//OneDrive'
     x = "NA"
     str(x)
     listofusers = os.listdir('C://Users')
     if ("User" in listofusers):
         simulation = '0'
+        path = livepathR
+    elif("cvhLa" in listofusers):
+        simulation = '0'
+        path = livepathL
     else:
         simulation = '1'
-    return simulation, x
+        path = simpath
+    return simulation, x, path
 
 def test_internet():
     sg.PopupAutoClose("Checking connection with server")
@@ -309,7 +316,7 @@ def popup_connecting():
     return
 
 #Initiation
-simulation, x = prepare()
+simulation, x, path = prepare()
 window1, window2 = None, None
 window1 = Mainwindow(simulation, x)        
 
@@ -389,9 +396,9 @@ while True:
         
         #Needs to store the Directscript into memory for later use
         if(simulation == "1"):    
-            os.chdir(simpath + '//V11')
+            os.chdir(path + '//V11')
         else:
-            os.chdir(livepath + '//Directscriptmaker')
+            os.chdir(path + "//Desktop" + '//Directscriptmaker')
         lines = []
         if(values['384wy'] == True):
              with open('Directscript384.py') as f:
@@ -406,11 +413,11 @@ while True:
             
         #put filename = into the script
         if(simulation == "1"):
-            os.chdir(simpath + '//V12' + '//New Direct scripts')
+            os.chdir(path + '//V13' + '//New Direct scripts')
         elif(simulation == "1" and values['PCS'] == True): #change This @sebastian
-            os.chdir(simpath + '//V12' + '//New Direct scripts')
+            os.chdir(path + '//V13' + '//New Direct scripts')
         else:
-            os.chdir(livepath + "//New Direct scripts")
+            os.chdir(path + "//Desktop" + "//New Direct scripts")
         
         if(values['date'] == "" or values['ExpName']== "" or values['Name']== "" or values['Browse'] == "" and values['Selected'] == True):
             sg.Popup("Fill all fields and options", keep_on_top = True)
@@ -449,14 +456,17 @@ while True:
                 file_name_meta = file_name_meta[0]+"."+file_name_meta[1]
                 
                 #Move from USB or other spot to correct file spot
-                filecheck1 = livepath + '//' + "User input (for direct)//" + file_name_meta + ".csv"
+                filecheck1 = path + "//Desktop" + '//' + "User input (for direct)//" + file_name_meta + ".csv"
+                print(filecheck1)
                 check4 = os.path.isfile(filecheck1)
-                filemove = livepath + '//' + "User input (for direct)//" + file_name_meta
                 print(check4)
-                if(filecheck1 == False and simulation == "0"):
+                filemove = path + "//Desktop" + '//' + "User input (for direct)//" + file_name_meta + ".csv"
+                print(check4)
+                if(check4 == False and simulation == "0"):
+                    print("filecheck correct")
                     shutil.copy(pathfile, filemove, follow_symlinks=True)
                     print("Copy succesfull")
-                elif(filecheck1 == True and simulation == "0"):
+                elif(check4 == True and simulation == "0"):
                     print("Check complete :)")
                 else:
                     print("")
@@ -523,13 +533,13 @@ while True:
         if(activeOT2 == "OT2L"):
             popup_connecting()
             fileName_direc = file_name_meta  + '.csv'+ '\'' + " "
-            path_to_file = "'C:/Users/User/Desktop/User input (for direct)/"
+            path_to_file = "'C:/Users/cvhLa/Onedrive/Desktop/User input (for direct)/"
             file_path = path_to_file + fileName_direc
             robot_root = "'root@"
             robot_ip_ot2l = robot_ip["OT2L"]
             robot_rest = ":/var/lib/jupyter/notebooks/UserInputs'"
             path_robot = robot_root+robot_ip_ot2l+robot_rest
-            OT2_key = "C:/Users/User/ot2_ssh_key_OT2L "
+            OT2_key = "C:/Users/cvhLa/ot2_ssh_key_OT2L "
             scp = "scp -i "
                 
             Full_command = scp + OT2_key + file_path + path_robot
@@ -622,10 +632,10 @@ while True:
                 print(simulation)
                 if (simulation == "1"):
                     options.set_preference("browser.download.dir", r"C:\Users\jornb\Documents\GitHub\ot2new\Execution code for OT2\Incubator\OT2DirectprotocolCustomizer\Webdriver\Firefox download test")
-                    service = Service(executable_path= simpath + '//Webdriver//Firefox webdriver//geckodriver.exe')
+                    service = Service(executable_path= path + '//Webdriver//Firefox webdriver//geckodriver.exe')
                 else:
                     options.set_preference("browser.download.dir", r"C:\Users\User\Desktop\User input (for direct)")
-                    service = Service(executable_path= livepath +'//DO NOT TOUCH THIS FOLDER (webdriver)//geckodriver.exe')
+                    service = Service(executable_path= path + "//Desktop" +'//DO NOT TOUCH THIS FOLDER (webdriver)//geckodriver.exe')
                 options.set_preference("browser.helperApps.neverAsk.saveToDisk", "application/x-gzip")
                 #options.headless = True
                 
@@ -647,13 +657,13 @@ while True:
             driver = webdriver.Firefox(service = service, options = options)
             driver.get("https://ot2.lacdr.leidenuniv.nl/ot2/CQ_Plate/")
             assert "CQ Plate.title"
-            x = Filesending(fullpath, pmid_plate, Firstname, Lastname, Experiment_name, Experiment_num, simulation)
+            x = Filesending(fullpath, pmid_plate, Firstname, Lastname, Experiment_name, Experiment_num, simulation, path)
         
         elif(values['MVP'] == True):
             driver = webdriver.Firefox(service = service, options = options)
             driver.get("https://ot2.lacdr.leidenuniv.nl/ot2/MVPlate/")
             assert "Multiplate MIC - OT2 Commander.title"
-            x = Filesending(fullpath, pmid_plate, Firstname, Lastname, Experiment_name, Experiment_num, simulation)
+            x = Filesending(fullpath, pmid_plate, Firstname, Lastname, Experiment_name, Experiment_num, simulation, path)
             
         elif(values['384p'] == True):
             driver = webdriver.Firefox(service = service, options = options)
@@ -661,19 +671,19 @@ while True:
             assert "MIC - 384 Well Plate.title"
             fillingrobot = values['Fill']
             notfillingrobot = values['nFill']
-            x = Filesending384(fullpath, fillingrobot, notfillingrobot, pmid_plate, Firstname, Lastname, Experiment_name, Experiment_num, simulation)
+            x = Filesending384(fullpath, fillingrobot, notfillingrobot, pmid_plate, Firstname, Lastname, Experiment_name, Experiment_num, simulation, path)
         
         elif(values['M9MixR']== True):
             driver = webdriver.Firefox(service = service, options = options)
             driver.get("https://ot2.lacdr.leidenuniv.nl/ot2/M9MixR/")
             assert "M9 MixR.title"
-            x = Filesending(fullpath, pmid_plate, Firstname, Lastname, Experiment_name, Experiment_num, simulation)
+            x = Filesending(fullpath, pmid_plate, Firstname, Lastname, Experiment_name, Experiment_num, simulation, path)
         
         elif(values['Sp']== True):
             driver = webdriver.Firefox(service = service, options = options)
             driver.get("https://ot2.lacdr.leidenuniv.nl/ot2/SingleplateMIC/")
             assert "Singleplate MIC - OT2 Commander.title"
-            x = Filesending(fullpath, pmid_plate, Firstname, Lastname, Experiment_name, Experiment_num, simulation)  
+            x = Filesending(fullpath, pmid_plate, Firstname, Lastname, Experiment_name, Experiment_num, simulation, path)  
         
         elif(values['48w'] == True):
             driver = webdriver.Firefox(service = service, options = options)
@@ -681,7 +691,7 @@ while True:
             assert "48 Well Plate.title"
             fillingrobot = values['Fill']
             notfillingrobot = values['nFill']
-            x = Filesending384(fullpath, fillingrobot, notfillingrobot, pmid_plate, Firstname, Lastname, Experiment_name, Experiment_num, simulation)    
+            x = Filesending384(fullpath, fillingrobot, notfillingrobot, pmid_plate, Firstname, Lastname, Experiment_name, Experiment_num, simulation, path)    
         
         else:
             sg.Popup('Please select the method you want to use (the app is going to crash now)')
