@@ -622,10 +622,10 @@ while True:
                 print(simulation)
                 if (simulation == "1"):
                     options.set_preference("browser.download.dir", r"C:\Users\jornb\Documents\GitHub\ot2new\Execution code for OT2\Incubator\OT2DirectprotocolCustomizer\Webdriver\Firefox download test")
-                    service = Service(executable_path= simpath + '//Webdriver//Firefox webdriver//geckodriver')
+                    service = Service(executable_path= simpath + '//Webdriver//Firefox webdriver//geckodriver.exe')
                 else:
                     options.set_preference("browser.download.dir", r"C:\Users\User\Desktop\User input (for direct)")
-                    service = Service(executable_path= livepath +'//DO NOT TOUCH THIS FOLDER (webdriver)//geckodriver')
+                    service = Service(executable_path= livepath +'//DO NOT TOUCH THIS FOLDER (webdriver)//geckodriver.exe')
                 options.set_preference("browser.helperApps.neverAsk.saveToDisk", "application/x-gzip")
                 #options.headless = True
                 
