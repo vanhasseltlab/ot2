@@ -131,10 +131,6 @@ def Filesending(fullpath, pmid_plate, Firstname, Lastname, Experiment_name, Expe
         oldpath = oldpath + "//Downloads//" + file_name
         if (checkdownload == False):
             os.replace(oldpath, path_to_cmd)
-            #try:
-            #    os.replace(oldpath, path_to_cmd)
-            #except:
-            #    pass
         
         RSP = "Robothandler_" + textFromDiv + ".xlsx"
         
@@ -221,12 +217,10 @@ def Filesending384(fullpath, fillingrobot, notfillingrobot, pmid_plate, Firstnam
         #checks another time if the command file exists.
         time.sleep(3)
         checkdownload = os.path.isfile(path_to_cmd)
-        oldpath = "C://Users//User//Downloads" + '//' + file_name
+        oldpath = path.replace('//OneDrive', '')
+        oldpath = oldpath + "//Downloads" + '//' + file_name
         if (checkdownload == False):
-            try:
-                os.replace(oldpath, path_to_cmd)
-            except:
-                pass
+            os.replace(oldpath, path_to_cmd)
         RSP = "Robothandler_" + textFromDiv + ".xlsx"
         
         if(simulation == "1"):
@@ -402,7 +396,7 @@ while True:
         
         #Needs to store the Directscript into memory for later use
         if(simulation == "1"):    
-            os.chdir(path + '//V11')
+            os.chdir(path + '//V13')
         else:
             os.chdir(path + "//Desktop" + '//Directscriptmaker')
         lines = []
@@ -463,11 +457,8 @@ while True:
                 
                 #Move from USB or other spot to correct file spot
                 filecheck1 = path + "//Desktop" + '//' + "User input (for direct)//" + file_name_meta + ".csv"
-                print(filecheck1)
                 check4 = os.path.isfile(filecheck1)
-                print(check4)
                 filemove = path + "//Desktop" + '//' + "User input (for direct)//" + file_name_meta + ".csv"
-                print(check4)
                 if(check4 == False and simulation == "0"):
                     print("filecheck correct")
                     shutil.copy(pathfile, filemove, follow_symlinks=True)
