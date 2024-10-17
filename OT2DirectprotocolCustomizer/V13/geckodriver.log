@@ -291,3 +291,86 @@ console.error: (new NotFoundError("Could not create directory `C:\\Users\\User\\
 console.error: (new NotFoundError("Could not create directory `C:\\Users\\User\\Desktop\\User input (for direct)' (NS_ERROR_FILE_NOT_FOUND)", (void 0)))
 1729088785678	Marionette	INFO	Stopped listening on port 50289
 Dynamically enable window occlusion 1
+1729163655609	geckodriver	INFO	Listening on 127.0.0.1:61295
+1729163658628	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "--remote-debugging-port" "61296" "--remote-allow-hosts" "localhost" "-no-remote" "-profile" "C:\\Users\\cvhLa\\AppData\\Local\\Temp\\rust_mozprofilebaXjPp"
+console.warn: services.settings: Ignoring preference override of remote settings server
+console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment
+Dynamically enable window occlusion 0
+1729163658863	Marionette	INFO	Marionette enabled
+1729163658975	Marionette	INFO	Listening on port 61305
+WebDriver BiDi listening on ws://127.0.0.1:61296
+Read port: 61305
+1729163659095	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+console.error: (new NotFoundError("Could not create directory `C:\\Users\\User\\Desktop\\User input (for direct)' (NS_ERROR_FILE_NOT_FOUND)", (void 0)))
+console.error: (new NotFoundError("Could not create directory `C:\\Users\\User\\Desktop\\User input (for direct)' (NS_ERROR_FILE_NOT_FOUND)", (void 0)))
+console.error: (new NotFoundError("Could not create directory `C:\\Users\\User\\Desktop\\User input (for direct)' (NS_ERROR_FILE_NOT_FOUND)", (void 0)))
+1729163680163	Marionette	INFO	Stopped listening on port 61305
+Dynamically enable window occlusion 1
+1729163918703	geckodriver	INFO	Listening on 127.0.0.1:61593
+1729163921709	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "--remote-debugging-port" "61594" "--remote-allow-hosts" "localhost" "-no-remote" "-profile" "C:\\Users\\cvhLa\\AppData\\Local\\Temp\\rust_mozprofileX962oI"
+console.warn: services.settings: Ignoring preference override of remote settings server
+console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment
+Dynamically enable window occlusion 0
+1729163921933	Marionette	INFO	Marionette enabled
+1729163922045	Marionette	INFO	Listening on port 61607
+WebDriver BiDi listening on ws://127.0.0.1:61594
+Read port: 61607
+1729163922154	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+console.error: (new NotFoundError("Could not create directory `C:\\Users\\User\\Desktop\\User input (for direct)' (NS_ERROR_FILE_NOT_FOUND)", (void 0)))
+console.error: (new NotFoundError("Could not create directory `C:\\Users\\User\\Desktop\\User input (for direct)' (NS_ERROR_FILE_NOT_FOUND)", (void 0)))
+console.error: (new NotFoundError("Could not create directory `C:\\Users\\User\\Desktop\\User input (for direct)' (NS_ERROR_FILE_NOT_FOUND)", (void 0)))
+1729163940692	Marionette	INFO	Stopped listening on port 61607
+Dynamically enable window occlusion 1
+1729164081023	geckodriver	INFO	Listening on 127.0.0.1:61792
+1729164084034	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "--remote-debugging-port" "61793" "--remote-allow-hosts" "localhost" "-no-remote" "-profile" "C:\\Users\\cvhLa\\AppData\\Local\\Temp\\rust_mozprofileK7bRNI"
+console.warn: services.settings: Ignoring preference override of remote settings server
+console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment
+Dynamically enable window occlusion 0
+1729164084261	Marionette	INFO	Marionette enabled
+1729164084371	Marionette	INFO	Listening on port 61806
+WebDriver BiDi listening on ws://127.0.0.1:61793
+Read port: 61806
+1729164084479	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+console.error: (new NotFoundError("Could not create directory `C:\\Users\\User\\Desktop\\User input (for direct)' (NS_ERROR_FILE_NOT_FOUND)", (void 0)))
+console.error: (new NotFoundError("Could not create directory `C:\\Users\\User\\Desktop\\User input (for direct)' (NS_ERROR_FILE_NOT_FOUND)", (void 0)))
+1729164113615	Marionette	INFO	Stopped listening on port 61806
+Dynamically enable window occlusion 1
+1729164622623	geckodriver	INFO	Listening on 127.0.0.1:62476
+1729164625627	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "--remote-debugging-port" "62477" "--remote-allow-hosts" "localhost" "-no-remote" "-profile" "C:\\Users\\cvhLa\\AppData\\Local\\Temp\\rust_mozprofileEzMmhz"
+console.warn: services.settings: Ignoring preference override of remote settings server
+console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment
+Dynamically enable window occlusion 0
+1729164625852	Marionette	INFO	Marionette enabled
+1729164625964	Marionette	INFO	Listening on port 62486
+WebDriver BiDi listening on ws://127.0.0.1:62477
+Read port: 62486
+1729164626079	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+1729164642401	Marionette	INFO	Stopped listening on port 62486
+Dynamically enable window occlusion 1
+1729164704455	geckodriver	INFO	Listening on 127.0.0.1:62585
+1729164707474	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "--remote-debugging-port" "62586" "--remote-allow-hosts" "localhost" "-no-remote" "-profile" "C:\\Users\\cvhLa\\AppData\\Local\\Temp\\rust_mozprofileVBIWfv"
+console.warn: services.settings: Ignoring preference override of remote settings server
+console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment
+Dynamically enable window occlusion 0
+1729164707682	Marionette	INFO	Marionette enabled
+1729164707795	Marionette	INFO	Listening on port 62595
+WebDriver BiDi listening on ws://127.0.0.1:62586
+Read port: 62595
+1729164707959	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+console.error: (new NotFoundError("Could not create directory `C:\\Users\\User\\Desktop\\User input (for direct)' (NS_ERROR_FILE_NOT_FOUND)", (void 0)))
+console.error: (new NotFoundError("Could not create directory `C:\\Users\\User\\Desktop\\User input (for direct)' (NS_ERROR_FILE_NOT_FOUND)", (void 0)))
+console.warn: WindowsJumpLists: "Failed to fetch favicon for " "https://ot2.lacdr.leidenuniv.nl/ot2/MVPlate/" ({})
+console.warn: WindowsJumpLists: "Failed to fetch favicon for " "https://ot2.lacdr.leidenuniv.nl/ot2/MVPlate/session/e80121e824f2ae9a50b0a4856e9e63d5/download/guide?w=" ({})
+console.warn: WindowsJumpLists: "Failed to fetch favicon for " "https://ot2.lacdr.leidenuniv.nl/ot2/MVPlate/session/e80121e824f2ae9a50b0a4856e9e63d5/download/d_OT2?w=" ({})
+by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment
+Dynamically enable window occlusion 0
+1729164808959	Marionette	INFO	Marionette enabled
+1729164809072	Marionette	INFO	Listening on port 62736
+WebDriver BiDi listening on ws://127.0.0.1:62725
+Read port: 62736
+1729164809185	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+console.error: (new NotFoundError("Could not create directory `C:\\Users\\User\\Desktop\\User input (for direct)' (NS_ERROR_FILE_NOT_FOUND)", (void 0)))
+console.error: (new NotFoundError("Could not create directory `C:\\Users\\User\\Desktop\\User input (for direct)' (NS_ERROR_FILE_NOT_FOUND)", (void 0)))
+console.error: (new NotFoundError("Could not create directory `C:\\Users\\User\\Desktop\\User input (for direct)' (NS_ERROR_FILE_NOT_FOUND)", (void 0)))
+1729164826914	Marionette	INFO	Stopped listening on port 62736
+Dynamically enable window occlusion 1

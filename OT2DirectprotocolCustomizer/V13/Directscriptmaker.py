@@ -1,3 +1,4 @@
+#LIBRARIES
 import PySimpleGUI as sg
 import os
 import shutil
@@ -11,7 +12,8 @@ import time
 from pathlib import Path
 from urllib.request import urlopen
 
-#Window
+#WINDOWS
+# Main Window
 def Mainwindow(simulation, x):
     if (simulation == "1"):
         layout = [
@@ -60,7 +62,7 @@ def Mainwindow(simulation, x):
     
     return sg.Window('Directscript maker', layout, finalize = True)
 
-#Window2
+# Second Window
 def Webdriver():
     layout = [
         [sg.Text("Please provide all information below")],
@@ -83,6 +85,7 @@ def Webdriver():
         ]
     return sg.Window("Webdriver", layout, finalize= True)
 
+#FUNCTIONS------------------
 #File sending function Both this one and the other 384: there be dragons
 def Filesending(fullpath, pmid_plate, Firstname, Lastname, Experiment_name, Experiment_num, simulation, path):
     x = 'NA'
@@ -124,12 +127,14 @@ def Filesending(fullpath, pmid_plate, Firstname, Lastname, Experiment_name, Expe
         #checks another time if the command file exists.
         time.sleep(3)
         checkdownload = os.path.isfile(path_to_cmd)
-        oldpath = path + "//Downloads//" + file_name
+        oldpath = path.replace('//OneDrive', '')
+        oldpath = oldpath + "//Downloads//" + file_name
         if (checkdownload == False):
-            try:
-                os.replace(oldpath, path_to_cmd)
-            except:
-                pass
+            os.replace(oldpath, path_to_cmd)
+            #try:
+            #    os.replace(oldpath, path_to_cmd)
+            #except:
+            #    pass
         
         RSP = "Robothandler_" + textFromDiv + ".xlsx"
         
@@ -284,6 +289,7 @@ def prepare():
     simpath = 'C://Users//jornb//OneDrive//Documenten//GitHub//ot2new//Execution code for OT2//Incubator//OT2DirectprotocolCustomizer'
     livepathR = 'C://Users//User'
     livepathL = 'C://Users//cvhLa//OneDrive'
+    
     x = "NA"
     str(x)
     listofusers = os.listdir('C://Users')
@@ -540,7 +546,7 @@ while True:
             robot_rest = ":/var/lib/jupyter/notebooks/UserInputs'"
             path_robot = robot_root+robot_ip_ot2l+robot_rest
             OT2_key = "C:/Users/cvhLa/ot2_ssh_key_OT2L "
-            scp = "scp -i "
+            scp = "scp -O -i "
                 
             Full_command = scp + OT2_key + file_path + path_robot
             completed = subprocess.run(["powershell", "-Command", Full_command], capture_output=True)
@@ -557,7 +563,7 @@ while True:
             robot_rest = ":/var/lib/jupyter/notebooks/UserInputs'"
             path_robot = robot_root+robot_ip_ot2r+robot_rest
             OT2_key_right = "C:/Users/User/ot2_ssh_key_OT2R "
-            scp = "scp -i "
+            scp = "scp -O -i "
             
             #scp -i C:/Users/cvhLa/ot2_ssh_key_OT2R 'C:/Users/cvhLa/OneDrive/Desktop/Direct Protocols/README.jpg' root@169.254.212.60:/var/lib/jupyter/notebooks
             Full_command = scp + OT2_key_right + file_path + path_robot
