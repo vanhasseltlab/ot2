@@ -232,10 +232,7 @@ def run(protocol: protocol_api.ProtocolContext):
         elif(pc == "Sebastian" or pc== "sebastian"):
             os.chdir("C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\DownstreamProcessors")
         else:
-            try: 
-                os.chdir('C://Users//User//Desktop//User input (for direct)') 
-            except:
-                os.chdir('C://Users//cvhLA//OneDrive//Desktop//User input (for direct)') 
+            os.chdir('C://Users//User//Desktop//User input (for direct)')
     except:
         os.chdir('/var/lib/jupyter/notebooks/UserInputs')
 
