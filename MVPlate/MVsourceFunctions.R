@@ -27,6 +27,8 @@ Get_nPlate <- function(file_name){
   return(res)
 }
 GetPlateMap <- function(file_name){
+  # file_name <<- file_name
+  
   #read
   res <- read_xlsx(file_name, 1, range="B57:M64", col_names=F) %>% data.frame()
   rownames(res) <- LETTERS[1:8]
@@ -118,10 +120,10 @@ CreateSolList <- function(plate_map, total_vol_well, inoc_vol, stock_list, n_pla
   return(fin_list)
 }
 CalculateDilVolume <- function(sol_list, total_vol_well, inoc_vol, stock_list){
-  sol_list <<- sol_list
-  total_vol_well <<- total_vol_well
-  inoc_vol <<- inoc_vol
-  stock_list <<- stock_list
+  # sol_list <<- sol_list
+  # total_vol_well <<- total_vol_well
+  # inoc_vol <<- inoc_vol
+  # stock_list <<- stock_list
   
   #calculate initially required amount
   drugSol_well <- total_vol_well - inoc_vol
@@ -1043,5 +1045,5 @@ main <- function(file_path, file_name=""){
 #TROUBLESHOOTING---------
 # errMessage <<- ""
 # fpath <- "C:\\Users\\sebas\\Documents\\GitHub\\ot2\\MVPlate\\"
-# dataName <- "MVPlate_ABs_interest_top.xlsx"
+# dataName <- "CDV_TOXICITY_2.0_210325_InputTemplate 1 3.xlsx"
 # dqs <- main(paste(fpath, dataName, sep="//"))
