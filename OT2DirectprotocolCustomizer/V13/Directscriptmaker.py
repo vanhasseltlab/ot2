@@ -282,7 +282,7 @@ def prepare():
     #Troubleshooting paths/ development path        
     simpath = 'C://Users//jornb//OneDrive//Documenten//GitHub//ot2new//Execution code for OT2//Incubator//OT2DirectprotocolCustomizer'
     livepathR = 'C://Users//User'
-    livepathL = 'C://Users//cvhLa//OneDrive'
+    livepathL = 'C://Users//User'
     
     x = "NA"
     str(x)
@@ -290,7 +290,7 @@ def prepare():
     if ("User" in listofusers):
         simulation = '0'
         path = livepathR
-    elif("cvhLa" in listofusers):
+    elif("OT2L" in listofusers):
         simulation = '0'
         path = livepathL
     else:
@@ -530,13 +530,13 @@ while True:
         if(activeOT2 == "OT2L"):
             popup_connecting()
             fileName_direc = file_name_meta  + '.csv'+ '\'' + " "
-            path_to_file = "'C:/Users/cvhLa/Onedrive/Desktop/User input (for direct)/"
+            path_to_file = "'C:/Users/User/Desktop/User input (for direct)/"
             file_path = path_to_file + fileName_direc
             robot_root = "'root@"
             robot_ip_ot2l = robot_ip["OT2L"]
             robot_rest = ":/var/lib/jupyter/notebooks/UserInputs'"
             path_robot = robot_root+robot_ip_ot2l+robot_rest
-            OT2_key = "C:/Users/cvhLa/ot2_ssh_key_OT2L "
+            OT2_key = "C:/Users/User/ot2_ssh_key_OT2L "
             scp = "scp -O -i "
                 
             Full_command = scp + OT2_key + file_path + path_robot
@@ -561,44 +561,6 @@ while True:
             completed = subprocess.run(["powershell", "-Command", Full_command], capture_output=True)
             print(completed)
         
-# =============================================================================
-#       Depriciated since new computers of OT2s         
-#       elif(values['BothOT2']):
-#             popup_connecting()
-#             fileName_direc = file_name_meta + '.csv'+ '\'' + " "
-#             path_to_file = "'C:/Users/User/Desktop/User input (for direct)/"
-#             file_path = path_to_file + fileName_direc
-#             robot_root = "'root@"
-#             robot_ip_ot2r = robot_ip["OT2R"]
-#             robot_rest = ":/var/lib/jupyter/notebooks/UserInputs'"
-#             path_robot = robot_root+robot_ip_ot2r+robot_rest
-#             OT2_key_right = "C:/Users/User/ot2_ssh_key_OT2R" + " "
-#             scp = "scp -i "
-#             
-#             #literal command : scp -i C:/Users/cvhLa/ot2_ssh_key_OT2R 'C:/Users/cvhLa/OneDrive/Desktop/Direct Protocols/README.jpg' root@169.254.212.60:/var/lib/jupyter/notebooks
-#             Full_command = scp + OT2_key_right + file_path + path_robot
-#             completed = subprocess.run(["powershell", "-Command", Full_command], capture_output=True)
-#             print(completed)
-#             print('Right completed')
-#             
-#             time.sleep(3)
-#        
-#             fileName_direc = file_name_meta  + '.csv'+ '\'' + " "
-#             path_to_file = "'C:/Users/User/Desktop/User input (for direct)/"
-#             file_path = path_to_file + fileName_direc
-#             robot_root = "'root@"
-#             robot_ip_ot2l = robot_ip["OT2L"]
-#             robot_rest = ":/var/lib/jupyter/notebooks/UserInputs'"
-#             path_robot = robot_root+robot_ip_ot2l+robot_rest
-#             OT2_key = "C:/Users/User/ot2_ssh_key_OT2L "
-#             scp = "scp -i "
-#             
-#             Full_command = scp + OT2_key + file_path + path_robot
-#             completed = subprocess.run(["powershell", "-Command", Full_command], capture_output=True)
-#             print(completed)
-#             print('Job done, am I finished for today?')
-#                 
-# =============================================================================
         else:
             sg.Popup("Check one of the options", keep_on_top = True)
     

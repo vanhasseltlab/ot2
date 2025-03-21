@@ -1,3 +1,21 @@
+#This protocol is made for WallE
+fileName ='CommandList_PMID-test_EXPID-384w.csv'
+
+pc ='Jorn'
+
+touch_tips ='No'
+
+brand = "Greiner"
+
+#METADATA----------
+metadata = {
+	'protocolName':'testtest testtest Flex',
+	'author':'Sebastian <sebastian.tandar@gmail.com>''Jorn <jornbrink@kpnmail.nl>',
+	'description':'Opentrons Flex custom script''User customized qPCR'
+}
+
+requirements = {"robotType": "OT2", "apiLevel": "2.19"}
+
 
 #IMPORTS---------
 import csv
@@ -35,20 +53,20 @@ def ReadCSV_input(file_name):
 
 def translate_labwareLibrary(string_identifier, brand):
     if("384" in string_identifier):
-        labware_name = "greiner_384_wellplate_115ul"
-        #labware_name = "corning_384_wellplate_112ul_flat"
+        #labware_name = "greiner_384_wellplate_115ul"
+        labware_name = "corning_384_wellplate_112ul_flat"
 
     elif("48" in string_identifier):
         if(brand == 'Sarstedt'):
             labware_name = "sarstedt_48_wellplate_1270ul"
         else:
-            labware_name = "greinerbioone677102_48_wellplate_1000ul"
-            #labware_name = "corning_48_wellplate_1.6ml_flat"
+            #labware_name = "greinerbioone677102_48_wellplate_1000ul"
+            labware_name = "corning_48_wellplate_1.6ml_flat"
         
     elif("96" in string_identifier):
         if("dilution" in string_identifier or "deep" in string_identifier):
-            labware_name = "custom_96_deep_well_2000ul"
-            #labware_name = "nest_96_wellplate_2ml_deep"
+            #labware_name = "custom_96_deep_well_2000ul"
+            labware_name = "nest_96_wellplate_2ml_deep"
             
         else:
             labware_name = "corning_96_wellplate_360ul_flat"
@@ -227,14 +245,11 @@ def run(protocol: protocol_api.ProtocolContext):
     #global cmdList, deckMap, amtList
     try:
         if(pc =="Jorn" or pc =="jorn"):
-            os.chdir("C://Users//jornb//Documents//GitHub//ot2new//Execution code for OT2//Incubator//Test User inputs" )
+            os.chdir("C://Users//jornb//Documents//GitHub//ot2//Execution code for OT2//Incubator//Test User inputs" )
         elif(pc == "Sebastian" or pc== "sebastian"):
             os.chdir("C:\\Users\\Sebastian\\Desktop\\MSc Leiden 2nd Year\\##LabAst Works\\ot2\\DownstreamProcessors")
         else:
-            try: 
-                os.chdir('C://Users//User//Desktop//User input (for direct)') 
-            except:
-                os.chdir('C://Users//cvhLA//OneDrive//Desktop//User input (for direct)') 
+            os.chdir('C://Users//User//Desktop//User input (for direct)')
     except:
         os.chdir('/var/lib/jupyter/notebooks/UserInputs')
         
@@ -346,7 +361,8 @@ def run(protocol: protocol_api.ProtocolContext):
                 operation = 2
         else:
             operation = 3
-        
+        print(operation)
+        print(c_target_slot)
         # D | Main Transfer operation
         if(operation==1):
             #    setup multiple transfers when needed
@@ -491,4 +507,13 @@ def run(protocol: protocol_api.ProtocolContext):
                     
         #drop tip decision
         if(int(tip_next) != int(current_tip) or (i == len(aspirate_groups2)-1)):
-            c_pipette.drop_tip(protocol.fixed_trash['A1'].top().move(types.Point(10, 5, 12)))
+            c_pipette.drop_tip()
+
+
+##########Simulation##########
+from opentrons import simulate
+bep = simulate.get_protocol_api('2.19', robot_type = 'OT-2')
+bep.home()
+run(bep) 
+#for line in bep.commands():
+    #print(line)
