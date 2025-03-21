@@ -452,34 +452,39 @@ MainDistribution <- function(vol_info, sol_list, rack_map, drug_map, n_plate, de
   }
   
   #fill 0 ng/uL solutions with respective mediums
-  control_code <- paste("0", unique(drug_map$Medium), sep="-")
-  med_names <- unique(drug_map$Medium)
-  
-  for(j in c(1:length(control_code))){
-    choose_well <- drug_map3$Slot[apply(drug_map3, 1, function(x) sum(grepl(control_code[j], x)))>0]
-    times <- apply(drug_map3, 1, function(x) sum(grepl(control_code[j], x)))[which(drug_map3$Slot %in% choose_well)]
+  for(medium_selected in unique(drug_map$Medium)){
+    # filter relevant wells according to medium
+    relevant_wells <- filter(drug_map2, Medium==medium_selected)
+    
+    # select wells to apply additional medium to
+    well_index <- sapply(c(1:nrow(relevant_wells)), function(xi){
+      parse_conc <- strsplit(relevant_wells$Conc[xi], split="_")[[1]] %>% as.numeric()
+      return(sum(parse_conc==0))
+    })
+    
+    choose_well <- relevant_wells$Slot[which(well_index>0)]
+    times <- well_index[well_index>0]
     
     if(length(choose_well)>0){
       nex_cmd <- c()
       for(q in c(1:length(choose_well))){
         nex_cmd <- rbind(nex_cmd, 
-                         c(rack_map$Labware[rack_map$FillSolution == med_names[j]],
-                           rack_map$Slot[rack_map$FillSolution == med_names[j]],
+                         c(rack_map$Labware[rack_map$FillSolution == medium_selected],
+                           rack_map$Slot[rack_map$FillSolution == medium_selected],
                            "", choose_well[q], amt_per_well*times[q], 0, cur_tip,
-                           paste("Distributing", med_names[j], "to")))
+                           paste("Distributing", medium_selected, "to")))
       }
     }else{
       nex_cmd <- NULL
     }
     
-    
     #fill outer wells
-    choose_well <- drug_map$Slot[drug_map$DrugName=="mediumfill" & drug_map$Medium == med_names[j]]
+    choose_well <- drug_map$Slot[drug_map$DrugName=="mediumfill" & drug_map$Medium == medium_selected]
     if(length(choose_well)>0){
-      nex_cmd2 <- c(rack_map$Labware[rack_map$FillSolution == med_names[j]],
-                    rack_map$Slot[rack_map$FillSolution == med_names[j]],
+      nex_cmd2 <- c(rack_map$Labware[rack_map$FillSolution == medium_selected],
+                    rack_map$Slot[rack_map$FillSolution == medium_selected],
                     "", paste(choose_well, collapse=", "), vol_info[1], 0, cur_tip + 1,
-                    paste(med_names[j], "fillings for"))
+                    paste(medium_selected, "fillings for"))
     }else{
       nex_cmd2 <- NULL
     }
@@ -762,8 +767,9 @@ mainExec <- function(file_name){
 }
 
 #TROUBLESHOOTING--------------
-# mainwd <- "C:\\Users\\sebas\\Desktop\\New folder\\"
-# inputFile <- "20230501-SHA-E01-CIP-TOB-SA-R1.xlsx"
-# dqs <- mainExec(paste(mainwd, inputFile, sep="\\"))
+# mainwd <- "C:\\Users\\sebas\\Documents\\GitHub\\ot2\\CQ_Plate\\"
+# inputFile <- "CQ_InputTemplate_GCV_FOS_LS.xlsx"
+# inputFile <- "CQ_InputTemplate.xlsx"
+# dqs <- mainExec(paste0(mainwd, inputFile))
 
 # write.csv(robotCommands, paste0(mainwd, "/CommandList_test.csv"), row.names=F)
