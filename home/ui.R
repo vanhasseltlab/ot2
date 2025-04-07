@@ -32,6 +32,10 @@ shinyUI(fluidPage(
                                 onclick ="window.open('https://ot2.lacdr.leidenuniv.nl/ot2/M9MixR')"),
                    "OT2 protocol processor for medium/solution mixing", placement='right', trigger='hover'),
             
+            tipify(actionButton("qPCR WALLE", "qPCR WALLE", width='300px',
+                                onclick ="window.open('https://ot2.lacdr.leidenuniv.nl/ot2/qPCR')"),
+                   "FLEX protocol processor for qPCR preparation", placement='right', trigger='hover'),
+            
             #plate analysis
             titlePanel("Output Preprocessor"),
             tipify(actionButton("growthCurve", "Regular Growth Data", width='300px',
