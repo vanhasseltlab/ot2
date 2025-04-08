@@ -8,7 +8,7 @@ shinyUI(fluidPage(
         sidebarPanel(
             #OT2 protocol designers
             titlePanel("Protocol Designer"),
-            tipify(actionButton("singleplateMIC - deprecated", "MIC : \tSingleplate", width='300px',
+            tipify(actionButton("singleplateMIC - deprecated", "MIC : \tSingleplate - deprecated", width='300px',
                                 onclick ="window.open('https://ot2.lacdr.leidenuniv.nl/ot2/SingleplateMIC')"),
                    "OT2 protocol processor for MIC with one plate", placement='right', trigger='hover'),
             
