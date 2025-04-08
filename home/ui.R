@@ -8,7 +8,7 @@ shinyUI(fluidPage(
         sidebarPanel(
             #OT2 protocol designers
             titlePanel("Protocol Designer"),
-            tipify(actionButton("singleplateMIC", "MIC : \tSingleplate", width='300px',
+            tipify(actionButton("singleplateMIC - deprecated", "MIC : \tSingleplate", width='300px',
                                 onclick ="window.open('https://ot2.lacdr.leidenuniv.nl/ot2/SingleplateMIC')"),
                    "OT2 protocol processor for MIC with one plate", placement='right', trigger='hover'),
             
@@ -28,9 +28,9 @@ shinyUI(fluidPage(
                                 onclick ="window.open('https://ot2.lacdr.leidenuniv.nl/ot2/Plate48')"),
                    "OT2 protocol processor for 48-well culture plates (applicable for up to 3 plates)", placement='right', trigger='hover'),
             
-            tipify(actionButton("M9Mixer", "Medium Mixer", width='300px',
-                                onclick ="window.open('https://ot2.lacdr.leidenuniv.nl/ot2/M9MixR')"),
-                   "OT2 protocol processor for medium/solution mixing", placement='right', trigger='hover'),
+            #tipify(actionButton("M9Mixer", "Medium Mixer", width='300px',
+                                #onclick ="window.open('https://ot2.lacdr.leidenuniv.nl/ot2/M9MixR')"),
+                   #"OT2 protocol processor for medium/solution mixing", placement='right', trigger='hover'),
             
             tipify(actionButton("qPCR WALL-E", "qPCR WALL-E", width='300px',
                                 onclick ="window.open('https://ot2.lacdr.leidenuniv.nl/ot2/qPCR')"),
