@@ -906,7 +906,7 @@ main <- function(file_path, file_name=""){
   if(errMessage==""){
     deckMap <- c('96-well_D', '96-well_E', '96-well_F',
                  '96-well_A', '96-well_B', '96-well_C',
-                 'tip', '15_Falcon_spare', '15_Falcon_main',
+                 'tip', '15_Falcon_main', '15_Falcon_spare',
                  '15ml_Falcon_stock', 'Solvent', 'TRASH')
     names(deckMap) <- sapply(c(1:12), function(x) paste('labware', toString(x), sep='_'))
     
