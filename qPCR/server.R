@@ -19,7 +19,7 @@ shinyServer(function(input, output){
   outputDir_cmdline <- "/home/shiny-ot2/ShinyApps/outputs_cmdlist"
   outputDir_usrGuide <- "/home/shiny-ot2/ShinyApps/outputs_usrguide"
   inputTemplate <- "/home/shiny-ot2/ShinyApps/ot2/qPCR/qPCR_template.xlsx"
-  sourceDir <- "/home/shiny-ot2/ShinyApps/ot2/qPCR/96wellsplatefunction.R"
+  sourceDir <- "/home/shiny-ot2/ShinyApps/ot2/qPCR/96wellsplatefunctionqPCR.R"
   
   #Troubleshooting (local machine paths)
   #outputDir_cmdline <- "C:\\Users\\jornb\\ownCloud\\Jorn Brink\\01. Opentrons\\qPCR test case 96 wells\\Testoutput"
