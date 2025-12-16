@@ -143,7 +143,7 @@ def cal_aspH(ware_name, transfer_v, deck_name, slot_name, amt_list):
                 h_tip = h_bot + (rem_v - Vmax_bot)/(pi*r**2)
         else:
             if("1.5" in ware_name):
-                h_tip = 1.5 # hard-code location for eppendorfs
+                h_tip = 2 # hard-code location for eppendorfs
             else:
                 h_tip = ((3*rem_v*h_bot**2)/(pi*r**2))**(1/3)
         
