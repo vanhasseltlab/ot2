@@ -150,7 +150,7 @@ MMscheme <- function(R_num){
   H2O <- 2.92
   
   mastermix <- R_num
-  mastermix$ExcessReactions <- mastermix$Count + 10
+  mastermix$ExcessReactions <- mastermix$Count + 20
   mastermix$Sensimix <- mastermix$ExcessReactions * sensi
   mastermix$FWprimer <- mastermix$ExcessReactions * FW
   mastermix$RVprimer <- mastermix$ExcessReactions * RV
@@ -163,7 +163,9 @@ MMscheme <- function(R_num){
   
   # Rename rows and handle volume exceeding threshold
   rownames(mastermix) <- paste("Mastermix", seq_len(nrow(mastermix)))
+  mmxtest2 <<- mastermix
   allmix <- split_larger_rows(mastermix)
+  mmxtest <<- allmix
   allmix$totalvol <- NULL
 
   return (allmix)
@@ -332,7 +334,7 @@ cmd_mmprep <- function(SolList, Mastermix){
   cmd_start <- c()
   cur_asp <- 1
   cur_tip <- 1
-  mix <- 1
+  mix <- 0
   #begin itteration
   for(i in 1:nrow(SolList)){
     curset <- SolList[i,]
@@ -880,7 +882,7 @@ main <- function(file_path, filename = ""){
 }
 
 # #TROUBLESHOOTING---------
-# errMessage <<- ""
-# fpath <- "C:\\Users\\jornb\\ownCloud\\Jorn Brink\\01. Opentrons\\qPCR test case 96 wells\\Test scripts\\"
-# dataName <- "qPCR_prep_WE_040425.xlsx"
-# dqs <- main(paste(fpath, dataName, sep="//"))
+errMessage <<- ""
+fpath <- "C:\\Users\\jornb\\NextCloud\\Jorn Brink\\01.Opentrons\\qPCR test case 96 wells\\Test scripts\\"
+dataName <- "qPCR_template.xlsx"
+dqs <- main(paste(fpath, dataName, sep="//"))
