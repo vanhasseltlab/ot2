@@ -1,0 +1,1 @@
+Supporting Modules are stored here, Note that the SimConfig means that simulation mode is on. For 'active' use, remove Simconfig/do not paste it into the distribution.
