@@ -411,12 +411,33 @@ Cmd_SerialDil <- function(cmd_list, sol_list, dil_map){
   }
   return(cmd_list)
 }
-Cmd_DrugSolDist <- function(cmd_list, dil_map, plate_map, deck_map, well_info, n_plates){
+Cmd_DrugSolDist <- function(cmd_list, dil_map, plate_map, deck_map, well_info, n_plates, randomize = FALSE){
   tipID <- max(as.numeric(cmd_list[,7]), na.rm=T) + 1
   transV <- well_info[1] - well_info[2]
   
   #standardize decimal separator
   plate_map$solID <- sapply(plate_map$solID, function(x) gsub(",", ".", x))
+  
+  #randomizer part: splate_map is 1:1 with plate_map unless randomize is TRUE
+  splate_map <- plate_map
+  if(isTRUE(randomize)){
+    #wells marked "control"/"ctrl" in the inoculum slot stay where they are
+    fixed_keywords <- c("control", "ctrl")
+    is_fixed <- tolower(plate_map$Inoc) %in% fixed_keywords
+    
+    drug_idx <- which(plate_map$solID != "FILL" & !is_fixed)
+    shuffled <- drug_idx[sample.int(length(drug_idx))]   # safe when only 1 drug well
+    content_cols <- setdiff(colnames(plate_map), "Well")
+    splate_map[drug_idx, content_cols] <- plate_map[shuffled, content_cols]
+  }
+  
+  #store final plate map (long + 8x12 grid) for the user output
+  shuffled_plateMap <<- splate_map
+  grid <- matrix("", nrow=8, ncol=12, dimnames=list(LETTERS[1:8], 1:12))
+  grid[cbind(match(substr(splate_map$Well, 1, 1), LETTERS),
+             as.numeric(substring(splate_map$Well, 2)))] <- splate_map$fillID
+  shuffled_plateGrid <<- grid
+  
   dil_map$Fill <- sapply(dil_map$Fill, function(x) gsub(",", ".", x))
   
   #get plate names
@@ -424,8 +445,7 @@ Cmd_DrugSolDist <- function(cmd_list, dil_map, plate_map, deck_map, well_info, n
   
   #iterate through all items in the dilution map
   for(i in c(1:length(dil_map[,1]))){
-    target_wells <- plate_map$Well[plate_map$solID==dil_map$Fill[i]]
-    
+    target_wells <- splate_map$Well[splate_map$solID==dil_map$Fill[i]]
     #iterate through all target plates
     for(j in c(1:length(plates))){
       nexCmd <- c(dil_map$Labware[i],
@@ -435,8 +455,8 @@ Cmd_DrugSolDist <- function(cmd_list, dil_map, plate_map, deck_map, well_info, n
                   transV, 0, tipID, paste('Distributing ', dil_map$Fill[i]))
       #concatenate result
       cmd_list <- rbind(cmd_list, nexCmd)
+      
     }
-    
     
     #update tip ID only at the end of the current solution
     tipID <- tipID + 1
@@ -675,7 +695,7 @@ Cal_DeckAdjustment <- function(cmd_list, deck_map, dil_tubes, n_plate){
   return(fin_deck)
 }
 Int_CreateCmdList <- function(deck_map, sol_list, solvent_map, inoc_map,
-                              dil_map, stock_map, well_info, plate_map, n_plate){
+                              dil_map, stock_map, well_info, plate_map, n_plate, randomize = FALSE){
   
   #1. DISTRIBUTE SOLVENT
   cmdlist <- tryCatch({
@@ -712,7 +732,7 @@ Int_CreateCmdList <- function(deck_map, sol_list, solvent_map, inoc_map,
   
   #4. DISTRIBUTING DRUG SOLUTION
   cmdlist <- tryCatch({
-    Cmd_DrugSolDist(cmdlist, dil_map, plate_map, deck_map, well_info, n_plate)
+    Cmd_DrugSolDist(cmdlist, dil_map, plate_map, deck_map, well_info, n_plate, randomize)
   },
   error = function(cond){
     if(errMessage == ""){
@@ -848,7 +868,7 @@ ConvertAmtList_MCtoMV <- function(new_allAmt){
 }
 
 #MAIN---------
-main <- function(file_path, file_name=""){
+main <- function(file_path, file_name="", randomize = FALSE){
   #READ PLATE------
   stockList <- tryCatch({
     GetStockList(file_path)
@@ -981,7 +1001,7 @@ main <- function(file_path, file_name=""){
     }
     
     cmdList <- Int_CreateCmdList(deckMap, solList, solventMap, inocMap,
-                                 dilMap, stockMap, wellInfo, plateMap, plateNum)
+                                 dilMap, stockMap, wellInfo, plateMap, plateNum, randomize)
     
     cmdList <- Cmd_SeparateLong(cmdList)
     cmdList[] <- lapply(cmdList, as.character)
@@ -1042,8 +1062,8 @@ main <- function(file_path, file_name=""){
   return(allAmt)
 }
 
-#TROUBLESHOOTING---------
+#TROUBLESHOOTING--------- 
 # errMessage <<- ""
-# fpath <- "C:\\Users\\sebas\\Documents\\GitHub\\ot2\\MVPlate\\"
-# dataName <- "CDV_TOXICITY_2.0_210325_InputTemplate 1 3.xlsx"
-# dqs <- main(paste(fpath, dataName, sep="//"))
+# fpath <- "C:\\Users\\jornb\\Documents\\GitHub\\ot2-JB\\upstream (R) processors\\MVPlate\\"
+# dataName <- "MV_InputTemplate.xlsx"
+# dqs <- main(paste(fpath, dataName, sep="//"),randomize = F)
