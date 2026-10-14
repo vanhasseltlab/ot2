@@ -149,7 +149,7 @@ cal_dilScheme_MedID <- function(current_set_id, solution_list, stock_info){
   if(stock_conc >= 10*max(current_set$ReqConc)){
     #pre-dilute stock
     predilution_conc <- 10*max(current_set$ReqConc)
-    req_volume <- max(current_set$ReqVolume[nrow(current_set)]/10 + 200, 300)
+    req_volume <- max(current_set$volAbove[nrow(current_set)] + 200, 300)
     stock_predilution <- c(current_set_id,
                            unique(current_set$Medium), unique(current_set$DrugName),
                            10*max(current_set$Conc), 
@@ -373,7 +373,7 @@ InitialStockDilution <- function(cmd_list, sol_list, rack_map){
 }
 MainDilution <- function(cmd_list, sol_list, rack_map){
   #get latest tip id
-  tip_latest <- max(as.numeric(cmd_list$TipID))
+  tip_latest <- max(as.numeric(cmd_list$TipID)) + 1
   #iterate through all medium-drug id
   medDrugIDs <- unique(sol_list$medDrugID)
   for(i in c(1:length(medDrugIDs))){
