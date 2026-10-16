@@ -16,7 +16,9 @@ removeNonNumeric <- function(x) {
 ReadInput <- function(data_path){
   #initial read
   input_file <- read_xlsx(data_path, sheet=1) %>% data.frame()
+  
   input_file <- input_file[(!apply(input_file, 1, function(x) all(is.na(x)))),] #removing na-only rows
+  
   
   #A. gather stock information
   stock_info <- input_file[c(1:2),]
@@ -45,9 +47,12 @@ ReadInput <- function(data_path){
   ## read solution map
   medium_map <- unlist(input_file[c(29:36), c(2:13)])
   
+  ##innocmap
+  innoc_map <- unlist(input_file[c(39:46), c(2:13)])
+  
   #combine to drug map
-  drug_map <- cbind.data.frame(slot_vec, drug_name, drug_conc, medium_map)
-  colnames(drug_map) <- c("Slot", "DrugName", "Conc", "Medium")
+  drug_map <- cbind.data.frame(slot_vec, drug_name, drug_conc, medium_map, innoc_map)
+  colnames(drug_map) <- c("Slot", "DrugName", "Conc", "Medium", "Innoc")
   rownames(drug_map) <- c()
   drug_map$DrugName[is.na(drug_map$DrugName)] <- "mediumfill"
   
@@ -144,7 +149,7 @@ cal_dilScheme_MedID <- function(current_set_id, solution_list, stock_info){
     # calculate required medium
     current_set$volMedium[i] <- current_set$finVolumes[i] - current_set$volAbove[i]
   }
-  
+
   # if pre-dilution if required
   if(stock_conc >= 10*max(current_set$ReqConc)){
     #pre-dilute stock
@@ -373,7 +378,7 @@ InitialStockDilution <- function(cmd_list, sol_list, rack_map){
 }
 MainDilution <- function(cmd_list, sol_list, rack_map){
   #get latest tip id
-  tip_latest <- max(as.numeric(cmd_list$TipID)) + 1
+  tip_latest <- max(as.numeric(cmd_list$TipID))+1
   #iterate through all medium-drug id
   medDrugIDs <- unique(sol_list$medDrugID)
   for(i in c(1:length(medDrugIDs))){
@@ -413,12 +418,36 @@ recreate_solID <- function(row){
                   sep="-")
   return(solIDs)
 }
-MainDistribution <- function(vol_info, sol_list, rack_map, drug_map, n_plate, deck_map, cmd_list){
+MainDistribution <- function(vol_info, sol_list, rack_map, drug_map, n_plate, deck_map, cmd_list, randomize = FALSE){
   #get current tip id
   cur_tip <- max(as.numeric(cmd_list$TipID)) + 1
   
+  #randomizer part: sdrug_map is 1:1 with drug_map unless randomize is TRUE
+  sdrug_map <- drug_map
+  if(isTRUE(randomize)){
+    #wells marked "control"/"cntrl"/"ctrl" in the inoculum slot stay where they are
+    fixed_keywords <- c("control", "cntrl", "ctrl")
+    is_fixed <- tolower(trimws(drug_map$Innoc)) %in% fixed_keywords
+    is_fill  <- tolower(trimws(drug_map$DrugName)) == "mediumfill"
+    is_fill[is.na(is_fill)] <- FALSE
+    
+    drug_idx <- which(!is_fill & !is_fixed)
+    shuffled <- drug_idx[sample.int(length(drug_idx))]   # safe when only 1 drug well
+    content_cols <- setdiff(colnames(drug_map), "Slot")
+    sdrug_map[drug_idx, content_cols] <- drug_map[shuffled, content_cols]
+  }
+  drug_map <- sdrug_map
+  
+  #store final drug map (long + 8x12 grid) for the user output
+  shuffled_drugMap <<- drug_map
+  grid <- matrix("", nrow=8, ncol=12, dimnames=list(LETTERS[1:8], 1:12))
+  grid[cbind(match(substr(drug_map$Slot, 1, 1), LETTERS),
+             as.numeric(substring(drug_map$Slot, 2)))] <- paste(drug_map$DrugName, drug_map$Conc, drug_map$Innoc, sep=" | ")
+  shuffled_drugGrid <<- grid
+  
   #preparing drug map
   drug_map2 <- subset(drug_map, DrugName != "mediumfill")
+
   solID_info <- c()
   for(qq in c(1:length(drug_map2[,1]))){
     nexDat <- recreate_solID(drug_map2[qq,])
@@ -531,6 +560,7 @@ Calculate_SolventAmt <- function(rack_map, cmd_list){
       nex_trans_amt <- as.numeric(cmd_list$TransAmt[i]) * 
         length(strsplit(cmd_list$TargetSlot[i], split=", ")[[1]])
       
+      
       if(tube_fill + nex_trans_amt < 46000){
         #add volume
         solvent_rack$FillVolume[solvent_rack$Slot==cmd_list$SourceSlot[i]] <- solvent_rack$FillVolume[solvent_rack$Slot==cmd_list$SourceSlot[i]] + nex_trans_amt
@@ -636,9 +666,10 @@ AdjustDeck <- function(deck_map, rack_map, n_plate){
 }
 
 #MAIN--------
-mainExec <- function(file_name){
+mainExec <- function(file_name, randomize = FALSE){
   # ---------- SECTION A - Read and Preparation -------------
   allInput <- ReadInput(file_name)
+  allinputtest <<- allInput
   stockInfo <- allInput[[1]]
   volInfo <- allInput[[2]]
   drugMap <- allInput[[3]]
@@ -696,7 +727,7 @@ mainExec <- function(file_name){
   
   #x4. Distribution
   cmdList <- MainDistribution(volInfo, solList, rackMap, 
-                              drugMap, nPlate, deckMap, cmdList)
+                              drugMap, nPlate, deckMap, cmdList, randomize)
   
   # ---------- SECTION D - Output Preparations -------------
   #q1. Calculate Required Solvent Amount
@@ -767,9 +798,9 @@ mainExec <- function(file_name){
 }
 
 #TROUBLESHOOTING--------------
-# mainwd <- "C:\\Users\\sebas\\Documents\\GitHub\\ot2\\CQ_Plate\\"
-# inputFile <- "CQ_InputTemplate_GCV_FOS_LS.xlsx"
+# mainwd <- "C:\\Users\\jornb\\Documents\\GitHub\\ot2-JB\\upstream (R) processors\\CQ_Plate\\"
+#inputFile <- "CQ_InputTemplate_GCV_FOS_LS.xlsx"
 # inputFile <- "CQ_InputTemplate.xlsx"
-# dqs <- mainExec(paste0(mainwd, inputFile))
+# dqs <- mainExec(paste0(mainwd, inputFile), randomize = FALSE)
 
-# write.csv(robotCommands, paste0(mainwd, "/CommandList_test.csv"), row.names=F)
+#write.csv(robotCommands, paste0(mainwd, "/CommandList_test.csv"), row.names=F)

@@ -10,10 +10,10 @@ options(stringsAsFactors = F)
 #SERVER MAIN------------
 shinyServer(function(input, output) {
   #defining directory-------
-  # outputDir_cmdline <- "C:\\Users\\jornb\\Documents\\GitHub\\ot2\\CQ_Plate"
-  # outputDir_usrGuide <- "C:\\Users\\jornb\\Documents\\GitHub\\ot2\\CQ_Plate"
-  # inputTemplate <- "C:\\Users\\jornb\\Documents\\GitHub\\ot2\\CQ_Plate\\CQ_InputTemplate.xlsx"
-  # sourceDir <- "C:\\Users\\jornb\\Documents\\GitHub\\ot2\\CQ_Plate\\ComboDrugs_source.R"
+  # outputDir_cmdline <- "C:\\Users\\jornb\\Documents\\GitHub\\ot2-JB\\upstream (R) processors\\CQ_Plate"
+  # outputDir_usrGuide <- "C:\\Users\\jornb\\Documents\\GitHub\\ot2-JB\\upstream (R) processors\\CQ_Plate"
+  # inputTemplate <- "C:\\Users\\jornb\\Documents\\GitHub\\ot2-JB\\upstream (R) processors\\CQ_Plate\\CQ_InputTemplate.xlsx"
+  # sourceDir <- "C:\\Users\\jornb\\Documents\\GitHub\\ot2-JB\\upstream (R) processors\\CQ_Plate\\ComboDrugs_source.R"
   
   outputDir_cmdline <- "/home/shiny-ot2/ShinyApps/outputs_cmdlist"
   outputDir_usrGuide <- "/home/shiny-ot2/ShinyApps/outputs_usrguide"
@@ -51,7 +51,7 @@ shinyServer(function(input, output) {
       file_name <<- strsplit(infile$name, '.xl')[[1]][1]
       
       #update table view
-      dis <- mainExec(infile$datapath)
+      dis <- mainExec(infile$datapath, randomize = isolate(input$randomize))
       
       #savekeeping output files
       #command line
@@ -63,6 +63,12 @@ shinyServer(function(input, output) {
       usrGuide_name <- paste("RobotHandler_", new_name(), '.xlsx', sep='')
       write_dir <- paste(outputDir_usrGuide, usrGuide_name, sep='/')
       write_xlsx(data.frame(robotHandler), write_dir, col_names=T)
+      
+      #plate map (grid + long format); the only record of the layout when randomized
+      plateMap_name <- paste("PlateMap_", new_name(), '.xlsx', sep='')
+      write_xlsx(list(Grid = data.frame(Row = rownames(shuffled_drugGrid), shuffled_drugGrid, check.names=FALSE),
+                      Long = shuffled_drugMap),
+                 paste(outputDir_usrGuide, plateMap_name, sep='/'))
     }
     return(dis)
   })
@@ -78,6 +84,10 @@ shinyServer(function(input, output) {
     req(input$do, contents())
     downloadButton("guide", "Download Robot Setup Guide")
   })
+  output$downloadData3 <- renderUI({
+    req(input$do, contents())
+    downloadButton("plateMap", "Download Plate Map")
+  })
   
   #Sample File Name--------
   output$tex <- renderText({new_name()})
@@ -87,12 +97,17 @@ shinyServer(function(input, output) {
     filename = function(){paste("CommandList_", new_name(), '.csv', sep='')},
     content = function(file) {
       write.csv(robotCommands, file, row.names = FALSE)
-    }
-  )
+    })
   output$guide <- downloadHandler(
     filename = function(){paste("RobotHandler_", new_name(), '.xlsx', sep='')},
     content = function(file) {
       write_xlsx(data.frame(robotHandler), file, col_names=T)
+    })
+  output$plateMap <- downloadHandler(
+    filename = function(){paste("PlateMap_", new_name(), '.xlsx', sep='')},
+    content = function(file) {
+      write_xlsx(list(Grid = data.frame(Row = rownames(shuffled_drugGrid), shuffled_drugGrid, check.names=FALSE),
+                      Long = shuffled_drugMap), file)
     }
   )
   
